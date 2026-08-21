@@ -13,7 +13,7 @@ core_promise: >
 client_outcome: >
   A prioritized risk shortlist.
 client_how: >
-  We name the few assumptions that, if false, collapse the initiative —
+  We name the few assumptions that, if false, collapse the initiative,
   and leave the rest off the steering page.
 spark_how: >
   Sort risks by collapse potential, not by count. Shortlist only those

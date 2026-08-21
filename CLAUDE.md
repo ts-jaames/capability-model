@@ -48,7 +48,7 @@ An atomic method (`core_technique`) or specific tool (`transient_tool`) used **i
 
 How a **capability** is executed: L1 Guided Execution, L2 Practitioner, L3 Advanced Lead, plus Owner (agency-wide accountability for that capability — not a fourth execution grade).
 
-Levels are not a property of domains, titles, or people. Do not invent L4. Do not put the execution scale on a domain.
+Levels are not a property of domains, skills, titles, or people. Do not invent L4. Do not put the execution scale on a domain or a skill.
 
 ### Title
 
@@ -91,7 +91,7 @@ These are shape rules. Passing them does not mean the entity should exist.
 ## Field notes
 
 - `source` is `sfia` | `adapted` | `original`.
-- Skill `type` is `core_technique` | `transient_tool`. `levels` is the subset of L1–L3 where it applies. `is_automated: true` means the skill is absorbed into an L1 guardrail.
+- Skill `type` is `core_technique` | `transient_tool`. `is_automated: true` means the skill is absorbed into an L1 guardrail.
 - Capability `spark_how` is internal methodology. `client_how` is the client-facing experience.
 - Role `owned_capabilities` are ids (Owner accountability). `executable_capabilities` are `{ id, required_level }` with `required_level` L1–L3.
 

@@ -13,7 +13,7 @@ core_promise: >
 client_outcome: >
   An AI system grounded in their data, not a generic demo.
 client_how: >
-  We build against their corpus, their failure modes, and their operators —
+  We build against their corpus, their failure modes, and their operators,
   and show it working there, not on a vendor sample.
 spark_how: >
   Ground the model in client data and evals. Treat reliability as a build

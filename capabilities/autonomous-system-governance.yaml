@@ -2,7 +2,7 @@ id: autonomous-system-governance
 name: Autonomous-system governance
 description: >
   Sets how client-owned agentic systems stay safe and accountable after
-  handoff — distinct and worth keeping so clients can run the autonomy,
+  handoff, distinct and worth keeping so clients can run the autonomy,
   not just own it.
 status: draft
 owner: Operating Model
@@ -14,7 +14,7 @@ core_promise: >
 client_outcome: >
   Clients who can run the autonomy, not just own it.
 client_how: >
-  We leave them the controls, the review path, and the kill rules — not
+  We leave them the controls, the review path, and the kill rules, not
   a model they cannot supervise.
 spark_how: >
   Governance for systems that act. Ownership, eval cadence, escalation,

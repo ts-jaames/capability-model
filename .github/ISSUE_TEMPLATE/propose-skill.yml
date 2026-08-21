@@ -31,17 +31,6 @@ body:
         - transient_tool
     validations:
       required: true
-  - type: checkboxes
-    id: levels
-    attributes:
-      label: Applicable levels
-      description: Only the levels where this skill meaningfully applies.
-      options:
-        - label: L1 Guided Execution
-        - label: L2 Practitioner
-        - label: L3 Advanced Lead
-    validations:
-      required: true
   - type: dropdown
     id: is_automated
     attributes:

@@ -3,7 +3,7 @@ name: Signal design
 description: >
   Decides what would count as proof and instruments for it before building.
   Folds signal definition and instrumentation. Metric and outcome definition
-  may overlap with Framing / Outcome definition — this capability owns the
+  may overlap with Framing / Outcome definition. This capability owns the
   evidence bar, not the commercial target.
 status: draft
 owner: Operating Model

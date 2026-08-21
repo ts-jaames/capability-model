@@ -12,7 +12,7 @@ core_promise: >
 client_outcome: >
   An architecture the team can build on and own.
 client_how: >
-  We design and build the seams — data, services, integration — so the
+  We design and build the seams (data, services, integration) so the
   product is not a pile of disconnected surfaces.
 spark_how: >
   Fit the pieces to the constraint set. Prefer boring, ownable structure

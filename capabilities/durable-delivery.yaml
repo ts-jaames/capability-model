@@ -13,7 +13,7 @@ core_promise: >
 client_outcome: >
   Clean, releasable ground the client's team can extend without us.
 client_how: >
-  We leave a path they can ship on — not a machine only we know how to run.
+  We leave a path they can ship on, not a machine only we know how to run.
 spark_how: >
   Repeatable release, readable codebase, documented seams. Durable means
   the next change does not require the original makers.

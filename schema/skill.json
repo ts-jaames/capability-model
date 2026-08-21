@@ -12,8 +12,7 @@
     "source",
     "last_updated",
     "type",
-    "is_automated",
-    "levels"
+    "is_automated"
   ],
   "properties": {
     "id": { "$ref": "common.json#/$defs/kebabId" },
@@ -24,12 +23,6 @@
     "source": { "$ref": "common.json#/$defs/source" },
     "last_updated": { "$ref": "common.json#/$defs/isoDate" },
     "type": { "type": "string", "enum": ["core_technique", "transient_tool"] },
-    "is_automated": { "type": "boolean" },
-    "levels": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": { "$ref": "common.json#/$defs/levelId" }
-    }
+    "is_automated": { "type": "boolean" }
   }
 }

@@ -14,7 +14,7 @@ core_promise: >
 client_outcome: >
   Coverage that proves it holds, including for probabilistic/AI behavior.
 client_how: >
-  We show the tests and the misses — including the cases a happy-path demo
+  We show the tests and the misses, including the cases a happy-path demo
   would never hit.
 spark_how: >
   Real conditions plus generated ones. Eval design sits here as a skill

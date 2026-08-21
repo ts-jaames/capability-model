@@ -31,5 +31,5 @@ ownership:
   name: Capability Ownership
   description: >
     Agency-wide accountability for capability maturity, L1 guardrail creation,
-    and quality. Distinct from L3 execution — an Owner is responsible for the
+    and quality. Distinct from L3 execution. An Owner is responsible for the
     capability existing and remaining fit for use.

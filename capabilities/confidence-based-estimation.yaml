@@ -11,7 +11,7 @@ domain: commercial
 core_promise: >
   Prices the proven tight and names the unproven as bets.
 client_outcome: >
-  An estimate traceable to signal — what is priced as known, and what is held
+  An estimate traceable to signal: what is priced as known, and what is held
   as a bet.
 client_how: >
   We walk the work against evidence, split proven from unproven, and price

@@ -13,7 +13,7 @@ core_promise: >
 client_outcome: >
   No surprises about what happens post-launch.
 client_how: >
-  We write the after in the same language as the during — what we still
+  We write the after in the same language as the during: what we still
   hold, what they hold, and when that swaps.
 spark_how: >
   Warranty, support, and backlog handoff as one design. Be explicit about
