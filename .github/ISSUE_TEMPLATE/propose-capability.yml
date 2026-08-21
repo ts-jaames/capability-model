@@ -1,0 +1,66 @@
+name: Propose a capability
+description: Name an outcome we promise clients, and how we deliver it. You do not need to edit YAML.
+title: "[Capability] "
+labels: ["capability", "draft"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A capability is a named client outcome. It can link at most 10 skills. Ratification requires L1 guardrails. New capabilities land at `status: draft`.
+  - type: input
+    id: name
+    attributes:
+      label: Capability name
+      placeholder: Product & Interface Building
+    validations:
+      required: true
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      options:
+        - Commercial
+        - Framing
+        - Building
+        - Proof
+        - Enablement
+        - Continuity
+    validations:
+      required: true
+  - type: textarea
+    id: core_promise
+    attributes:
+      label: Client promise
+      description: The named outcome we put in front of the client.
+    validations:
+      required: true
+  - type: textarea
+    id: client_outcome
+    attributes:
+      label: Client outcome
+      description: What they walk away able to do or own.
+    validations:
+      required: true
+  - type: textarea
+    id: client_how
+    attributes:
+      label: How the client experiences it
+    validations:
+      required: true
+  - type: textarea
+    id: spark_how
+    attributes:
+      label: How we deliver it
+      description: Internal methodology, not the sales story.
+    validations:
+      required: true
+  - type: textarea
+    id: l1_guardrails
+    attributes:
+      label: L1 guardrails
+      description: Templates, components, prompts, or links that let a non-specialist execute safely. One per line. Can be empty for a draft.
+  - type: textarea
+    id: skills
+    attributes:
+      label: Linked skills
+      description: Up to 10. Names are enough. Leave blank if the skills do not exist yet.

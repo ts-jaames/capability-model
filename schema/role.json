@@ -1,0 +1,47 @@
+{
+  "$id": "https://capability-model.local/schema/role.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Role",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "description",
+    "owner",
+    "source",
+    "last_updated",
+    "owned_capabilities",
+    "executable_capabilities",
+    "demand_literacy"
+  ],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "description": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "status": { "$ref": "common.json#/$defs/status" },
+    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "source": { "$ref": "common.json#/$defs/source" },
+    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
+    "owned_capabilities": {
+      "type": "array",
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": { "$ref": "common.json#/$defs/kebabId" }
+    },
+    "executable_capabilities": {
+      "type": "array",
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "required_level"],
+        "properties": {
+          "id": { "$ref": "common.json#/$defs/kebabId" },
+          "required_level": { "$ref": "common.json#/$defs/levelId" }
+        }
+      }
+    },
+    "demand_literacy": { "$ref": "common.json#/$defs/nonEmptyString" }
+  }
+}

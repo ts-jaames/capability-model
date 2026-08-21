@@ -1,0 +1,15 @@
+id: component-tokenization
+name: Component Tokenization
+description: >
+  Extract colour, type, space, and radius into tokens and bind components to
+  those tokens so later screens assemble instead of being invented.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+type: core_technique
+is_automated: true
+levels:
+  - L1
+  - L2
+  - L3

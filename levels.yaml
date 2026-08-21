@@ -1,0 +1,35 @@
+id: execution-scale
+name: Execution scale
+description: >
+  A strict three-level execution scale plus capability ownership. L1–L3 describe
+  how work is done. Owner is agency-wide accountability for a capability, not a
+  fourth execution grade.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+
+execution_levels:
+  - id: L1
+    name: Guided Execution
+    description: >
+      Operates safely using defined guardrails and templates. Non-specialists
+      can execute without inventing method.
+  - id: L2
+    name: Practitioner
+    description: >
+      Executes end-to-end independently and handles edge cases without
+      escalating the method.
+  - id: L3
+    name: Advanced Lead
+    description: >
+      Builds guardrails, handles extreme complexity, and defines the standards
+      others execute against.
+
+ownership:
+  id: Owner
+  name: Capability Ownership
+  description: >
+    Agency-wide accountability for capability maturity, L1 guardrail creation,
+    and quality. Distinct from L3 execution — an Owner is responsible for the
+    capability existing and remaining fit for use.

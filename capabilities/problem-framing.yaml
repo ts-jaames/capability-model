@@ -1,0 +1,18 @@
+id: problem-framing
+name: Problem Framing
+description: >
+  Understanding the problem well enough to make a go, redirect, or stop call.
+  Stub for staffing the Interface Lead; expand in a later pass.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+domain: framing
+core_promise: A decision on whether the problem is worth building against.
+client_outcome: A shared problem statement and an explicit go, redirect, or stop.
+client_how: Structured working sessions that separate symptoms from the job to be done.
+spark_how: Frame the problem against evidence, then recommend a call. Method to be expanded.
+default_state: A bounded problem with accessible stakeholders and an existing brief.
+exception_states: []
+l1_guardrails: []
+skills: []

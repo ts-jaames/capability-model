@@ -1,0 +1,21 @@
+{
+  "$id": "https://capability-model.local/schema/common.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "kebabId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "reviewed", "ratified"],
+      "default": "draft"
+    },
+    "source": { "type": "string", "enum": ["sfia", "adapted", "original"] },
+    "isoDate": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "levelId": { "type": "string", "enum": ["L1", "L2", "L3"] }
+  }
+}

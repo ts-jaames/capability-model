@@ -1,0 +1,62 @@
+{
+  "$id": "https://capability-model.local/schema/capability.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Capability",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "description",
+    "owner",
+    "source",
+    "last_updated",
+    "domain",
+    "core_promise",
+    "client_outcome",
+    "client_how",
+    "spark_how",
+    "default_state",
+    "exception_states",
+    "l1_guardrails",
+    "skills"
+  ],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "description": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "status": { "$ref": "common.json#/$defs/status" },
+    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "source": { "$ref": "common.json#/$defs/source" },
+    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
+    "domain": { "$ref": "common.json#/$defs/kebabId" },
+    "core_promise": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "client_outcome": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "client_how": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "spark_how": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "default_state": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "exception_states": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "id", "when"],
+        "properties": {
+          "type": { "type": "string", "enum": ["skill", "internal_capability"] },
+          "id": { "$ref": "common.json#/$defs/kebabId" },
+          "when": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    },
+    "l1_guardrails": {
+      "type": "array",
+      "items": { "$ref": "common.json#/$defs/nonEmptyString" }
+    },
+    "skills": {
+      "type": "array",
+      "maxItems": 10,
+      "uniqueItems": true,
+      "items": { "$ref": "common.json#/$defs/kebabId" }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+id: interface-lead
+name: Interface Lead
+description: >
+  Owns Product & Interface Building for the engagement. Executes adjacent
+  framing work so the interface is built against a decided problem, not a
+  moving brief.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+owned_capabilities:
+  - product-interface-building
+executable_capabilities:
+  - id: problem-framing
+    required_level: L2
+  - id: stakeholder-alignment
+    required_level: L2
+demand_literacy: >
+  Can tell when a surface needs a new token layer versus a one-off component;
+  when state is a product problem rather than a styling problem; and when the
+  brief is still a framing problem that must be decided before more interface
+  is built.

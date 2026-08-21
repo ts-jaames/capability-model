@@ -1,0 +1,61 @@
+name: Propose a skill
+description: Add an atomic execution unit to an existing capability. You do not need to edit YAML.
+title: "[Skill] "
+labels: ["skill", "draft"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Skills are the atomic execution unit. Keep the name short. A maintainer or Claude CoWork will turn this into YAML at `status: draft`.
+  - type: input
+    id: name
+    attributes:
+      label: Skill name
+      placeholder: Component Tokenization
+    validations:
+      required: true
+  - type: input
+    id: target_capability
+    attributes:
+      label: Target capability
+      description: The capability this skill belongs to (name or id).
+      placeholder: Product & Interface Building
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options:
+        - core_technique
+        - transient_tool
+    validations:
+      required: true
+  - type: checkboxes
+    id: levels
+    attributes:
+      label: Applicable levels
+      description: Only the levels where this skill meaningfully applies.
+      options:
+        - label: L1 Guided Execution
+        - label: L2 Practitioner
+        - label: L3 Advanced Lead
+    validations:
+      required: true
+  - type: dropdown
+    id: is_automated
+    attributes:
+      label: Absorbed into an L1 template or guardrail?
+      options:
+        - "No"
+        - "Yes"
+      default: 0
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What someone actually does when they use this skill.
+    validations:
+      required: true

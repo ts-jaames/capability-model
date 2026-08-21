@@ -1,0 +1,51 @@
+{
+  "$id": "https://capability-model.local/schema/levels.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Levels",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "description",
+    "owner",
+    "source",
+    "last_updated",
+    "execution_levels",
+    "ownership"
+  ],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "description": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "status": { "$ref": "common.json#/$defs/status" },
+    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "source": { "$ref": "common.json#/$defs/source" },
+    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
+    "execution_levels": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "description"],
+        "properties": {
+          "id": { "$ref": "common.json#/$defs/levelId" },
+          "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "description"],
+      "properties": {
+        "id": { "type": "string", "const": "Owner" },
+        "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+id: stakeholder-alignment
+name: Stakeholder Alignment
+description: >
+  Getting the people who can block or bless the work onto the same problem and
+  the same call. Stub for staffing the Interface Lead; expand in a later pass.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+domain: framing
+core_promise: The people who matter agree on the problem and the next move.
+client_outcome: Named owners, explicit dissent, and a decision that holds outside the room.
+client_how: Facilitated alignment, not a slide review after the fact.
+spark_how: Map influence, surface disagreement, and lock the call. Method to be expanded.
+default_state: Identifiable stakeholders who can be gathered in a working session.
+exception_states: []
+l1_guardrails: []
+skills: []

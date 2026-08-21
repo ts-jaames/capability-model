@@ -1,0 +1,51 @@
+name: Define a role
+description: Bundle capabilities for staffing. Roles do not reference skills. You do not need to edit YAML.
+title: "[Role] "
+labels: ["role", "draft"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A role owns at most 2 capabilities (Owner accountability) and may execute at most 7 others (L1–L3). Owned and executable lists must not overlap. Lands at `status: draft`.
+  - type: input
+    id: name
+    attributes:
+      label: Role name
+      placeholder: Interface Lead
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: When we staff this role, and what they are accountable for.
+    validations:
+      required: true
+  - type: input
+    id: owned_1
+    attributes:
+      label: Owned capability 1
+      description: Requires L3 / Owner-level accountability. Max 2 owned.
+      placeholder: Product & Interface Building
+  - type: input
+    id: owned_2
+    attributes:
+      label: Owned capability 2
+      description: Optional.
+  - type: textarea
+    id: executable
+    attributes:
+      label: Executable capabilities
+      description: Up to 7. One per line as `Capability name — L1|L2|L3`. Do not repeat owned capabilities.
+      placeholder: |
+        Problem Framing — L2
+        Stakeholder Alignment — L2
+    validations:
+      required: true
+  - type: textarea
+    id: demand_literacy
+    attributes:
+      label: Demand literacy
+      description: What this role must be able to recognise in a briefing or a live engagement.
+    validations:
+      required: true
