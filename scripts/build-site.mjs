@@ -96,7 +96,7 @@ function renderCap(cap, domains, skillById) {
   return `
     <article class="row" id="capability-${esc(cap.id)}">
       <header class="row-head">
-        <h3>${esc(cap.name)}</h3>
+        <h3 class="domain-name">${esc(cap.name)}</h3>
         <div class="row-meta">
           <span class="mono">${esc(domain?.name ?? cap.domain)}</span>
           ${badge(statusOf(cap))}
@@ -130,13 +130,6 @@ function render(model) {
   }
   const skillById = new Map(skills.map((s) => [s.id, s]));
 
-  const sideDomains = domains
-    .map(
-      (domain) =>
-        `<a href="#domain-${esc(domain.id)}">${esc(domain.name)}</a>`,
-    )
-    .join("");
-
   const domainSections = domains
     .map((domain) => {
       const caps = (capsByDomain.get(domain.id) ?? []).sort((a, b) =>
@@ -154,7 +147,6 @@ function render(model) {
         <article class="row" id="domain-${esc(domain.id)}">
           <header class="row-head">
             <h3 class="domain-name">${esc(domain.name)}</h3>
-            ${badge(statusOf(domain))}
           </header>
           <div class="prose">${paragraphs(domain.description)}</div>
           ${list}
@@ -168,9 +160,7 @@ function render(model) {
       a.name.localeCompare(b.name),
     );
     if (!domain || !caps.length) return "";
-    return `<p class="group-label">${esc(domain.name)}</p>${caps
-      .map((cap) => renderCap(cap, domains, skillById))
-      .join("")}`;
+    return caps.map((cap) => renderCap(cap, domains, skillById)).join("");
   }).join("");
 
   const leftover = capabilities.filter((cap) => !DOMAIN_ORDER.includes(cap.domain));
@@ -204,13 +194,18 @@ function render(model) {
     levels.ownership,
   ]
     .filter(Boolean)
-    .map(
-      (level) => `
-        <div class="kv">
-          <div class="label"><span class="mono">${esc(level.id)}</span> ${esc(level.name)}</div>
-          <div class="kv-body">${paragraphs(level.description)}</div>
-        </div>`,
-    )
+    .map((level) => {
+      const isOwner = level.id === "Owner";
+      const label = isOwner
+        ? esc(level.name)
+        : `<span class="mono">${esc(level.id)}</span> ${esc(level.name)}`;
+      const desc = esc(String(level.description ?? "").trim().replace(/\s+/g, " "));
+      return `
+            <tr>
+              <td class="cap-ex-level">${label}</td>
+              <td>${desc}</td>
+            </tr>`;
+    })
     .join("");
 
   const generated = new Date().toISOString().slice(0, 10);
@@ -239,210 +234,16 @@ function render(model) {
     * { box-sizing: border-box; }
     html {
       scroll-behavior: smooth;
-      scroll-padding-top: 24px;
+      scroll-padding-top: 12px;
     }
     body {
       margin: 0;
       color: var(--ink);
       background: var(--bg);
       font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 400;
       line-height: 1.6;
-    }
-    a {
-      color: inherit;
-      text-decoration: none;
-      font-weight: 400;
-      font-synthesis: none;
-      transition: font-weight 200ms ease;
-    }
-    a:hover { font-weight: 600; }
-    .mono {
-      font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
-      font-size: 12px;
-      font-weight: 400;
-      letter-spacing: 0.01em;
-    }
-    .shell {
-      display: grid;
-      grid-template-columns: 180px minmax(0, 760px);
-      gap: 48px;
-      max-width: 988px;
-      margin: 0 auto;
-      padding: 48px 32px 96px;
-    }
-    .side {
-      position: sticky;
-      top: 32px;
-      align-self: start;
-    }
-    .brand {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      margin: 0 0 24px;
-      color: var(--ink);
-    }
-    .side nav {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .side nav a {
-      color: var(--muted);
-      font-size: 14px;
-      padding: 8px 0;
-    }
-    .side nav a:hover { font-weight: 600; }
-    .side .group {
-      margin-top: 24px;
-    }
-    .side .label { margin-bottom: 8px; }
-    .side .domains {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .side .domains a {
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .doc { min-width: 0; }
-    h1, h2, h3, .name, .domain-name {
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      color: var(--ink);
-      line-height: 1.3;
-    }
-    h1 { font-size: 28px; margin: 0 0 16px; }
-    h2 { font-size: 19px; margin: 0 0 16px; }
-    h3, .name { font-size: 15px; margin: 0; }
-    .domain-name { font-size: 19px; }
-    p { margin: 0 0 8px; }
-    p:last-child { margin-bottom: 0; }
-    .lede {
-      color: var(--muted);
-      margin: 0 0 16px;
-      max-width: 760px;
-    }
-    section { margin: 0 0 48px; padding: 0; }
-    section[id], article[id], tr[id] { scroll-margin-top: 24px; }
-    .label {
-      font-size: 12px;
-      font-weight: 400;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .row .kvs .label::after {
-      content: " \\2014";
-    }
-    .group-label {
-      font-size: 12px;
-      font-weight: 400;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--dim);
-      margin: 32px 0 0;
-      padding: 16px 0 8px;
-    }
-    .group-label:first-child { margin-top: 0; }
-    .row {
-      padding: 24px 0;
-      border-bottom: 1px solid var(--line);
-    }
-    .row:hover { background: var(--hover); }
-    .row-head {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 8px 16px;
-      margin-bottom: 16px;
-    }
-    .row-meta {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      color: var(--muted);
-    }
-    .status {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--muted);
-    }
-    .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 99px;
-      background: var(--dim);
-      display: inline-block;
-    }
-    .dot-reviewed { background: var(--accent); }
-    .dot-ratified { background: var(--ratified); }
-    .dot-draft { background: var(--draft); }
-    .side .status-key {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 32px;
-    }
-    .side .status-key-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11.5px;
-      font-weight: 400;
-      color: var(--muted);
-    }
-    .side .status-key-row .eq {
-      color: var(--dim);
-    }
-    .pill, a.pill {
-      display: inline-block;
-      padding: 8px 16px;
-      background: var(--hover);
-      color: var(--ink);
-      line-height: 1.4;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      font-size: 12px;
-    }
-    .pills { display: flex; flex-wrap: wrap; gap: 8px; }
-    ul.bullets {
-      margin: 0;
-      padding-left: 16px;
-    }
-    ul.bullets li {
-      margin: 0 0 8px;
-      padding: 0;
-      border: 0;
-    }
-    ul.bullets li:last-child { margin-bottom: 0; }
-    .meta, .dim { color: var(--muted); font-size: 12px; }
-    .dim { color: var(--dim); }
-    .prose { margin-bottom: 16px; }
-    .kvs { display: flex; flex-direction: column; gap: 16px; }
-    .kvs.levels { margin: 24px 0 32px; }
-    .kv {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .kv-body, .kv-body p { font-size: 14px; font-weight: 400; line-height: 1.6; }
-    ul.plain { list-style: none; padding: 0; margin: 0; }
-    ul.plain li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
-    ul.plain li:last-child { border-bottom: 0; padding-bottom: 0; }
-    ul.plain li:first-child { padding-top: 0; }
-    .inline-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 16px;
     }
     .hairline-table {
       width: 100%;
@@ -509,6 +310,162 @@ function render(model) {
       visibility: visible;
       opacity: 1;
     }
+    a {
+      color: inherit;
+      text-decoration: none;
+      font-weight: 400;
+      font-synthesis: none;
+      transition: font-weight 200ms ease;
+    }
+    a:hover { font-weight: 600; }
+    .uppercase { text-transform: uppercase; }
+    .mono {
+      font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+    .shell {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 760px);
+      gap: 72px;
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 48px 32px 96px;
+    }
+    .side {
+      position: sticky;
+      top: 32px;
+      align-self: start;
+    }
+    .side nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .side nav a {
+      font-size: 13.5px;
+    }
+    .side nav a:hover { font-weight: 600; }
+    .doc { min-width: 0; }
+    h1, h2, h3, .domain-name {
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+    h1 { font-size: 28px; margin: 0 0 16px; }
+    h2 { font-size: 19px; margin: 0 0 16px; }
+    h3, .name { font-size: 13.5px; margin: 0; }
+    .domain-name { font-size: 13.5px; }
+    p { margin: 0 0 8px; }
+    p:last-child { margin-bottom: 0; }
+    .lede {
+      color: var(--ink);
+      margin: 0 0 16px;
+      max-width: 760px;
+    }
+    section { margin: 0 0 84px; padding: 0; }
+    section[id], article[id], tr[id] { scroll-margin-top: 24px; }
+    .label {
+      font-size: 13.5px;
+      color: var(--ink);
+      font-weight: 400;
+    }
+    .row .kvs .label::after {
+      content: " \\2014";
+    }
+    .row {
+      padding: 28px 0;
+    }
+    .row:first-of-type { padding-top: 0; }
+    .row-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      gap: 8px 16px;
+      margin-bottom: 4px;
+    }
+    #capabilities .row-head {
+      margin-bottom: 12px;
+    }
+    .row-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+    }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 99px;
+      background: var(--dim);
+      display: inline-block;
+    }
+    .dot-reviewed { background: var(--accent); }
+    .dot-ratified { background: var(--ratified); }
+    .dot-draft { background: var(--draft); }
+    .side .status-key {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 32px;
+    }
+    .side .status-key-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13.5px;
+      font-weight: 400;
+    }
+    .pill, a.pill {
+      display: inline-block;
+      padding: 8px 12px;
+      background: var(--hover);
+      color: var(--ink);
+      line-height: 1.2;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 12.5px;
+    }
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    ul.bullets {
+      margin: 6px 0;
+      padding-left: 16px;
+    }
+    ul.bullets li {
+      padding: 0;
+      border: 0;
+    }
+    ul.bullets li:last-child { margin-bottom: 0; }
+    .meta, .dim { color: var(--muted); font-size: 12px; }
+    .dim { color: var(--dim); }
+    .prose { margin-bottom: 24px; max-width: 700px; }
+    .kvs { display: flex; flex-direction: column; gap: 12px; }
+    .kv {
+      display: flex;
+      flex-direction: column;
+    }
+    .kv-body, .kv-body p { font-size: 13.5px; font-weight: 400; line-height: 1.6; }
+    ul.plain { list-style: none; padding: 0; margin: 0; }
+    ul.plain li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
+    ul.plain li:last-child { border-bottom: 0; padding-bottom: 0; }
+    ul.plain li:first-child { padding-top: 0; }
+    .inline-row {
+      display: flex;
+      gap: 16px;
+    }
+    .eyebrow {
+      margin-bottom: 32px;
+      display: block;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -542,7 +499,7 @@ function render(model) {
         padding: 32px 16px 64px;
       }
       .side { position: static; }
-      .side nav, .side .domains { flex-direction: row; flex-wrap: wrap; gap: 8px 16px; }
+      .side nav { flex-direction: row; flex-wrap: wrap; gap: 8px 16px; }
     }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
@@ -553,7 +510,7 @@ function render(model) {
 <body>
   <div class="shell">
     <aside class="side">
-      <a class="brand" href="#overview">Capability taxonomy</a>
+      <a class="uppercase mono eyebrow" href="#overview">Capability Model</a>
       <nav>
         <a href="#overview">Overview</a>
         <a href="#domains">Domains</a>
@@ -564,30 +521,35 @@ function render(model) {
         <div class="status-key-row"><i class="dot dot-draft"></i><span class="eq">=</span><span>draft</span></div>
         <div class="status-key-row"><i class="dot dot-ratified"></i><span class="eq">=</span><span>ratified</span></div>
       </div>
-      <div class="group">
-        <div class="label">Domains</div>
-        <div class="domains">${sideDomains}</div>
-      </div>
     </aside>
     <div class="doc">
       <section id="overview">
-        <h1>Operating model</h1>
+        <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
         <p class="lede">Domains are types of work. They do not change and they do not have levels. Capabilities are the named outcomes we promise inside a domain.</p>
         <p class="lede">How a capability is executed is a separate scale — L1 guided work against guardrails, L2 independent practice, L3 setting the standard, and Owner as agency-wide accountability for that capability's maturity. That scale lives with capabilities, not with domains.</p>
       </section>
       <section id="domains">
-        <h2>Domains</h2>
+        <h2 class="mono uppercase eyebrow">Domains</h2>
         ${domainSections}
       </section>
       <section id="capabilities">
-        <h2>Capabilities</h2>
-        <p class="lede">L1–L3 and Owner describe how a capability is executed. They are not a property of domains.</p>
-        <div class="kvs levels">${levelRows}</div>
+        <h2 class="mono uppercase eyebrow">Capabilities</h2>
+        <table class="hairline-table">
+          <thead>
+            <tr>
+              <th style="width:160px;">Level</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${levelRows}
+          </tbody>
+        </table>
         ${capabilitySections}${extraCaps}
         ${!capabilitySections && !extraCaps ? `<p class="meta">None yet.</p>` : ""}
       </section>
       <section id="skills">
-        <h2>Skill inventory</h2>
+        <h2 class="mono eyebrow uppercase">Skill inventory</h2>
         <table class="hairline-table">
           <thead>
             <tr>
