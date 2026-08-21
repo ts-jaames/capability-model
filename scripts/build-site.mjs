@@ -106,7 +106,7 @@ function label(text) {
 }
 
 function render(model) {
-  const { levels, domains, capabilities, skills, roles } = model;
+  const { levels, domains, capabilities, skills } = model;
   const capsByDomain = new Map(domains.map((d) => [d.id, []]));
   for (const cap of capabilities) {
     if (!capsByDomain.has(cap.domain)) capsByDomain.set(cap.domain, []);
@@ -228,51 +228,6 @@ function render(model) {
     })
     .join("");
 
-  const roleSections = roles
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map((role) => {
-      const owned = (role.owned_capabilities ?? [])
-        .map((id) => capById.get(id))
-        .filter(Boolean)
-        .map(
-          (cap) =>
-            `<li class="matrix-row"><a href="#capability-${esc(cap.id)}">${esc(cap.name)}</a><span class="pills">${badge(statusOf(cap))}<span class="pill pill-level">Owner</span></span></li>`,
-        )
-        .join("");
-      const executable = (role.executable_capabilities ?? [])
-        .map((item) => ({ ...item, cap: capById.get(item.id) }))
-        .map((item) => {
-          const name = item.cap?.name ?? item.id;
-          return `<li class="matrix-row"><a href="#capability-${esc(item.id)}">${esc(name)}</a><span class="pills">${item.cap ? badge(statusOf(item.cap)) : ""}<span class="pill pill-level">${esc(item.required_level)}</span></span></li>`;
-        })
-        .join("");
-      return `
-        <article class="card" id="role-${esc(role.id)}">
-          <header class="card-header">
-            <div>
-              <h3>${esc(role.name)}</h3>
-              <div class="prose muted">${paragraphs(role.description)}</div>
-            </div>
-            ${badge(statusOf(role))}
-          </header>
-          <div class="matrix">
-            <div>
-              ${label(`Owned ${(role.owned_capabilities ?? []).length}/2`)}
-              ${owned ? `<ul class="plain">${owned}</ul>` : `<p class="muted">None</p>`}
-            </div>
-            <div>
-              ${label(`Executable ${(role.executable_capabilities ?? []).length}/7`)}
-              ${executable ? `<ul class="plain">${executable}</ul>` : `<p class="muted">None</p>`}
-            </div>
-          </div>
-          <div class="field">
-            ${label("Demand literacy")}
-            ${paragraphs(role.demand_literacy)}
-          </div>
-        </article>`;
-    })
-    .join("");
-
   const skillRows = skills
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((skill) => {
@@ -336,7 +291,10 @@ function render(model) {
       --ratified-bg: #d1fae5;
     }
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 5.5rem;
+    }
     body {
       margin: 0;
       color: var(--ink);
@@ -368,6 +326,8 @@ function render(model) {
     h3 { font-size: 1.05rem; font-weight: 600; margin: 0; color: var(--ink); }
     p { margin: 0.35rem 0; }
     .lede { max-width: 44rem; color: var(--muted); }
+    .lede + .lede { margin-top: 0.65rem; }
+    section[id], article[id], tr[id] { scroll-margin-top: 5.5rem; }
     .label {
       font-size: 12px;
       font-weight: 500;
@@ -394,7 +354,7 @@ function render(model) {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 0.6rem;
-      margin-top: 1.15rem;
+      margin: 0.75rem 0 1.5rem;
     }
     .ribbon-item {
       background: var(--paper);
@@ -506,15 +466,14 @@ function render(model) {
       <a href="#overview">Overview</a>
       <a href="#domains">Domains</a>
       <a href="#capabilities">Capabilities</a>
-      <a href="#roles">Roles</a>
       <a href="#skills">Skills</a>
     </nav>
   </header>
   <main>
     <section id="overview">
       <h1>Operating model</h1>
-      <p class="lede">${esc(levels.description)}</p>
-      <div class="levels-ribbon">${ribbonItems}</div>
+      <p class="lede">Domains are types of work. They do not change and they do not have levels. Capabilities are the named outcomes we promise inside a domain.</p>
+      <p class="lede">How a capability is executed is a separate scale — L1 guided work against guardrails, L2 independent practice, L3 setting the standard, and Owner as agency-wide accountability for that capability's maturity. That scale lives with capabilities, not with domains.</p>
     </section>
     <section id="domains">
       <h2>Domains</h2>
@@ -522,11 +481,9 @@ function render(model) {
     </section>
     <section id="capabilities">
       <h2>Capabilities</h2>
+      <p class="lede">L1–L3 and Owner describe how a capability is executed. They are not a property of domains.</p>
+      <div class="levels-ribbon">${ribbonItems}</div>
       ${capabilitySections || `<p class="muted">None yet.</p>`}
-    </section>
-    <section id="roles">
-      <h2>Roles</h2>
-      ${roleSections || `<p class="muted">None yet.</p>`}
     </section>
     <section id="skills">
       <h2>Skill inventory</h2>
@@ -558,8 +515,7 @@ async function build() {
   const domains = sortKnown(await loadDir("domains"));
   const capabilities = await loadDir("capabilities");
   const skills = await loadDir("skills");
-  const roles = await loadDir("roles");
-  const html = render({ levels, domains, capabilities, skills, roles });
+  const html = render({ levels, domains, capabilities, skills });
   const outDir = join(ROOT, "site");
   await mkdir(outDir, { recursive: true });
   await writeFile(join(outDir, "index.html"), html);
