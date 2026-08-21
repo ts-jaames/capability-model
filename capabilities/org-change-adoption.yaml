@@ -1,0 +1,26 @@
+id: org-change-adoption
+name: Org change & adoption
+description: >
+  Gets the client's wider organization to actually trust and use what was
+  built, including the people who did not build it.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+domain: enablement
+core_promise: >
+  Gets the client's wider organization to actually trust and use what was built.
+client_outcome: >
+  Adoption across the people who didn't build it, so the system gets used
+  instead of shelved.
+client_how: >
+  We work the trust and the habit with the wider org, not only with the
+  delivery team.
+spark_how: >
+  Name who has to use it who did not make it. Design the adoption path
+  against their incentives and fears, not against a launch email.
+default_state: >
+  A working system whose users extend beyond the build team.
+exception_states: []
+l1_guardrails: []
+skills: []

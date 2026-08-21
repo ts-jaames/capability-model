@@ -1,0 +1,27 @@
+id: confidence-based-estimation
+name: Confidence-based estimation
+description: >
+  Prices the proven tight and names the unproven as bets, so the commercial
+  number is honest against what is actually known.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+domain: commercial
+core_promise: >
+  Prices the proven tight and names the unproven as bets.
+client_outcome: >
+  An estimate traceable to signal — what is priced as known, and what is held
+  as a bet.
+client_how: >
+  We walk the work against evidence, split proven from unproven, and price
+  each differently. The client sees the bets named, not buried in a blended
+  number.
+spark_how: >
+  Map scope to signal. Tight-price what has proof. Range or stage the rest.
+  Do not average confidence into a single false precision.
+default_state: >
+  A scoped engagement with some proven ground and some explicit unknowns.
+exception_states: []
+l1_guardrails: []
+skills: []

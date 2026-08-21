@@ -1,18 +1,25 @@
 id: stakeholder-alignment
-name: Stakeholder Alignment
+name: Stakeholder alignment
 description: >
-  Getting the people who can block or bless the work onto the same problem and
-  the same call. Stub for staffing the Interface Lead; expand in a later pass.
+  Gets the people who can kill the work to agree on the lever, so later
+  decisions have a shared standard to hold to.
 status: draft
 owner: Operating Model
 source: original
 last_updated: 2026-08-21
 domain: framing
-core_promise: The people who matter agree on the problem and the next move.
-client_outcome: Named owners, explicit dissent, and a decision that holds outside the room.
-client_how: Facilitated alignment, not a slide review after the fact.
-spark_how: Map influence, surface disagreement, and lock the call. Method to be expanded.
-default_state: Identifiable stakeholders who can be gathered in a working session.
+core_promise: >
+  Gets the people who can kill the work to agree on the lever.
+client_outcome: >
+  A shared standard to hold decisions to.
+client_how: >
+  Facilitated alignment with the people who can block or bless, not a
+  readout after the call has already been made.
+spark_how: >
+  Map who can kill it. Put the lever in front of them. Lock the standard
+  in language they will use without us in the room.
+default_state: >
+  Identifiable stakeholders who can be gathered against a framed lever.
 exception_states: []
 l1_guardrails: []
 skills: []

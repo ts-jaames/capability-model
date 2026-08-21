@@ -70,10 +70,16 @@ function sortKnown(items) {
   });
 }
 
+function countsFor(caps) {
+  const counts = { draft: 0, reviewed: 0, ratified: 0 };
+  for (const cap of caps) counts[statusOf(cap)] += 1;
+  return counts;
+}
+
 function bar(counts) {
   const total = counts.draft + counts.reviewed + counts.ratified;
   if (!total) {
-    return `<div class="bar empty"><span>No capabilities yet</span></div>`;
+    return `<div class="bar empty">No capabilities yet</div>`;
   }
   const parts = ["draft", "reviewed", "ratified"]
     .filter((key) => counts[key])
@@ -83,6 +89,20 @@ function bar(counts) {
     )
     .join("");
   return `<div class="bar" role="img" aria-label="${counts.draft} draft, ${counts.reviewed} reviewed, ${counts.ratified} ratified">${parts}</div>`;
+}
+
+function levelPills(levels) {
+  return (levels ?? [])
+    .map((level) => `<span class="pill pill-level">${esc(level)}</span>`)
+    .join("");
+}
+
+function typePill(type) {
+  return `<span class="pill pill-type">${esc(type)}</span>`;
+}
+
+function label(text) {
+  return `<div class="label">${esc(text)}</div>`;
 }
 
 function render(model) {
@@ -95,28 +115,12 @@ function render(model) {
   const skillById = new Map(skills.map((s) => [s.id, s]));
   const capById = new Map(capabilities.map((c) => [c.id, c]));
 
-  const dashboard = domains
-    .map((domain) => {
-      const caps = capsByDomain.get(domain.id) ?? [];
-      const counts = { draft: 0, reviewed: 0, ratified: 0 };
-      for (const cap of caps) counts[statusOf(cap)] += 1;
-      return `
-        <article class="dash-card">
-          <header>
-            <a href="#domain-${esc(domain.id)}">${esc(domain.name)}</a>
-            ${badge(statusOf(domain))}
-          </header>
-          ${bar(counts)}
-          <p class="meta">${caps.length} ${caps.length === 1 ? "capability" : "capabilities"} · ${counts.draft} draft · ${counts.reviewed} reviewed · ${counts.ratified} ratified</p>
-        </article>`;
-    })
-    .join("");
-
   const domainSections = domains
     .map((domain) => {
       const caps = (capsByDomain.get(domain.id) ?? []).sort((a, b) =>
         a.name.localeCompare(b.name),
       );
+      const counts = countsFor(caps);
       const list = caps.length
         ? `<ul class="plain">${caps
             .map(
@@ -126,12 +130,18 @@ function render(model) {
             .join("")}</ul>`
         : `<p class="muted">No capabilities in this domain yet.</p>`;
       return `
-        <article class="block" id="domain-${esc(domain.id)}">
-          <header>
-            <h3>${esc(domain.name)}</h3>
-            ${badge(statusOf(domain))}
+        <article class="card" id="domain-${esc(domain.id)}">
+          <header class="domain-header">
+            <div class="domain-title">
+              <h3>${esc(domain.name)}</h3>
+              ${badge(statusOf(domain))}
+            </div>
+            <div class="maturity">
+              ${bar(counts)}
+              <p class="meta">${caps.length} ${caps.length === 1 ? "capability" : "capabilities"} · ${counts.draft} draft · ${counts.reviewed} reviewed · ${counts.ratified} ratified</p>
+            </div>
           </header>
-          ${paragraphs(domain.description)}
+          <div class="prose muted">${paragraphs(domain.description)}</div>
           ${list}
         </article>`;
     })
@@ -146,7 +156,7 @@ function render(model) {
         .filter(Boolean)
         .map(
           (skill) =>
-            `<li><a href="#skill-${esc(skill.id)}">${esc(skill.name)}</a> ${badge(statusOf(skill))} <span class="meta">${esc((skill.levels ?? []).join(" · "))}</span></li>`,
+            `<li class="skill-row"><a href="#skill-${esc(skill.id)}">${esc(skill.name)}</a><span class="pills">${levelPills(skill.levels)}</span></li>`,
         )
         .join("");
       const exceptions = (cap.exception_states ?? [])
@@ -157,41 +167,63 @@ function render(model) {
             state.type === "skill"
               ? `#skill-${esc(state.id)}`
               : `#capability-${esc(state.id)}`;
-          const label = target?.name ?? state.id;
-          return `<li><span class="meta">${esc(state.type)}</span> <a href="${href}">${esc(label)}</a> — ${esc(state.when)}</li>`;
+          const name = target?.name ?? state.id;
+          return `<li><span class="pill pill-type">${esc(state.type)}</span> <a href="${href}">${esc(name)}</a><span class="meta"> — ${esc(state.when)}</span></li>`;
         })
         .join("");
       const guardrails = (cap.l1_guardrails ?? [])
         .map((item) => `<li>${esc(item)}</li>`)
         .join("");
       return `
-        <article class="block" id="capability-${esc(cap.id)}">
-          <header>
-            <h3>${esc(cap.name)}</h3>
+        <article class="card" id="capability-${esc(cap.id)}">
+          <header class="card-header">
+            <div>
+              <h3>${esc(cap.name)}</h3>
+              <p class="meta">${esc(domain?.name ?? cap.domain)} · ${esc(cap.owner)} · ${esc(cap.source)} · ${esc(cap.last_updated)}</p>
+            </div>
             ${badge(statusOf(cap))}
           </header>
-          <p class="meta">${esc(domain?.name ?? cap.domain)} · ${esc(cap.owner)} · ${esc(cap.source)} · ${esc(cap.last_updated)}</p>
-          <h4>Client promise</h4>
-          ${paragraphs(cap.core_promise)}
-          <div class="split">
-            <div>
-              <h4>Client outcome</h4>
-              ${paragraphs(cap.client_outcome)}
+          <div class="cap-grid">
+            <div class="cap-main">
+              <div class="field">
+                ${label("Core promise")}
+                <p class="promise">${esc(String(cap.core_promise ?? "").trim())}</p>
+              </div>
+              <div class="field">
+                ${label("Client outcome")}
+                ${paragraphs(cap.client_outcome)}
+              </div>
+              <div class="field">
+                ${label("Client how")}
+                ${paragraphs(cap.client_how)}
+              </div>
             </div>
-            <div>
-              <h4>How the client experiences it</h4>
-              ${paragraphs(cap.client_how)}
+            <aside class="cap-side">
+              <div class="field">
+                ${label("L1 guardrails")}
+                ${guardrails ? `<ul class="tight">${guardrails}</ul>` : `<p class="muted">None yet — cannot be ratified.</p>`}
+              </div>
+              <div class="field">
+                ${label(`Skills ${(cap.skills ?? []).length}/10`)}
+                ${skillList ? `<ul class="plain">${skillList}</ul>` : `<p class="muted">No skills linked.</p>`}
+              </div>
+              ${
+                exceptions
+                  ? `<div class="field">${label("Exception states")}<ul class="tight">${exceptions}</ul></div>`
+                  : ""
+              }
+            </aside>
+          </div>
+          <div class="cap-notes">
+            <div class="field">
+              ${label("Spark how")}
+              ${paragraphs(cap.spark_how)}
+            </div>
+            <div class="field">
+              ${label("Default state")}
+              ${paragraphs(cap.default_state)}
             </div>
           </div>
-          <h4>How we deliver it</h4>
-          ${paragraphs(cap.spark_how)}
-          <h4>Default state</h4>
-          ${paragraphs(cap.default_state)}
-          <h4>L1 guardrails</h4>
-          ${guardrails ? `<ul>${guardrails}</ul>` : `<p class="muted">None yet — cannot be ratified.</p>`}
-          <h4>Skills (${(cap.skills ?? []).length}/10)</h4>
-          ${skillList ? `<ul class="plain">${skillList}</ul>` : `<p class="muted">No skills linked.</p>`}
-          ${exceptions ? `<h4>Exception states</h4><ul>${exceptions}</ul>` : ""}
         </article>`;
     })
     .join("");
@@ -204,35 +236,39 @@ function render(model) {
         .filter(Boolean)
         .map(
           (cap) =>
-            `<li><a href="#capability-${esc(cap.id)}">${esc(cap.name)}</a> ${badge(statusOf(cap))} <span class="meta">Owner</span></li>`,
+            `<li class="matrix-row"><a href="#capability-${esc(cap.id)}">${esc(cap.name)}</a><span class="pills">${badge(statusOf(cap))}<span class="pill pill-level">Owner</span></span></li>`,
         )
         .join("");
       const executable = (role.executable_capabilities ?? [])
         .map((item) => ({ ...item, cap: capById.get(item.id) }))
         .map((item) => {
           const name = item.cap?.name ?? item.id;
-          return `<li><a href="#capability-${esc(item.id)}">${esc(name)}</a> ${item.cap ? badge(statusOf(item.cap)) : ""} <span class="meta">${esc(item.required_level)}</span></li>`;
+          return `<li class="matrix-row"><a href="#capability-${esc(item.id)}">${esc(name)}</a><span class="pills">${item.cap ? badge(statusOf(item.cap)) : ""}<span class="pill pill-level">${esc(item.required_level)}</span></span></li>`;
         })
         .join("");
       return `
-        <article class="block" id="role-${esc(role.id)}">
-          <header>
-            <h3>${esc(role.name)}</h3>
+        <article class="card" id="role-${esc(role.id)}">
+          <header class="card-header">
+            <div>
+              <h3>${esc(role.name)}</h3>
+              <div class="prose muted">${paragraphs(role.description)}</div>
+            </div>
             ${badge(statusOf(role))}
           </header>
-          ${paragraphs(role.description)}
-          <div class="split">
+          <div class="matrix">
             <div>
-              <h4>Owned (${(role.owned_capabilities ?? []).length}/2)</h4>
+              ${label(`Owned ${(role.owned_capabilities ?? []).length}/2`)}
               ${owned ? `<ul class="plain">${owned}</ul>` : `<p class="muted">None</p>`}
             </div>
             <div>
-              <h4>Executable (${(role.executable_capabilities ?? []).length}/7)</h4>
+              ${label(`Executable ${(role.executable_capabilities ?? []).length}/7`)}
               ${executable ? `<ul class="plain">${executable}</ul>` : `<p class="muted">None</p>`}
             </div>
           </div>
-          <h4>Demand literacy</h4>
-          ${paragraphs(role.demand_literacy)}
+          <div class="field">
+            ${label("Demand literacy")}
+            ${paragraphs(role.demand_literacy)}
+          </div>
         </article>`;
     })
     .join("");
@@ -254,19 +290,24 @@ function render(model) {
             ${badge(statusOf(skill))}
             <div class="muted">${paragraphs(skill.description)}</div>
           </td>
-          <td>${esc(skill.type.replace("_", " "))}</td>
+          <td>${typePill(skill.type)}</td>
           <td>${skill.is_automated ? "Yes" : "No"}</td>
-          <td>${esc((skill.levels ?? []).join(", "))}</td>
+          <td><span class="pills">${levelPills(skill.levels)}</span></td>
           <td>${usedBy}</td>
         </tr>`;
     })
     .join("");
 
-  const levelCards = (levels.execution_levels ?? [])
+  const ribbonItems = [
+    ...(levels.execution_levels ?? []),
+    levels.ownership,
+  ]
+    .filter(Boolean)
     .map(
       (level) => `
-        <article class="level">
-          <h3>${esc(level.id)} · ${esc(level.name)}</h3>
+        <article class="ribbon-item">
+          <div class="ribbon-id">${esc(level.id)}</div>
+          <h3>${esc(level.name)}</h3>
           ${paragraphs(level.description)}
         </article>`,
     )
@@ -282,17 +323,17 @@ function render(model) {
   <title>Capability taxonomy</title>
   <style>
     :root {
-      --bg: #f4f1ea;
-      --paper: #fffcf6;
-      --ink: #161616;
-      --muted: #5e5a53;
-      --line: #d9d3c7;
-      --draft: #7a5b00;
-      --draft-bg: #ffe08a;
-      --reviewed: #0a4b86;
-      --reviewed-bg: #c5def6;
-      --ratified: #0b5a32;
-      --ratified-bg: #bfe8c9;
+      --bg: #fcfcfc;
+      --paper: #ffffff;
+      --ink: #111827;
+      --muted: #6b7280;
+      --line: #eaebed;
+      --draft: #92400e;
+      --draft-bg: #fef3c7;
+      --reviewed: #1e40af;
+      --reviewed-bg: #dbeafe;
+      --ratified: #065f46;
+      --ratified-bg: #d1fae5;
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -300,9 +341,9 @@ function render(model) {
       margin: 0;
       color: var(--ink);
       background: var(--bg);
-      font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
     }
-    a { color: inherit; }
+    a { color: inherit; text-underline-offset: 2px; }
     header.top {
       position: sticky;
       top: 0;
@@ -312,67 +353,150 @@ function render(model) {
       gap: 0.75rem 1.25rem;
       align-items: center;
       justify-content: space-between;
-      padding: 0.85rem 1.25rem;
-      background: var(--ink);
-      color: #f7f4ee;
+      padding: 0.85rem 1.5rem;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
     }
-    header.top strong { font-size: 0.95rem; letter-spacing: 0.02em; }
-    nav { display: flex; flex-wrap: wrap; gap: 0.9rem; }
-    nav a { color: #f7f4ee; text-decoration: none; font-size: 0.9rem; }
-    nav a:hover { text-decoration: underline; }
-    main { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
-    section { margin: 2.5rem 0; }
-    h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 0.5rem; }
-    h2 { font-size: 1.35rem; margin: 0 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--line); }
-    h3 { font-size: 1.1rem; margin: 0; }
-    h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; margin: 1.1rem 0 0.35rem; color: var(--muted); }
-    p { margin: 0.4rem 0; }
-    .lede { max-width: 42rem; color: var(--muted); }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.9rem; }
-    .dash-card, .block, .level {
+    header.top strong { font-size: 0.95rem; font-weight: 600; color: var(--ink); }
+    nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 0.875rem; }
+    nav a:hover { color: var(--ink); }
+    main { max-width: 1080px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    section { margin: 2.75rem 0; }
+    h1 { font-size: 1.75rem; font-weight: 650; letter-spacing: -0.02em; line-height: 1.2; margin: 0 0 0.5rem; color: var(--ink); }
+    h2 { font-size: 1.15rem; font-weight: 650; margin: 0 0 1rem; color: var(--ink); }
+    h3 { font-size: 1.05rem; font-weight: 600; margin: 0; color: var(--ink); }
+    p { margin: 0.35rem 0; }
+    .lede { max-width: 44rem; color: var(--muted); }
+    .label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      margin: 0 0 0.3rem;
+    }
+    .card {
       background: var(--paper);
       border: 1px solid var(--line);
-      padding: 1rem 1.1rem;
+      padding: 1.15rem 1.2rem;
+      margin-bottom: 0.75rem;
     }
-    .dash-card header, .block header {
+    .card-header, .domain-header {
       display: flex;
       justify-content: space-between;
-      gap: 0.75rem;
-      align-items: baseline;
-      margin-bottom: 0.6rem;
+      gap: 1rem;
+      align-items: flex-start;
+      margin-bottom: 0.9rem;
+    }
+    .domain-header { align-items: center; flex-wrap: wrap; }
+    .domain-title { display: flex; align-items: center; gap: 0.5rem; }
+    .maturity { min-width: min(280px, 100%); flex: 1; max-width: 360px; }
+    .levels-ribbon {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.6rem;
+      margin-top: 1.15rem;
+    }
+    .ribbon-item {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      padding: 0.7rem 0.8rem;
+    }
+    .ribbon-item h3 { font-size: 0.9rem; font-weight: 600; margin: 0 0 0.25rem; }
+    .ribbon-item p { margin: 0; font-size: 0.8rem; line-height: 1.4; color: var(--muted); }
+    .ribbon-id {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.15rem;
     }
     .bar {
       display: flex;
-      height: 10px;
-      background: #ece7dc;
+      height: 6px;
+      background: #f3f4f6;
       overflow: hidden;
+      border-radius: 99px;
     }
-    .bar.empty { align-items: center; height: auto; background: transparent; color: var(--muted); font-size: 0.85rem; }
+    .bar.empty { height: auto; background: transparent; color: var(--muted); font-size: 12px; }
     .seg-draft { background: var(--draft-bg); }
     .seg-reviewed { background: var(--reviewed-bg); }
     .seg-ratified { background: var(--ratified-bg); }
-    .badge {
+    .badge, .pill {
       display: inline-block;
-      padding: 0.1rem 0.45rem;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      padding: 0.12rem 0.5rem;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.4;
       vertical-align: middle;
+      white-space: nowrap;
     }
     .badge-draft { background: var(--draft-bg); color: var(--draft); }
     .badge-reviewed { background: var(--reviewed-bg); color: var(--reviewed); }
     .badge-ratified { background: var(--ratified-bg); color: var(--ratified); }
-    .meta, .muted { color: var(--muted); font-size: 0.9rem; }
-    .split { display: grid; grid-template-columns: 1fr; gap: 0.8rem; }
-    @media (min-width: 720px) { .split { grid-template-columns: 1fr 1fr; } }
-    ul.plain { list-style: none; padding: 0; margin: 0; }
-    ul.plain li, ul li { margin: 0.35rem 0; }
-    table { width: 100%; border-collapse: collapse; background: var(--paper); }
-    th, td { text-align: left; vertical-align: top; padding: 0.75rem 0.7rem; border-bottom: 1px solid var(--line); }
-    th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .pill-level { background: #f3f4f6; color: #374151; }
+    .pill-type {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      background: #f3f4f6;
+      color: #374151;
+    }
+    .pills { display: inline-flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; }
+    .meta, .muted { color: var(--muted); font-size: 0.875rem; }
+    .prose.muted p { color: var(--muted); }
+    .cap-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem 1.75rem;
+    }
+    .cap-main .promise {
+      font-size: 1.05rem;
+      font-weight: 600;
+      line-height: 1.45;
+      color: var(--ink);
+      margin: 0;
+    }
+    .field { margin-bottom: 0.95rem; }
+    .field:last-child { margin-bottom: 0; }
+    .cap-side { padding-left: 0; }
+    .cap-notes {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin-top: 1.1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    .matrix {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin: 0.25rem 0 1rem;
+    }
+    .matrix-row, .skill-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .matrix-row:last-child, .skill-row:last-child { border-bottom: 0; }
+    ul.plain, ul.tight { list-style: none; padding: 0; margin: 0; }
+    ul.tight li { margin: 0.4rem 0; font-size: 0.9rem; }
+    table { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); }
+    th, td { text-align: left; vertical-align: top; padding: 0.8rem 0.85rem; border-bottom: 1px solid var(--line); }
+    th { font-size: 12px; font-weight: 500; color: var(--muted); }
     td .muted p { margin: 0.3rem 0 0; }
-    footer { margin-top: 3rem; color: var(--muted); font-size: 0.85rem; }
+    footer { margin-top: 3rem; color: var(--muted); font-size: 0.8rem; }
+    @media (min-width: 800px) {
+      .cap-grid { grid-template-columns: 3fr 2fr; }
+      .cap-side { border-left: 1px solid var(--line); padding-left: 1.25rem; }
+      .cap-notes { grid-template-columns: 1fr 1fr; }
+      .matrix { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 799px) {
+      .levels-ribbon { grid-template-columns: 1fr 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -390,14 +514,7 @@ function render(model) {
     <section id="overview">
       <h1>Operating model</h1>
       <p class="lede">${esc(levels.description)}</p>
-      <div class="grid" style="margin-top:1.25rem">${levelCards}
-        <article class="level">
-          <h3>${esc(levels.ownership.id)} · ${esc(levels.ownership.name)}</h3>
-          ${paragraphs(levels.ownership.description)}
-        </article>
-      </div>
-      <h2 style="margin-top:2rem">Maturity by domain</h2>
-      <div class="grid">${dashboard}</div>
+      <div class="levels-ribbon">${ribbonItems}</div>
     </section>
     <section id="domains">
       <h2>Domains</h2>

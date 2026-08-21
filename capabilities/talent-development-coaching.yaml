@@ -1,0 +1,25 @@
+id: talent-development-coaching
+name: Talent development / coaching
+description: >
+  Deliberately grows the client team's craft beyond this one system.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+domain: enablement
+core_promise: >
+  Deliberately grows the client team's craft beyond this one system.
+client_outcome: >
+  People who are better at their work, not just trained on our build.
+client_how: >
+  Coaching against live work, aimed at the craft, not a courseware dump
+  about our codebase.
+spark_how: >
+  Grow judgement on their problems. Distinct from capability transfer,
+  which is about extending this system; this is about the people.
+default_state: >
+  A client team with named individuals whose craft the engagement is meant
+  to raise.
+exception_states: []
+l1_guardrails: []
+skills: []

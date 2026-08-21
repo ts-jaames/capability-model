@@ -1,0 +1,24 @@
+id: core-systems-engineering
+name: Core systems engineering
+description: >
+  Makes the pieces fit, scale, and hold the data the product depends on.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+domain: building
+core_promise: >
+  Makes the pieces fit, scale, and hold the data the product depends on.
+client_outcome: >
+  An architecture the team can build on and own.
+client_how: >
+  We design and build the seams — data, services, integration — so the
+  product is not a pile of disconnected surfaces.
+spark_how: >
+  Fit the pieces to the constraint set. Prefer boring, ownable structure
+  over novelty. Leave the client able to extend the architecture.
+default_state: >
+  A product with identifiable systems, data stores, and integration points.
+exception_states: []
+l1_guardrails: []
+skills: []

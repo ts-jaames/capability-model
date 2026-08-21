@@ -1,0 +1,24 @@
+id: production-hardening
+name: Production hardening
+description: >
+  Makes the build survive real load, real users, and real scrutiny.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+domain: building
+core_promise: >
+  Makes the build survive real load, real users, and real scrutiny.
+client_outcome: >
+  A system that's fast, secure, and observable in production, not just in the demo.
+client_how: >
+  We put the running system under production conditions and close the gaps
+  the demo never showed.
+spark_how: >
+  Load, security, and observability as first-class work. Harden against the
+  constraint set and the risk shortlist, not a generic checklist.
+default_state: >
+  A working build that has not yet been proven under production conditions.
+exception_states: []
+l1_guardrails: []
+skills: []

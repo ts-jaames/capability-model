@@ -1,0 +1,26 @@
+id: outcome-definition
+name: Outcome definition
+description: >
+  Defines what winning looks like in numbers before anything is built.
+  Adjacent to Proof / Signal design, which instruments for evidence;
+  this capability sets the target the work is judged against.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+domain: framing
+core_promise: >
+  Defines what winning looks like in numbers before anything's built.
+client_outcome: >
+  The target the work is judged against.
+client_how: >
+  We agree the numbers in the room before design or build starts, so later
+  argument is about the work, not about what "good" meant.
+spark_how: >
+  Translate the lever into measurable targets. Keep them few. Hand the
+  instrumentation question to Signal design when proof has to be collected.
+default_state: >
+  A framed problem with a commercial lever that can be expressed as a target.
+exception_states: []
+l1_guardrails: []
+skills: []

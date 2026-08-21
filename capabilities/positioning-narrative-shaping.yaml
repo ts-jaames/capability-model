@@ -1,0 +1,27 @@
+id: positioning-narrative-shaping
+name: Positioning & narrative shaping
+description: >
+  Articulates why this matters and to whom, so the story still holds when
+  the audience or the messenger changes.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+domain: commercial
+core_promise: >
+  Articulates why this matters and to whom.
+client_outcome: >
+  A story that survives the swap test — still true if a different person
+  has to tell it.
+client_how: >
+  We pressure-test the narrative with the people who will have to carry it,
+  not just the people who wrote it.
+spark_how: >
+  Name the audience, the lever, and the claim. Strip anything that only
+  works in the room it was drafted in.
+default_state: >
+  A real initiative with a known buyer and a draft story that has not been
+  swap-tested.
+exception_states: []
+l1_guardrails: []
+skills: []

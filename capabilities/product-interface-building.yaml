@@ -1,8 +1,8 @@
 id: product-interface-building
-name: Product & Interface Building
+name: Product & interface building
 description: >
-  Design, tokenise, and ship client-facing product surfaces that the client's
-  team can own and evolve.
+  Makes the thing users actually touch real — a working, usable product,
+  not a design or a prototype.
 status: draft
 owner: Operating Model
 source: original
@@ -10,13 +10,10 @@ last_updated: 2026-08-21
 domain: building
 
 core_promise: >
-  A production interface the client can run without us in the loop — assembled
-  from a tokenised system, not a pile of one-off screens.
+  Makes the thing users actually touch real.
 
 client_outcome: >
-  Live product surfaces, a token and component layer their team can extend, and
-  a clear split between what a non-specialist can assemble and what still needs
-  a practitioner.
+  A working, usable product, not a design or a prototype.
 
 client_how: >
   We work in their design system (or stand one up), ship in small vertical

@@ -1,0 +1,25 @@
+id: client-operating-model-design
+name: Client operating-model design
+description: >
+  Defines who owns what and how decisions get made once we are not in the
+  room.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+domain: continuity
+core_promise: >
+  Defines who owns what and how decisions get made once we're not in the room.
+client_outcome: >
+  A client team that knows its own machine.
+client_how: >
+  We leave them a decision map they can run, not an org chart we used while
+  we were there.
+spark_how: >
+  Name owners, cadences, and the calls that must not wait for us. Design
+  the machine they will actually operate.
+default_state: >
+  An engagement approaching handoff with people who will remain.
+exception_states: []
+l1_guardrails: []
+skills: []

@@ -1,0 +1,27 @@
+id: signal-design
+name: Signal design
+description: >
+  Decides what would count as proof and instruments for it before building.
+  Folds signal definition and instrumentation. Metric and outcome definition
+  may overlap with Framing / Outcome definition — this capability owns the
+  evidence bar, not the commercial target.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-21
+domain: proof
+core_promise: >
+  Decides what would count as proof and instruments for it.
+client_outcome: >
+  A bar set before building, so results are evidence not opinion.
+client_how: >
+  We agree what would change our minds, then put the meters in place, before
+  the build can invent its own success story.
+spark_how: >
+  Define the signal. Instrument it. Keep the commercial target in Outcome
+  definition; keep collection and the evidence bar here.
+default_state: >
+  A defined outcome that still needs a way to be seen as true or false.
+exception_states: []
+l1_guardrails: []
+skills: []
