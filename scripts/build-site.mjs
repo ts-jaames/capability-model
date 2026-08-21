@@ -35,7 +35,7 @@ function paragraphs(value) {
 
 function badge(status) {
   const label = status ?? "draft";
-  return `<span class="badge badge-${esc(label)}">${esc(label)}</span>`;
+  return `<span class="status"><i class="dot dot-${esc(label)}"></i><span class="mono">${esc(label)}</span></span>`;
 }
 
 function statusOf(entity) {
@@ -70,39 +70,78 @@ function sortKnown(items) {
   });
 }
 
-function countsFor(caps) {
-  const counts = { draft: 0, reviewed: 0, ratified: 0 };
-  for (const cap of caps) counts[statusOf(cap)] += 1;
-  return counts;
-}
-
-function bar(counts) {
-  const total = counts.draft + counts.reviewed + counts.ratified;
-  if (!total) {
-    return `<div class="bar empty">No capabilities yet</div>`;
-  }
-  const parts = ["draft", "reviewed", "ratified"]
-    .filter((key) => counts[key])
-    .map(
-      (key) =>
-        `<i class="seg-${key}" style="flex:${counts[key]}" title="${counts[key]} ${key}"></i>`,
-    )
-    .join("");
-  return `<div class="bar" role="img" aria-label="${counts.draft} draft, ${counts.reviewed} reviewed, ${counts.ratified} ratified">${parts}</div>`;
-}
-
 function levelPills(levels) {
   return (levels ?? [])
-    .map((level) => `<span class="pill pill-level">${esc(level)}</span>`)
+    .map((level) => `<span class="mono pill">${esc(level)}</span>`)
     .join("");
 }
 
 function typePill(type) {
-  return `<span class="pill pill-type">${esc(type)}</span>`;
+  return `<span class="mono pill">${esc(type)}</span>`;
 }
 
-function label(text) {
-  return `<div class="label">${esc(text)}</div>`;
+function kv(title, inner) {
+  return `<div class="kv"><div class="label">${esc(title)}</div><div class="kv-body">${inner}</div></div>`;
+}
+
+function renderCap(cap, domains, skillById, capById) {
+  const domain = domains.find((d) => d.id === cap.domain);
+  const skillList = (cap.skills ?? [])
+    .map((id) => skillById.get(id))
+    .filter(Boolean)
+    .map(
+      (skill) =>
+        `<li class="inline-row"><a href="#skill-${esc(skill.id)}">${esc(skill.name)}</a><span class="pills">${levelPills(skill.levels)}</span></li>`,
+    )
+    .join("");
+  const exceptions = (cap.exception_states ?? [])
+    .map((state) => {
+      const target =
+        state.type === "skill" ? skillById.get(state.id) : capById.get(state.id);
+      const href =
+        state.type === "skill"
+          ? `#skill-${esc(state.id)}`
+          : `#capability-${esc(state.id)}`;
+      const name = target?.name ?? state.id;
+      return `<li><span class="mono pill">${esc(state.type)}</span> <a href="${href}">${esc(name)}</a> <span class="meta">— ${esc(state.when)}</span></li>`;
+    })
+    .join("");
+  const guardrails = (cap.l1_guardrails ?? [])
+    .map((item) => `<li>${esc(item)}</li>`)
+    .join("");
+  return `
+    <article class="row" id="capability-${esc(cap.id)}">
+      <header class="row-head">
+        <h3>${esc(cap.name)}</h3>
+        <div class="row-meta">
+          <span class="mono">${esc(domain?.name ?? cap.domain)}</span>
+          ${badge(statusOf(cap))}
+          <span class="mono dim">${esc(cap.last_updated)}</span>
+        </div>
+      </header>
+      <div class="kvs">
+        ${kv("Core promise", `<p>${esc(String(cap.core_promise ?? "").trim())}</p>`)}
+        ${kv("Client outcome", paragraphs(cap.client_outcome))}
+        ${kv("Client how", paragraphs(cap.client_how))}
+        ${kv("Spark how", paragraphs(cap.spark_how))}
+        ${kv("Default state", paragraphs(cap.default_state))}
+        ${kv(
+          "L1 guardrails",
+          guardrails
+            ? `<ul class="plain">${guardrails}</ul>`
+            : `<p class="meta">None yet — cannot be ratified.</p>`,
+        )}
+        ${kv(
+          `Skills ${(cap.skills ?? []).length}/10`,
+          skillList ? `<ul class="plain">${skillList}</ul>` : `<p class="meta">No skills linked.</p>`,
+        )}
+        ${
+          exceptions
+            ? kv("Exception states", `<ul class="plain">${exceptions}</ul>`)
+            : ""
+        }
+      </div>
+    </article>`;
 }
 
 function render(model) {
@@ -115,118 +154,56 @@ function render(model) {
   const skillById = new Map(skills.map((s) => [s.id, s]));
   const capById = new Map(capabilities.map((c) => [c.id, c]));
 
+  const sideDomains = domains
+    .map(
+      (domain) =>
+        `<a href="#domain-${esc(domain.id)}">${esc(domain.name)}</a>`,
+    )
+    .join("");
+
   const domainSections = domains
     .map((domain) => {
       const caps = (capsByDomain.get(domain.id) ?? []).sort((a, b) =>
         a.name.localeCompare(b.name),
       );
-      const counts = countsFor(caps);
       const list = caps.length
         ? `<ul class="plain">${caps
             .map(
               (cap) =>
-                `<li><a href="#capability-${esc(cap.id)}">${esc(cap.name)}</a> ${badge(statusOf(cap))}</li>`,
+                `<li class="inline-row"><a href="#capability-${esc(cap.id)}">${esc(cap.name)}</a>${badge(statusOf(cap))}</li>`,
             )
             .join("")}</ul>`
-        : `<p class="muted">No capabilities in this domain yet.</p>`;
+        : `<p class="meta">No capabilities in this domain yet.</p>`;
       return `
-        <article class="card" id="domain-${esc(domain.id)}">
-          <header class="domain-header">
-            <div class="domain-title">
-              <h3>${esc(domain.name)}</h3>
-              ${badge(statusOf(domain))}
-            </div>
-            <div class="maturity">
-              ${bar(counts)}
-              <p class="meta">${caps.length} ${caps.length === 1 ? "capability" : "capabilities"} · ${counts.draft} draft · ${counts.reviewed} reviewed · ${counts.ratified} ratified</p>
-            </div>
+        <article class="row" id="domain-${esc(domain.id)}">
+          <header class="row-head">
+            <h3 class="domain-name">${esc(domain.name)}</h3>
+            ${badge(statusOf(domain))}
           </header>
-          <div class="prose muted">${paragraphs(domain.description)}</div>
+          <div class="prose">${paragraphs(domain.description)}</div>
           ${list}
         </article>`;
     })
     .join("");
 
-  const capabilitySections = capabilities
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map((cap) => {
-      const domain = domains.find((d) => d.id === cap.domain);
-      const skillList = (cap.skills ?? [])
-        .map((id) => skillById.get(id))
-        .filter(Boolean)
-        .map(
-          (skill) =>
-            `<li class="skill-row"><a href="#skill-${esc(skill.id)}">${esc(skill.name)}</a><span class="pills">${levelPills(skill.levels)}</span></li>`,
-        )
-        .join("");
-      const exceptions = (cap.exception_states ?? [])
-        .map((state) => {
-          const target =
-            state.type === "skill" ? skillById.get(state.id) : capById.get(state.id);
-          const href =
-            state.type === "skill"
-              ? `#skill-${esc(state.id)}`
-              : `#capability-${esc(state.id)}`;
-          const name = target?.name ?? state.id;
-          return `<li><span class="pill pill-type">${esc(state.type)}</span> <a href="${href}">${esc(name)}</a><span class="meta"> — ${esc(state.when)}</span></li>`;
-        })
-        .join("");
-      const guardrails = (cap.l1_guardrails ?? [])
-        .map((item) => `<li>${esc(item)}</li>`)
-        .join("");
-      return `
-        <article class="card" id="capability-${esc(cap.id)}">
-          <header class="card-header">
-            <div>
-              <h3>${esc(cap.name)}</h3>
-              <p class="meta">${esc(domain?.name ?? cap.domain)} · ${esc(cap.owner)} · ${esc(cap.source)} · ${esc(cap.last_updated)}</p>
-            </div>
-            ${badge(statusOf(cap))}
-          </header>
-          <div class="cap-grid">
-            <div class="cap-main">
-              <div class="field">
-                ${label("Core promise")}
-                <p class="promise">${esc(String(cap.core_promise ?? "").trim())}</p>
-              </div>
-              <div class="field">
-                ${label("Client outcome")}
-                ${paragraphs(cap.client_outcome)}
-              </div>
-              <div class="field">
-                ${label("Client how")}
-                ${paragraphs(cap.client_how)}
-              </div>
-            </div>
-            <aside class="cap-side">
-              <div class="field">
-                ${label("L1 guardrails")}
-                ${guardrails ? `<ul class="tight">${guardrails}</ul>` : `<p class="muted">None yet — cannot be ratified.</p>`}
-              </div>
-              <div class="field">
-                ${label(`Skills ${(cap.skills ?? []).length}/10`)}
-                ${skillList ? `<ul class="plain">${skillList}</ul>` : `<p class="muted">No skills linked.</p>`}
-              </div>
-              ${
-                exceptions
-                  ? `<div class="field">${label("Exception states")}<ul class="tight">${exceptions}</ul></div>`
-                  : ""
-              }
-            </aside>
-          </div>
-          <div class="cap-notes">
-            <div class="field">
-              ${label("Spark how")}
-              ${paragraphs(cap.spark_how)}
-            </div>
-            <div class="field">
-              ${label("Default state")}
-              ${paragraphs(cap.default_state)}
-            </div>
-          </div>
-        </article>`;
-    })
-    .join("");
+  const capabilitySections = DOMAIN_ORDER.map((id) => {
+    const domain = domains.find((d) => d.id === id);
+    const caps = (capsByDomain.get(id) ?? []).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+    if (!domain || !caps.length) return "";
+    return `<p class="group-label">${esc(domain.name)}</p>${caps
+      .map((cap) => renderCap(cap, domains, skillById, capById))
+      .join("")}`;
+  }).join("");
+
+  const leftover = capabilities.filter((cap) => !DOMAIN_ORDER.includes(cap.domain));
+  const extraCaps = leftover.length
+    ? leftover
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((cap) => renderCap(cap, domains, skillById, capById))
+        .join("")
+    : "";
 
   const skillRows = skills
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -241,30 +218,29 @@ function render(model) {
       return `
         <tr id="skill-${esc(skill.id)}">
           <td>
-            <strong>${esc(skill.name)}</strong>
+            <span class="name">${esc(skill.name)}</span>
             ${badge(statusOf(skill))}
-            <div class="muted">${paragraphs(skill.description)}</div>
+            <div class="meta">${paragraphs(skill.description)}</div>
           </td>
           <td>${typePill(skill.type)}</td>
-          <td>${skill.is_automated ? "Yes" : "No"}</td>
+          <td class="mono">${skill.is_automated ? "yes" : "no"}</td>
           <td><span class="pills">${levelPills(skill.levels)}</span></td>
           <td>${usedBy}</td>
         </tr>`;
     })
     .join("");
 
-  const ribbonItems = [
+  const levelRows = [
     ...(levels.execution_levels ?? []),
     levels.ownership,
   ]
     .filter(Boolean)
     .map(
       (level) => `
-        <article class="ribbon-item">
-          <div class="ribbon-id">${esc(level.id)}</div>
-          <h3>${esc(level.name)}</h3>
-          ${paragraphs(level.description)}
-        </article>`,
+        <div class="kv">
+          <div class="label"><span class="mono">${esc(level.id)}</span> ${esc(level.name)}</div>
+          <div class="kv-body">${paragraphs(level.description)}</div>
+        </div>`,
     )
     .join("");
 
@@ -276,236 +252,288 @@ function render(model) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Capability taxonomy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #fcfcfc;
-      --paper: #ffffff;
-      --ink: #111827;
-      --muted: #6b7280;
-      --line: #eaebed;
-      --draft: #92400e;
-      --draft-bg: #fef3c7;
-      --reviewed: #1e40af;
-      --reviewed-bg: #dbeafe;
-      --ratified: #065f46;
-      --ratified-bg: #d1fae5;
+      --bg: #FCFCFC;
+      --ink: #1A1A1A;
+      --muted: #6B7280;
+      --dim: #9CA3AF;
+      --line: #ECECEC;
+      --hover: #F5F5F5;
+      --accent: #5E6AD2;
     }
     * { box-sizing: border-box; }
     html {
       scroll-behavior: smooth;
-      scroll-padding-top: 5.5rem;
+      scroll-padding-top: 24px;
     }
     body {
       margin: 0;
       color: var(--ink);
       background: var(--bg);
-      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.6;
     }
-    a { color: inherit; text-underline-offset: 2px; }
-    header.top {
+    a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 200ms ease;
+    }
+    a:hover { color: var(--accent); }
+    .mono {
+      font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+    .shell {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 760px);
+      gap: 48px;
+      max-width: 988px;
+      margin: 0 auto;
+      padding: 48px 32px 96px;
+    }
+    .side {
       position: sticky;
-      top: 0;
-      z-index: 2;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem 1.25rem;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.85rem 1.5rem;
-      background: var(--paper);
-      border-bottom: 1px solid var(--line);
+      top: 32px;
+      align-self: start;
     }
-    header.top strong { font-size: 0.95rem; font-weight: 600; color: var(--ink); }
-    nav { display: flex; flex-wrap: wrap; gap: 1rem; }
-    nav a { color: var(--muted); text-decoration: none; font-size: 0.875rem; }
-    nav a:hover { color: var(--ink); }
-    main { max-width: 1080px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
-    section { margin: 2.75rem 0; }
-    h1 { font-size: 1.75rem; font-weight: 650; letter-spacing: -0.02em; line-height: 1.2; margin: 0 0 0.5rem; color: var(--ink); }
-    h2 { font-size: 1.15rem; font-weight: 650; margin: 0 0 1rem; color: var(--ink); }
-    h3 { font-size: 1.05rem; font-weight: 600; margin: 0; color: var(--ink); }
-    p { margin: 0.35rem 0; }
-    .lede { max-width: 44rem; color: var(--muted); }
-    .lede + .lede { margin-top: 0.65rem; }
-    section[id], article[id], tr[id] { scroll-margin-top: 5.5rem; }
+    .brand {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin: 0 0 24px;
+      color: var(--ink);
+    }
+    .side nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .side nav a {
+      color: var(--muted);
+      font-size: 14px;
+      padding: 8px 0;
+    }
+    .side nav a:hover { color: var(--ink); }
+    .side .group {
+      margin-top: 24px;
+    }
+    .side .label { margin-bottom: 8px; }
+    .side .domains {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .side .domains a {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .doc { min-width: 0; }
+    h1, h2, h3, .name, .domain-name {
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+    h1 { font-size: 28px; margin: 0 0 16px; }
+    h2 { font-size: 19px; margin: 0 0 16px; }
+    h3, .name { font-size: 15px; margin: 0; }
+    .domain-name { font-size: 19px; }
+    p { margin: 0 0 8px; }
+    p:last-child { margin-bottom: 0; }
+    .lede {
+      color: var(--muted);
+      margin: 0 0 16px;
+      max-width: 760px;
+    }
+    section { margin: 0 0 48px; padding: 0; }
+    section[id], article[id], tr[id] { scroll-margin-top: 24px; }
     .label {
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
       color: var(--muted);
-      margin: 0 0 0.3rem;
     }
-    .card {
-      background: var(--paper);
-      border: 1px solid var(--line);
-      padding: 1.15rem 1.2rem;
-      margin-bottom: 0.75rem;
+    .group-label {
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin: 32px 0 0;
+      padding: 16px 0 8px;
     }
-    .card-header, .domain-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      align-items: flex-start;
-      margin-bottom: 0.9rem;
-    }
-    .domain-header { align-items: center; flex-wrap: wrap; }
-    .domain-title { display: flex; align-items: center; gap: 0.5rem; }
-    .maturity { min-width: min(280px, 100%); flex: 1; max-width: 360px; }
-    .levels-ribbon {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.6rem;
-      margin: 0.75rem 0 1.5rem;
-    }
-    .ribbon-item {
-      background: var(--paper);
-      border: 1px solid var(--line);
-      padding: 0.7rem 0.8rem;
-    }
-    .ribbon-item h3 { font-size: 0.9rem; font-weight: 600; margin: 0 0 0.25rem; }
-    .ribbon-item p { margin: 0; font-size: 0.8rem; line-height: 1.4; color: var(--muted); }
-    .ribbon-id {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--muted);
-      margin-bottom: 0.15rem;
-    }
-    .bar {
-      display: flex;
-      height: 6px;
-      background: #f3f4f6;
-      overflow: hidden;
-      border-radius: 99px;
-    }
-    .bar.empty { height: auto; background: transparent; color: var(--muted); font-size: 12px; }
-    .seg-draft { background: var(--draft-bg); }
-    .seg-reviewed { background: var(--reviewed-bg); }
-    .seg-ratified { background: var(--ratified-bg); }
-    .badge, .pill {
-      display: inline-block;
-      padding: 0.12rem 0.5rem;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 500;
-      line-height: 1.4;
-      vertical-align: middle;
-      white-space: nowrap;
-    }
-    .badge-draft { background: var(--draft-bg); color: var(--draft); }
-    .badge-reviewed { background: var(--reviewed-bg); color: var(--reviewed); }
-    .badge-ratified { background: var(--ratified-bg); color: var(--ratified); }
-    .pill-level { background: #f3f4f6; color: #374151; }
-    .pill-type {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 11px;
-      background: #f3f4f6;
-      color: #374151;
-    }
-    .pills { display: inline-flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; }
-    .meta, .muted { color: var(--muted); font-size: 0.875rem; }
-    .prose.muted p { color: var(--muted); }
-    .cap-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.25rem 1.75rem;
-    }
-    .cap-main .promise {
-      font-size: 1.05rem;
-      font-weight: 600;
-      line-height: 1.45;
-      color: var(--ink);
-      margin: 0;
-    }
-    .field { margin-bottom: 0.95rem; }
-    .field:last-child { margin-bottom: 0; }
-    .cap-side { padding-left: 0; }
-    .cap-notes {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-      margin-top: 1.1rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--line);
-    }
-    .matrix {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-      margin: 0.25rem 0 1rem;
-    }
-    .matrix-row, .skill-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.45rem 0;
+    .group-label:first-child { margin-top: 0; }
+    .row {
+      padding: 24px 0;
       border-bottom: 1px solid var(--line);
     }
-    .matrix-row:last-child, .skill-row:last-child { border-bottom: 0; }
-    ul.plain, ul.tight { list-style: none; padding: 0; margin: 0; }
-    ul.tight li { margin: 0.4rem 0; font-size: 0.9rem; }
-    table { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); }
-    th, td { text-align: left; vertical-align: top; padding: 0.8rem 0.85rem; border-bottom: 1px solid var(--line); }
-    th { font-size: 12px; font-weight: 500; color: var(--muted); }
-    td .muted p { margin: 0.3rem 0 0; }
-    footer { margin-top: 3rem; color: var(--muted); font-size: 0.8rem; }
-    @media (min-width: 800px) {
-      .cap-grid { grid-template-columns: 3fr 2fr; }
-      .cap-side { border-left: 1px solid var(--line); padding-left: 1.25rem; }
-      .cap-notes { grid-template-columns: 1fr 1fr; }
-      .matrix { grid-template-columns: 1fr 1fr; }
+    .row:hover { background: var(--hover); }
+    .row-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px 16px;
+      margin-bottom: 16px;
     }
-    @media (max-width: 799px) {
-      .levels-ribbon { grid-template-columns: 1fr 1fr; }
+    .row-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+    }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 99px;
+      background: var(--dim);
+      display: inline-block;
+    }
+    .dot-reviewed { background: var(--accent); }
+    .dot-ratified { background: var(--ink); }
+    .pill {
+      display: inline-block;
+      padding: 0 8px;
+      background: var(--hover);
+      color: var(--muted);
+      line-height: 24px;
+    }
+    .pills { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+    .meta, .dim { color: var(--muted); font-size: 12px; }
+    .dim { color: var(--dim); }
+    .prose { margin-bottom: 16px; }
+    .kvs { display: flex; flex-direction: column; gap: 16px; }
+    .kvs.levels { margin: 24px 0 32px; }
+    .kv {
+      display: grid;
+      grid-template-columns: 148px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .kv-body, .kv-body p { font-size: 14px; font-weight: 400; line-height: 1.6; }
+    ul.plain { list-style: none; padding: 0; margin: 0; }
+    ul.plain li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
+    ul.plain li:last-child { border-bottom: 0; padding-bottom: 0; }
+    ul.plain li:first-child { padding-top: 0; }
+    .inline-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 16px 8px 16px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    th {
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    td .meta p { margin: 8px 0 0; }
+    footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+      color: var(--dim);
+      font-size: 12px;
+    }
+    footer .mono { color: var(--dim); }
+    @media (max-width: 800px) {
+      .shell {
+        grid-template-columns: 1fr;
+        gap: 32px;
+        padding: 32px 16px 64px;
+      }
+      .side { position: static; }
+      .side nav, .side .domains { flex-direction: row; flex-wrap: wrap; gap: 8px 16px; }
+      .kv { grid-template-columns: 1fr; gap: 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition: none !important; }
     }
   </style>
 </head>
 <body>
-  <header class="top">
-    <strong>Capability taxonomy</strong>
-    <nav>
-      <a href="#overview">Overview</a>
-      <a href="#domains">Domains</a>
-      <a href="#capabilities">Capabilities</a>
-      <a href="#skills">Skills</a>
-    </nav>
-  </header>
-  <main>
-    <section id="overview">
-      <h1>Operating model</h1>
-      <p class="lede">Domains are types of work. They do not change and they do not have levels. Capabilities are the named outcomes we promise inside a domain.</p>
-      <p class="lede">How a capability is executed is a separate scale — L1 guided work against guardrails, L2 independent practice, L3 setting the standard, and Owner as agency-wide accountability for that capability's maturity. That scale lives with capabilities, not with domains.</p>
-    </section>
-    <section id="domains">
-      <h2>Domains</h2>
-      ${domainSections}
-    </section>
-    <section id="capabilities">
-      <h2>Capabilities</h2>
-      <p class="lede">L1–L3 and Owner describe how a capability is executed. They are not a property of domains.</p>
-      <div class="levels-ribbon">${ribbonItems}</div>
-      ${capabilitySections || `<p class="muted">None yet.</p>`}
-    </section>
-    <section id="skills">
-      <h2>Skill inventory</h2>
-      <div style="overflow:auto">
-        <table>
-          <thead>
-            <tr>
-              <th>Skill</th>
-              <th>Type</th>
-              <th>Automated</th>
-              <th>Levels</th>
-              <th>Used by</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${skillRows || `<tr><td colspan="5" class="muted">None yet.</td></tr>`}
-          </tbody>
-        </table>
+  <div class="shell">
+    <aside class="side">
+      <a class="brand" href="#overview">Capability taxonomy</a>
+      <nav>
+        <a href="#overview">Overview</a>
+        <a href="#domains">Domains</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#skills">Skills</a>
+      </nav>
+      <div class="group">
+        <div class="label">Domains</div>
+        <div class="domains">${sideDomains}</div>
       </div>
-    </section>
-    <footer>Generated ${esc(generated)} from the YAML source of truth. Read-only.</footer>
-  </main>
+    </aside>
+    <div class="doc">
+      <section id="overview">
+        <h1>Operating model</h1>
+        <p class="lede">Domains are types of work. They do not change and they do not have levels. Capabilities are the named outcomes we promise inside a domain.</p>
+        <p class="lede">How a capability is executed is a separate scale — L1 guided work against guardrails, L2 independent practice, L3 setting the standard, and Owner as agency-wide accountability for that capability's maturity. That scale lives with capabilities, not with domains.</p>
+      </section>
+      <section id="domains">
+        <h2>Domains</h2>
+        ${domainSections}
+      </section>
+      <section id="capabilities">
+        <h2>Capabilities</h2>
+        <p class="lede">L1–L3 and Owner describe how a capability is executed. They are not a property of domains.</p>
+        <div class="kvs levels">${levelRows}</div>
+        ${capabilitySections}${extraCaps}
+        ${!capabilitySections && !extraCaps ? `<p class="meta">None yet.</p>` : ""}
+      </section>
+      <section id="skills">
+        <h2>Skill inventory</h2>
+        <div style="overflow: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Skill</th>
+                <th>Type</th>
+                <th>Automated</th>
+                <th>Levels</th>
+                <th>Used by</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${skillRows || `<tr><td colspan="5" class="meta">None yet.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <footer>Generated <span class="mono">${esc(generated)}</span> from the YAML source of truth. Read-only.</footer>
+    </div>
+  </div>
 </body>
 </html>`;
 }
