@@ -337,7 +337,7 @@ function render(model) {
       color: var(--muted);
     }
     .row .kvs .label::after {
-      content: " \2014";
+      content: " \\2014";
     }
     .group-label {
       font-size: 12px;
