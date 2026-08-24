@@ -1,0 +1,31 @@
+id: commercial-scoping-envelope-shaping
+name: Commercial scoping & envelope shaping
+description: >
+  Turns uncertainty into a priced envelope, not a fixed feature list, so
+  the contract prices risk honestly. Adjacent to Confidence-based estimation
+  and Pricing under uncertainty, which set the number; this capability owns
+  the commercial shape the number sits in.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-24
+domain: commercial
+core_promise: >
+  Turns uncertainty into a priced envelope, not a fixed feature list.
+client_outcome: >
+  A contract that prices risk honestly.
+client_how: >
+  We shape the work as an envelope the client can buy, not as a frozen
+  feature list that will be change-ordered later. The client sees what is
+  in, what is out, and what movement the price already contemplates.
+spark_how: >
+  Write the envelope against the known, the directional, and the unknown.
+  Prefer a priced range and explicit exclusions over a false fixed scope.
+  Hand the number's construction to the estimation and pricing capabilities.
+default_state: >
+  An engagement still being sold as a feature list against an uncertain
+  problem.
+exception_states: []
+l1_guardrails: []
+skills:
+  - positioning-narrative-shaping

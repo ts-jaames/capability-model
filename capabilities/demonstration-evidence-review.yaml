@@ -1,0 +1,31 @@
+id: demonstration-evidence-review
+name: Demonstration & evidence review
+description: >
+  Stages the working proof in front of the client and closes on a shared
+  decision, so the call is made against something real, not a status update
+  they received. Adjacent to Transparent delivery, which keeps the work
+  visible as it is built; this capability owns the review that produces a
+  decision.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-24
+domain: proof
+core_promise: >
+  Stages the working proof in front of the client and closes on a shared decision.
+client_outcome: >
+  A call the client made against something real, not a status update they received.
+client_how: >
+  We put the running proof in the room, walk the evidence, and close a
+  decision there. The client does not leave with a readout; they leave
+  having made the call.
+spark_how: >
+  Stage the artefact and the signal together. Decide in the room. Do not
+  substitute a status pack for the review. Hand continuous visibility to
+  Transparent delivery; hand the done-bar to Acceptance proving.
+default_state: >
+  A running artefact with signal, and a client who has not yet been asked
+  to decide against it.
+exception_states: []
+l1_guardrails: []
+skills: []

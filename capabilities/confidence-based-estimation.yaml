@@ -2,7 +2,9 @@ id: confidence-based-estimation
 name: Confidence-based estimation
 description: >
   Prices the proven tight and names the unproven as bets, so the commercial
-  number is honest against what is actually known.
+  number is honest against what is actually known. Adjacent to Pricing under
+  uncertainty, which structures the price so margin holds, and to Commercial
+  scoping & envelope shaping, which puts that number in a contract.
 status: draft
 owner: Operating Model
 source: original
@@ -24,4 +26,5 @@ default_state: >
   A scoped engagement with some proven ground and some explicit unknowns.
 exception_states: []
 l1_guardrails: []
-skills: []
+skills:
+  - positioning-narrative-shaping
