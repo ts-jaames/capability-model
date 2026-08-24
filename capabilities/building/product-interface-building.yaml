@@ -1,0 +1,26 @@
+capability: Product & interface building
+domain: Building
+promise: >
+  The part users actually see and touch, built for real: a working product, not
+  a prototype.
+client_experience: >
+  A working, usable product shipped to live preview, backed by a reusable
+  component library.
+sparq_how: >
+  Assemble from design tokens + a Figma/code component library; ship increments
+  to preview; check token use and accessibility on every build.
+levels:
+  L1: Assembly from guardrails.
+  L2: State and edge-case behaviour.
+  L3: Sets tokens, contracts, motion.
+l1_guardrails:
+  - Component token sheet
+  - page assembly template (Figma + code scaffold)
+  - in-token component-generation prompt pack
+l1_l2_boundary: >
+  L1 assembles from tokenized components; defining new tokens or state hooks is
+  L2.
+agent_skills:
+  - name: accessible-component-audit
+    what: Audit interface components against accessibility criteria → later screens inherit a passable baseline instead of shipping inaccessible patterns.
+    status: building

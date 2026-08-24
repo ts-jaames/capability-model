@@ -1,0 +1,23 @@
+capability: Slice building
+domain: Building
+promise: >
+  The smallest real, working thing that answers a live question — proof over
+  promises, early and cheap.
+client_experience: >
+  A running artifact plus signal, delivered early.
+sparq_how: >
+  Frame one assumption per slice; build only what tests it in Cursor / Claude
+  Code, deployed to a preview; log the decision (continue / pivot / stop)
+  against the signal.
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Slice charter (one assumption + success/fail + kill date)
+  - preview deploy scaffold
+  - one-assumption gate
+l1_l2_boundary: >
+  L1 wires the scaffold for a defined slice; refactoring logic across slices is
+  L2.
+agent_skills: []

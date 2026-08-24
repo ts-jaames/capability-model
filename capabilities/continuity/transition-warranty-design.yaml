@@ -1,0 +1,22 @@
+capability: Transition & warranty design
+domain: Continuity
+promise: >
+  No surprises after go-live: exactly what we still hold, what you hold, and
+  when it changes hands.
+client_experience: >
+  A handoff schedule with dates, support coverage, and ownership transfers.
+sparq_how: >
+  Draft one agreement covering warranty, support, and backlog transfer;
+  specify exact transfer dates and boundaries; run a backlog review to confirm
+  ownership.
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Transition/warranty template
+  - backlog-handoff format
+  - ownership-transfer checklist
+l1_l2_boundary: >
+  L1 completes the standard checklist; negotiating custom warranty terms is L2.
+agent_skills: []

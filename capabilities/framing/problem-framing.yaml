@@ -1,0 +1,23 @@
+capability: Problem framing
+domain: Framing
+promise: >
+  Cuts through the ask to the one thing the work really has to solve — a single
+  sentence everyone can line up behind.
+client_experience: >
+  A single-sentence problem statement that aligns decisions across teams.
+sparq_how: >
+  Run a framing session with sponsor + a blocker; ladder symptom → lever live;
+  draft, swap-test, and lock the sentence in the room.
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Problem-sentence template
+  - symptom→lever laddering prompt pack
+  - swap-test checklist
+  - one worked example
+l1_l2_boundary: >
+  L1 facilitates from the prompt pack and drafts the sentence; resolving a
+  sentence that fails the swap test is L2.
+agent_skills: []

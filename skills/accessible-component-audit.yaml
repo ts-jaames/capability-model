@@ -1,0 +1,10 @@
+id: accessible-component-audit
+name: Accessible Component Audit
+description: >
+  Audit interface components against accessibility criteria so later screens
+  inherit a passable baseline instead of shipping inaccessible patterns.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-08-24
+type: core_technique

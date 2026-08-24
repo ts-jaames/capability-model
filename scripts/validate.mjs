@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { readdir, readFile } from "node:fs/promises";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
 import { parse } from "yaml";
@@ -12,6 +12,7 @@ const TYPED = {
   capability: {
     dir: "capabilities",
     schemaId: "https://capability-model.local/schema/capability.json",
+    recursive: true,
   },
   skill: { dir: "skills", schemaId: "https://capability-model.local/schema/skill.json" },
   role: { dir: "roles", schemaId: "https://capability-model.local/schema/role.json" },
@@ -19,6 +20,14 @@ const TYPED = {
 
 const LEVELS_SCHEMA = "https://capability-model.local/schema/levels.json";
 const LEVEL_IDS = ["L1", "L2", "L3"];
+const DOMAIN_NAME_TO_SLUG = {
+  Commercial: "commercial",
+  Framing: "framing",
+  Building: "building",
+  Proof: "proof",
+  Enablement: "enablement",
+  Continuity: "continuity",
+};
 
 const groups = {
   parse: [],
@@ -52,23 +61,39 @@ async function readYaml(rel) {
   }
 }
 
-async function readDirYaml(dir) {
+async function readDirYaml(dir, { recursive = false } = {}) {
   const abs = join(ROOT, dir);
-  let names;
+  let entries;
   try {
-    names = await readdir(abs);
+    entries = await readdir(abs, { withFileTypes: true });
   } catch (err) {
     if (err.code === "ENOENT") return [];
     add("parse", dir, err.message);
     return [];
   }
-  const files = names.filter((n) => n.endsWith(".yaml") || n.endsWith(".yml")).sort();
+  entries.sort((a, b) => a.name.localeCompare(b.name));
   const out = [];
-  for (const name of files) {
-    const loaded = await readYaml(join(dir, name));
+  for (const entry of entries) {
+    const rel = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (recursive) out.push(...(await readDirYaml(rel, { recursive: true })));
+      continue;
+    }
+    if (!entry.isFile()) continue;
+    if (!entry.name.endsWith(".yaml") && !entry.name.endsWith(".yml")) continue;
+    const loaded = await readYaml(rel);
     if (loaded) out.push(loaded);
   }
   return out;
+}
+
+function fileStem(file) {
+  return basename(file).replace(/\.(yaml|yml)$/, "");
+}
+
+function recordId(type, rec) {
+  if (type === "capability") return fileStem(rec.file);
+  return rec.data?.id;
 }
 
 function statusOf(entity) {
@@ -78,7 +103,7 @@ function statusOf(entity) {
 function indexById(records, type) {
   const map = new Map();
   for (const rec of records) {
-    const id = rec.data?.id;
+    const id = recordId(type, rec);
     if (typeof id !== "string") continue;
     if (map.has(id)) {
       add(
@@ -93,8 +118,14 @@ function indexById(records, type) {
   return map;
 }
 
-function validateFilename(rec) {
-  const stem = basename(rec.file).replace(/\.(yaml|yml)$/, "");
+function validateFilename(type, rec) {
+  const stem = fileStem(rec.file);
+  if (type === "capability") {
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(stem)) {
+      add("constraints", rec.file, `filename stem "${stem}" must be kebab-case`);
+    }
+    return;
+  }
   if (rec.data?.id && stem !== rec.data.id) {
     add(
       "constraints",
@@ -114,6 +145,45 @@ function uniqueIds(items, file, label) {
   }
 }
 
+function enforceCapabilityFloor(rec) {
+  const cap = rec.data;
+  const levels = cap.levels ?? {};
+  const hasL1 = Object.hasOwn(levels, "L1");
+  const hasNotAt = Object.hasOwn(cap, "not_at_l1");
+  const hasGuardrails = Object.hasOwn(cap, "l1_guardrails");
+  const hasBoundary = Object.hasOwn(cap, "l1_l2_boundary");
+
+  if (hasNotAt && (hasGuardrails || hasBoundary)) {
+    add(
+      "constraints",
+      rec.file,
+      "L2-floor capabilities omit l1_guardrails and l1_l2_boundary; L1-floor capabilities omit not_at_l1",
+    );
+  }
+  if (hasNotAt) {
+    if (hasL1) {
+      add("constraints", rec.file, "L2-floor must not have levels.L1");
+    }
+    if (!levels.L2 || !levels.L3) {
+      add("constraints", rec.file, "L2-floor requires levels.L2 and levels.L3");
+    }
+  } else {
+    if (!hasGuardrails) {
+      add(
+        "constraints",
+        rec.file,
+        "L1-floor requires l1_guardrails; L2-floor requires not_at_l1",
+      );
+    }
+    if (!hasBoundary) {
+      add("constraints", rec.file, "L1-floor requires l1_l2_boundary");
+    }
+    if (!hasL1 || !levels.L2 || !levels.L3) {
+      add("constraints", rec.file, "L1-floor requires levels.L1, L2, and L3");
+    }
+  }
+}
+
 async function main() {
   const ajv = new Ajv2020({ allErrors: true, strict: true });
   await loadSchemaFiles(ajv);
@@ -121,7 +191,7 @@ async function main() {
   const levelsRec = await readYaml("levels.yaml");
   const byType = {};
   for (const [type, meta] of Object.entries(TYPED)) {
-    byType[type] = await readDirYaml(meta.dir);
+    byType[type] = await readDirYaml(meta.dir, { recursive: Boolean(meta.recursive) });
   }
 
   if (levelsRec?.data) {
@@ -165,7 +235,7 @@ async function main() {
         add("parse", rec.file, "YAML must be a mapping");
         continue;
       }
-      validateFilename(rec);
+      validateFilename(type, rec);
       if (!validate(rec.data)) {
         for (const err of validate.errors ?? []) {
           add("schema", rec.file, `${err.instancePath || "/"} ${err.message}`);
@@ -185,38 +255,34 @@ async function main() {
     const cap = rec.data;
     if (!cap || typeof cap !== "object") continue;
 
-    if (cap.domain && !domains.has(cap.domain)) {
+    enforceCapabilityFloor(rec);
+
+    const domainSlug = DOMAIN_NAME_TO_SLUG[cap.domain];
+    if (cap.domain && !domainSlug) {
+      add("refs", rec.file, `domain "${cap.domain}" does not exist`);
+    } else if (domainSlug && !domains.has(domainSlug)) {
       add("refs", rec.file, `domain "${cap.domain}" does not exist`);
     }
 
-    const skillIds = cap.skills ?? [];
-    if (skillIds.length > 10) {
-      add("constraints", rec.file, `skills length ${skillIds.length} exceeds 10`);
+    const parent = basename(dirname(rec.file));
+    if (domainSlug && parent !== domainSlug) {
+      add(
+        "constraints",
+        rec.file,
+        `parent folder "${parent}" must match domain slug "${domainSlug}"`,
+      );
     }
-    uniqueIds(skillIds, rec.file, "skills");
+
+    const skillIds = (cap.agent_skills ?? []).map((item) => item?.name).filter(Boolean);
+    if (skillIds.length > 10) {
+      add("constraints", rec.file, `agent_skills length ${skillIds.length} exceeds 10`);
+    }
+    uniqueIds(skillIds, rec.file, "agent_skills");
     for (const skillId of skillIds) {
       if (!skills.has(skillId)) {
         add("refs", rec.file, `skill "${skillId}" does not exist`);
       } else {
         skillRefs.add(skillId);
-      }
-    }
-
-    for (const [i, state] of (cap.exception_states ?? []).entries()) {
-      if (!state || typeof state !== "object") continue;
-      if (state.type === "skill" && state.id && !skills.has(state.id)) {
-        add(
-          "refs",
-          rec.file,
-          `exception_states[${i}] skill "${state.id}" does not exist`,
-        );
-      }
-      if (state.type === "internal_capability" && state.id && !capabilities.has(state.id)) {
-        add(
-          "refs",
-          rec.file,
-          `exception_states[${i}] capability "${state.id}" does not exist`,
-        );
       }
     }
 

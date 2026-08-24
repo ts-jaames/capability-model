@@ -1,0 +1,16 @@
+capability: Client operating-model design
+domain: Continuity
+promise: >
+  A clear picture of who owns what and how decisions get made once we're gone:
+  a machine your team knows how to run.
+client_experience: >
+  An operating model defining responsibilities, ownership, and cadences.
+sparq_how: >
+  Define post-launch roles, cadences, and decision rights; write it in the
+  client's own org language; map when to execute, escalate, or change the
+  system.
+levels:
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+not_at_l1: TBD
+agent_skills: []

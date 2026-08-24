@@ -1,0 +1,23 @@
+capability: Risk framing
+domain: Framing
+promise: >
+  Separates the few risks that could sink the whole thing from the noise, so
+  attention goes where it actually matters.
+client_experience: >
+  A shortlist of collapse-level risks; the rest stays off the steering agenda.
+sparq_how: >
+  Run an assumption dump + failure premortem; sort by collapse potential
+  (impact × irreversibility); keep only what changes the proceed call or first
+  slice.
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Dump + premortem prompt pack
+  - collapse-potential sort rubric
+  - risk-shortlist template
+l1_l2_boundary: >
+  L1 facilitates the dump and applies the score; judging irreversibility
+  ratings is L2.
+agent_skills: []

@@ -1,0 +1,22 @@
+capability: Demonstration & evidence review
+domain: Proof
+promise: >
+  Progress you can see running, with the numbers behind it — not a status deck
+  that tells you it's fine.
+client_experience: >
+  Interactive review of running software alongside its live signal.
+sparq_how: >
+  Demo only from live preview; walk the signal alongside the functionality;
+  capture decisions in the session.
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Evidence-review run sheet
+  - live-preview default dashboard
+  - feedback-capture log
+l1_l2_boundary: >
+  L1 runs the walk-through from the run sheet; handling off-script technical
+  questions is L2.
+agent_skills: []

@@ -1,0 +1,16 @@
+capability: Stakeholder alignment
+domain: Framing
+promise: >
+  Gets the people who could stop the work to agree, up front, on what good
+  looks like — in language that outlasts us.
+client_experience: >
+  A shared decision standard locked in executive language that holds across org
+  shifts.
+sparq_how: >
+  Map who can block or bless; put the lever in front of them in a working
+  session; secure sign-off on a standard that holds without us.
+levels:
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+not_at_l1: TBD
+agent_skills: []

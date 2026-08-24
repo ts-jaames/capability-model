@@ -1,0 +1,23 @@
+capability: Autonomous-system governance
+domain: Continuity
+promise: >
+  The controls, review, and stop-rules that let you run an AI system safely
+  once it's yours — not just own something you can't supervise.
+client_experience: >
+  Explicit kill switches, guardrails, and escalation paths for AI in
+  production.
+sparq_how: >
+  Define operating boundaries, drift measures, and escalation triggers
+  post-launch; build kill rules and override paths for client operators;
+  deliver a runbook tied to known failure modes.
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Governance runbook template
+  - kill-rule spec sheet
+  - drift-monitoring format
+l1_l2_boundary: >
+  L1 fills the runbook from templates; defining custom kill rules is L2.
+agent_skills: []

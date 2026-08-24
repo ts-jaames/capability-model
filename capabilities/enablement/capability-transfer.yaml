@@ -1,0 +1,15 @@
+capability: Capability transfer
+domain: Enablement
+promise: >
+  Your people in the room for the hard calls, so they can run and extend the
+  system themselves — not just own a repo they didn't help shape.
+client_experience: >
+  A team that can maintain and extend the system on its own.
+sparq_how: >
+  Pair client people on the calls that set the method; transfer the reasoning,
+  not just the docs; record decision rationale for later reference.
+levels:
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+not_at_l1: TBD
+agent_skills: []

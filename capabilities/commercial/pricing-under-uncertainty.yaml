@@ -1,0 +1,16 @@
+capability: Pricing under uncertainty
+domain: Commercial
+promise: >
+  A price that stays fair when the full shape of the work can't be known yet:
+  fixed where it's proven, staged where it isn't.
+client_experience: >
+  A staged price — fixed rates for known work, investment staged as clarity
+  grows.
+sparq_how: >
+  Stage price across confidence gates; itemize the emergence allowance in the
+  agreement; tie phases to signal thresholds from delivery.
+levels:
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+not_at_l1: TBD
+agent_skills: []

@@ -1,0 +1,22 @@
+capability: Outcome definition
+domain: Framing
+promise: >
+  Agreement on what winning actually looks like, in numbers, before anyone
+  designs or builds.
+client_experience: >
+  Up to three agreed, measurable targets locked before work starts.
+sparq_how: >
+  Translate the lever into ≤3 measurable targets in-session; run a kill-check
+  that each is measurable; hand instrumentation to Signal design.
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Target template (lever → ≤3 targets)
+  - measurement kill-check
+  - Signal design handoff stub
+l1_l2_boundary: >
+  L1 runs the template; judging whether a complex target passes the kill-check
+  is L2.
+agent_skills: []

@@ -6,12 +6,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        A capability is a named client outcome. It can link at most 10 skills. Ratification requires L1 guardrails. New capabilities land at `status: draft`.
+        A capability is a named client outcome. It belongs in exactly one of the six domains and lands at `capabilities/<domain-slug>/<kebab-id>.yaml`. It can link at most 10 skills via `agent_skills`. New capabilities are treated as draft.
   - type: input
     id: name
     attributes:
       label: Capability name
-      placeholder: Product & Interface Building
+      placeholder: Product & interface building
     validations:
       required: true
   - type: dropdown
@@ -28,39 +28,48 @@ body:
     validations:
       required: true
   - type: textarea
-    id: core_promise
+    id: promise
     attributes:
-      label: Client promise
+      label: Promise
       description: The named outcome we put in front of the client.
     validations:
       required: true
   - type: textarea
-    id: client_outcome
+    id: client_experience
     attributes:
-      label: Client outcome
+      label: Client experience
       description: What they walk away able to do or own.
     validations:
       required: true
   - type: textarea
-    id: client_how
+    id: sparq_how
     attributes:
-      label: How the client experiences it
+      label: Sparq How
+      description: Internal methodology, not the sales story.
     validations:
       required: true
-  - type: textarea
-    id: spark_how
+  - type: dropdown
+    id: floor
     attributes:
-      label: How we deliver it
-      description: Internal methodology, not the sales story.
+      label: Execution floor
+      description: L1-floor capabilities get guardrails. L2-floor capabilities are Not at L1 until those exist.
+      options:
+        - L1-floor (include L1 + l1_guardrails + L1→L2 boundary)
+        - L2-floor (omit L1 fields; not_at_l1 is TBD)
     validations:
       required: true
   - type: textarea
     id: l1_guardrails
     attributes:
       label: L1 guardrails
-      description: Templates, components, prompts, or links that let a non-specialist execute safely. One per line. Can be empty for a draft.
+      description: Required for L1-floor. Templates, components, prompts, or links that let a non-specialist execute safely. One per line. Leave blank if this is L2-floor.
   - type: textarea
-    id: skills
+    id: l1_l2_boundary
+    attributes:
+      label: L1→L2 boundary
+      description: Required for L1-floor. What L1 may do vs what must escalate to L2. Leave blank if this is L2-floor.
+  - type: textarea
+    id: agent_skills
     attributes:
       label: Linked skills
-      description: Up to 10. Names are enough. Leave blank if the skills do not exist yet.
+      description: Up to 10 existing skill ids (kebab-case). Names are enough. Leave blank if the skills do not exist yet.

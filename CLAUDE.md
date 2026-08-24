@@ -38,11 +38,11 @@ Fail — and reclassify — if it is:
 - a domain restated (“do Framing”, “do enablement”)
 - a staffing pattern or seat
 
-A capability belongs to **exactly one** of the six domains. Prefer extending an existing capability over minting a near-duplicate. Note overlap in `description` instead of splitting hairs into a new file.
+A capability belongs to **exactly one** of the six domains. Prefer extending an existing capability over minting a near-duplicate. Note overlap in `promise` instead of splitting hairs into a new file.
 
 ### Skill
 
-An atomic method (`core_technique`) or specific tool (`transient_tool`) used **inside** a capability. Skills are never referenced from roles. A capability lists at most 10. After adding a skill, attach it to at least one capability.
+An atomic method (`core_technique`) or specific tool (`transient_tool`) used **inside** a capability. Skills are never referenced from roles. A capability lists at most 10 `agent_skills`. After adding a skill, attach it to at least one capability.
 
 ### Level
 
@@ -61,8 +61,9 @@ Which capabilities a seat **owns** (max 2, Owner accountability) vs can **execut
 ## Do
 
 - Read this file, `levels.yaml`, and existing YAML before adding files.
-- Filename stem must equal `id` (kebab-case).
-- Set `status: draft` on every generated entity. Never write `reviewed` or `ratified` unless a human explicitly asked to promote that file.
+- Filename stem must equal `id` (kebab-case). Capabilities omit `id`; the stem **is** the id.
+- Capability files live at `capabilities/<domain-slug>/<kebab-id>.yaml`. `domain` in YAML is the display name (`Building`, not `building`).
+- Set `status: draft` on skills, domains, and roles. Capabilities omit `status`; tooling treats missing status as `draft`. Never write `reviewed` or `ratified` unless a human explicitly asked to promote that file.
 - Keep YAML readable for non-engineers. Prefer short sentences and lists.
 - Run `npm run validate` after edits. Fix every error before finishing.
 
@@ -80,20 +81,22 @@ Which capabilities a seat **owns** (max 2, Owner accountability) vs can **execut
 These are shape rules. Passing them does not mean the entity should exist.
 
 - Schema + `additionalProperties: false` for every entity.
-- Unique `id` within each type.
-- Capability → domain, capability → skills, role → capabilities, exception-state ids must all resolve.
+- Unique `id` within each type (capability id = filename stem).
+- Capability → domain, capability → `agent_skills[].name`, role → capabilities must all resolve.
 - Every skill is referenced by at least one capability.
-- A capability lists at most 10 skills.
+- A capability lists at most 10 `agent_skills`.
 - A role owns at most 2 capabilities and executes at most 7. Owned and executable lists are disjoint.
-- `status: ratified` on a capability requires a non-empty `l1_guardrails` array.
+- L1-floor capabilities include `levels.L1`, `l1_guardrails`, and `l1_l2_boundary`, and omit `not_at_l1`. L2-floor capabilities include `not_at_l1: TBD`, and omit `levels.L1`, `l1_guardrails`, and `l1_l2_boundary`.
 - Execution scale is exactly L1, L2, L3, plus ownership designation `Owner`.
 
 ## Field notes
 
 - `source` is `sfia` | `adapted` | `original`.
-- Skill `type` is `core_technique` | `transient_tool`. `is_automated: true` means the skill is absorbed into an L1 guardrail.
-- Capability `spark_how` is internal methodology. `client_how` is the client-facing experience.
-- Role `owned_capabilities` are ids (Owner accountability). `executable_capabilities` are `{ id, required_level }` with `required_level` L1–L3.
+- Skill `type` is `core_technique` | `transient_tool`. Some agent skills may later be listed as L1 guardrails; that is a capability fact, not a field on the skill.
+- Capability `promise` is the named client outcome. `client_experience` is what they walk away with. `sparq_how` is internal methodology.
+- Per-capability `levels` is how that capability is executed (generic ladder unless authored copy exists). `l1_l2_boundary` is required on L1-floor capabilities. `levels.yaml` remains the agency-wide legend. Still no L1–L3 on domains or skill files.
+- `agent_skills[].name` is a skill file stem. Do not invent SKILL.md names. Map only skills that already exist in `skills/`.
+- Role `owned_capabilities` are kebab ids (Owner accountability). `executable_capabilities` are `{ id, required_level }` with `required_level` L1–L3.
 
 ## Contribution path
 

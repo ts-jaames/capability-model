@@ -1,0 +1,16 @@
+capability: Org change & adoption
+domain: Enablement
+promise: >
+  Getting the wider organization to actually trust and use what was built, so
+  it gets used instead of shelved.
+client_experience: >
+  Measurable adoption across the people who didn't build it.
+sparq_how: >
+  Map affected users outside the build team; design adoption paths against
+  their incentives and fears; track usage and treat low usage as a signal to
+  act on.
+levels:
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+not_at_l1: TBD
+agent_skills: []

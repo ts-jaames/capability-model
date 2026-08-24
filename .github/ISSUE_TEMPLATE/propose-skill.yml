@@ -31,16 +31,6 @@ body:
         - transient_tool
     validations:
       required: true
-  - type: dropdown
-    id: is_automated
-    attributes:
-      label: Absorbed into an L1 template or guardrail?
-      options:
-        - "No"
-        - "Yes"
-      default: 0
-    validations:
-      required: true
   - type: textarea
     id: description
     attributes:

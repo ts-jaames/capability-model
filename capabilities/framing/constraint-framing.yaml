@@ -1,0 +1,23 @@
+capability: Constraint framing
+domain: Framing
+promise: >
+  Finds the walls that can't move (legal, technical, contractual) before the
+  plan is built, so they're inputs and not late surprises.
+client_experience: >
+  A constraint map the plan is built against, not discovered late.
+sparq_how: >
+  Interview across four lanes (legal, regulatory, technical, operational) on a
+  fixed script; sort constraint vs preference on the rubric; publish the set
+  before sequencing.
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Four-lane interview script
+  - constraint-vs-preference rubric
+  - constraint-set record template
+l1_l2_boundary: >
+  L1 runs the script and populates the rubric; arbitrating ambiguous
+  constraints is L2.
+agent_skills: []

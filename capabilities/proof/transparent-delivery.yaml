@@ -1,0 +1,22 @@
+capability: Transparent delivery
+domain: Proof
+promise: >
+  You can watch the work being true as it's built, any time, instead of waiting
+  for a weekly report.
+client_experience: >
+  Continuous access to live preview and status, not status packs.
+sparq_how: >
+  Deploy a preview per active branch; expose live health/progress to
+  stakeholders; replace at least one status meeting with the live link.
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Preview-deploy scaffold
+  - live status-view template
+  - '"no status pack where a live view exists" rule'
+l1_l2_boundary: >
+  L1 configures preview links and status views; fixing a broken delivery
+  channel is L2.
+agent_skills: []

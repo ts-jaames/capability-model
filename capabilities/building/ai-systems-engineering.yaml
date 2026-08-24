@@ -1,0 +1,23 @@
+capability: AI systems engineering
+domain: Building
+promise: >
+  AI that actually works on your real problem and your real data, not a demo
+  that falls over in production.
+client_experience: >
+  A production-ready AI system grounded in your data, with accuracy and limits
+  you can verify.
+sparq_how: >
+  Stand up an eval harness with golden sets before architecture; ingest domain
+  data into model-agnostic context pipelines; gate deploy on eval scores, not
+  demo quality.
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Eval-harness scaffold
+  - corpus-ingestion checklist
+  - reliability-benchmark template
+l1_l2_boundary: >
+  L1 runs scaffolds and eval suites; modifying context pipelines is L2.
+agent_skills: []

@@ -1,0 +1,22 @@
+capability: Acceptance proving
+domain: Proof
+promise: >
+  Clear, evidence-backed sign-off that the work does what was agreed, not a
+  subjective "looks done to me."
+client_experience: >
+  Sign-off backed by pass/fail proof against criteria set up front.
+sparq_how: >
+  Validate against the outcome targets and eval bar; record pass/fail per
+  criterion; require verification before "complete."
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Acceptance checklist (wired to agreed criteria)
+  - pass/fail record template
+  - criteria-verification guide
+l1_l2_boundary: >
+  L1 runs the checklist against defined cases; ruling on edge-case exceptions
+  is L2.
+agent_skills: []

@@ -1,0 +1,22 @@
+capability: Signal design
+domain: Proof
+promise: >
+  Deciding up front what would actually count as proof, and building in the
+  means to measure it.
+client_experience: >
+  The measures and thresholds that make results evidence, set before build.
+sparq_how: >
+  Define metric, source, and threshold before slice build; embed measurement
+  hooks in components/services; record the bar so results can't be
+  re-litigated.
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Signal spec template (measure / source / success / failure / threshold)
+  - instrumentation starter kit
+  - signal-vs-demo gate
+l1_l2_boundary: >
+  L1 embeds standard hooks from the kit; defining custom metric formulas is L2.
+agent_skills: []

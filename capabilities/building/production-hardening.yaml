@@ -1,0 +1,23 @@
+capability: Production hardening
+domain: Building
+promise: >
+  Makes sure it holds up under real traffic, real users, and real pressure, not
+  just in the demo.
+client_experience: >
+  A resilient, observable system verified under load and real failure.
+sparq_how: >
+  Run security, load, and observability against the constraint set + risk
+  shortlist; wire monitoring/tracing into the deploy; map each fix to a named
+  risk.
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Hardening checklist (scoped from constraints + risks)
+  - observability wiring scaffold
+  - risk-remediation report template
+l1_l2_boundary: >
+  L1 deploys scaffolds and runs hardening scripts; diagnosing complex load
+  failures is L2.
+agent_skills: []

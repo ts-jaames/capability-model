@@ -11,8 +11,7 @@
     "owner",
     "source",
     "last_updated",
-    "type",
-    "is_automated"
+    "type"
   ],
   "properties": {
     "id": { "$ref": "common.json#/$defs/kebabId" },
@@ -22,7 +21,6 @@
     "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
     "source": { "$ref": "common.json#/$defs/source" },
     "last_updated": { "$ref": "common.json#/$defs/isoDate" },
-    "type": { "type": "string", "enum": ["core_technique", "transient_tool"] },
-    "is_automated": { "type": "boolean" }
+    "type": { "type": "string", "enum": ["core_technique", "transient_tool"] }
   }
 }

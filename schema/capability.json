@@ -5,58 +5,60 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "id",
-    "name",
-    "description",
-    "owner",
-    "source",
-    "last_updated",
+    "capability",
     "domain",
-    "core_promise",
-    "client_outcome",
-    "client_how",
-    "spark_how",
-    "default_state",
-    "exception_states",
-    "l1_guardrails",
-    "skills"
+    "promise",
+    "client_experience",
+    "sparq_how",
+    "levels",
+    "agent_skills"
   ],
   "properties": {
-    "id": { "$ref": "common.json#/$defs/kebabId" },
-    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
-    "description": { "$ref": "common.json#/$defs/nonEmptyString" },
-    "status": { "$ref": "common.json#/$defs/status" },
-    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
-    "source": { "$ref": "common.json#/$defs/source" },
-    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
-    "domain": { "$ref": "common.json#/$defs/kebabId" },
-    "core_promise": { "$ref": "common.json#/$defs/nonEmptyString" },
-    "client_outcome": { "$ref": "common.json#/$defs/nonEmptyString" },
-    "client_how": { "$ref": "common.json#/$defs/nonEmptyString" },
-    "spark_how": { "$ref": "common.json#/$defs/nonEmptyString" },
-    "default_state": { "$ref": "common.json#/$defs/nonEmptyString" },
-    "exception_states": {
+    "capability": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "domain": {
+      "type": "string",
+      "enum": [
+        "Commercial",
+        "Framing",
+        "Building",
+        "Proof",
+        "Enablement",
+        "Continuity"
+      ]
+    },
+    "promise": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "client_experience": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "sparq_how": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "levels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["L2", "L3"],
+      "properties": {
+        "L1": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "L2": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "L3": { "$ref": "common.json#/$defs/nonEmptyString" }
+      }
+    },
+    "not_at_l1": { "type": "string", "const": "TBD" },
+    "l1_guardrails": {
       "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "common.json#/$defs/nonEmptyString" }
+    },
+    "l1_l2_boundary": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "agent_skills": {
+      "type": "array",
+      "maxItems": 10,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["type", "id", "when"],
+        "required": ["name", "what", "status"],
         "properties": {
-          "type": { "type": "string", "enum": ["skill", "internal_capability"] },
-          "id": { "$ref": "common.json#/$defs/kebabId" },
-          "when": { "$ref": "common.json#/$defs/nonEmptyString" }
+          "name": { "$ref": "common.json#/$defs/kebabId" },
+          "what": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "status": { "type": "string", "enum": ["live", "building", "gap"] }
         }
       }
-    },
-    "l1_guardrails": {
-      "type": "array",
-      "items": { "$ref": "common.json#/$defs/nonEmptyString" }
-    },
-    "skills": {
-      "type": "array",
-      "maxItems": 10,
-      "uniqueItems": true,
-      "items": { "$ref": "common.json#/$defs/kebabId" }
     }
   }
 }

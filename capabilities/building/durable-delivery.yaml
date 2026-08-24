@@ -1,0 +1,23 @@
+capability: Durable delivery
+domain: Building
+promise: >
+  A codebase and release path clean enough that your team keeps shipping long
+  after we've gone.
+client_experience: >
+  An automated release pipeline and readable repo ready for handoff.
+sparq_how: >
+  Configure CI/CD in the client's infrastructure; hold the codebase to
+  readability and modular-interface standards; test against the "next change
+  without the original author" bar.
+levels:
+  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+l1_guardrails:
+  - Release runbook template
+  - codebase-readability checklist
+  - CI/CD scaffold
+l1_l2_boundary: >
+  L1 runs CI/CD scaffolds and formatting rules; changing core pipeline logic is
+  L2.
+agent_skills: []

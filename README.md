@@ -24,17 +24,12 @@ You do not need to edit YAML.
 1. Open a GitHub Issue using one of the forms: **Propose a skill**, **Propose a capability**, or **Define a role**.
 2. Or describe the change in natural language to Claude CoWork / Cursor. Point the assistant at `CLAUDE.md`. It will draft YAML at `status: draft`.
 3. A human reviews the pull request. Only a human may set `status: reviewed` or `status: ratified`.
-4. A capability cannot be `ratified` until `l1_guardrails` is non-empty.
+4. Capabilities omit `status` in YAML; tooling treats them as draft. L1-floor capabilities require `l1_guardrails`. L2-floor capabilities use `not_at_l1: TBD`.
 
-## Worked example
+## Layout
 
-The scaffold includes one end-to-end example plus two Framing stubs so the role can validate:
-
-- `levels.yaml`
-- `domains/*.yaml` — six domain shells
-- `capabilities/product-interface-building.yaml` — full example
-- `capabilities/problem-framing.yaml`, `capabilities/stakeholder-alignment.yaml` — stubs
-- `skills/component-tokenization.yaml`, `state-architecture.yaml`, `ui-motion-tuning.yaml`
-- `roles/interface-lead.yaml`
-
-Further taxonomy content belongs in later passes, still as `draft` until signed off.
+- `levels.yaml` — agency-wide L1 / L2 / L3 / Owner legend
+- `domains/*.yaml` — six closed domains
+- `capabilities/<domain-slug>/<kebab-id>.yaml` — capabilities nested by domain
+- `skills/*.yaml` — methods used inside capabilities (`agent_skills`)
+- `roles/interface-lead.yaml` — staffing bound example (not rendered on the site yet)

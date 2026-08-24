@@ -1,0 +1,16 @@
+capability: Direction qualification
+domain: Framing
+promise: >
+  A clear call on whether the thing is worth building and what to do first,
+  made in the room with the reasoning behind it.
+client_experience: >
+  A proceed / redirect / stop decision and a defensible "what first."
+sparq_how: >
+  Score candidates against the problem sentence, constraint set, and risk
+  shortlist; sequence only what survives; record the call; treat stop as a
+  valid outcome.
+levels:
+  L2: Executes end-to-end independently and handles edge cases without escalating the method.
+  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+not_at_l1: TBD
+agent_skills: []
