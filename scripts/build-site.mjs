@@ -78,7 +78,7 @@ function renderPageLinks(pageId) {
     const active = item.id === pageId;
     const href = active ? "#overview" : item.file;
     const current = active ? ' aria-current="page"' : "";
-    return `<a class="uppercase mono page-link"${current} href="${esc(href)}">${esc(item.title)}</a>`;
+    return `<a class="page-link"${current} href="${esc(href)}">${esc(item.title)}</a>`;
   }).join("\n        ");
 }
 
@@ -212,7 +212,7 @@ function renderNote(id, name, body) {
       <header class="row-head">
         <h3 class="domain-name">${esc(name)}</h3>
       </header>
-      <div class="prose">${paragraphs(body)}</div>
+      ${paragraphs(body)}
     </article>`;
 }
 
@@ -286,16 +286,10 @@ function renderRolesMain() {
         <h2 class="mono uppercase eyebrow">External lines</h2>
         <div class="stack">
         ${lines}
-        ${renderNote(
-          "how-they-relate",
-          "How they relate",
-          "They divide by the confidence they earn: right-thing (PA), trustworthy-AI (AI Architect), built-and-proven (FDE). Owners are the atomic unit; a line is a named composition of Owners, met by one broad person or several deep ones.",
-        )}
         </div>
       </section>
       <section id="title-ownership-seat">
         <h2 class="mono uppercase eyebrow">Title · Ownership · Seat</h2>
-        <p class="lede">A person is described by three separate things at once. Keeping them apart is what lets us sell capabilities instead of people, staff flexibly, and reward maturity instead of billed hours.</p>
         <div class="stack">
         ${renderNote(
           "layer-title",
@@ -311,11 +305,6 @@ function renderRolesMain() {
           "layer-seat",
           "Project seat",
           "What you're doing now.\n\nThe role you occupy on a specific squad for a specific slice of work. Seats shift within an engagement as the work changes. The same person may sit Slice Builder one sprint and Governance Lead the next. Because seats are activated by what the work needs, their catalog lives in the operating view, not here.",
-        )}
-        ${renderNote(
-          "layers-how-they-relate",
-          "How they relate",
-          "A title rolls up many ownerships (one-to-many): one Product Architect line sits above the Commercial, Framing, and Interface owners. A person holds ownership permanently, wears a title externally, and moves through seats over an engagement's life. Seniority lives in the seat's level (L1-L3), not the title. A junior and senior FDE are both \"FDE\" to the client; the level sets the rate. The SOW promises a capability line at a level. How we fulfil it (one broad person or several deep owners, in which seats) is an internal call the client never sees. Example: an AI Architect (title) who is the AI Systems Owner (ownership) sits the Eval Harness Engineer seat in sprint 1 and the Governance Lead seat at handoff.",
         )}
         </div>
       </section>`;
@@ -587,7 +576,13 @@ function render(model, pageId = "capability-model") {
       gap: 8px;
     }
     .page-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13.5px;
+      letter-spacing: 0.01em;
       opacity: 0.4;
       transition: opacity 180ms ease;
     }
@@ -597,6 +592,19 @@ function render(model, pageId = "capability-model") {
     }
     .page-link:hover { font-weight: 400; }
     .page-link[aria-current="page"] { font-weight: 600; }
+    .page-link[aria-current="page"]::after {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 99px;
+      background: var(--ink);
+      flex-shrink: 0;
+      animation: nav-dot-in 400ms ease;
+    }
+    @keyframes nav-dot-in {
+      from { opacity: 0; transform: scale(0.4); }
+      to { opacity: 1; transform: scale(1); }
+    }
     .page-link[aria-current="page"]:hover { font-weight: 600; }
     .side .toc {
       display: flex;
@@ -645,13 +653,6 @@ function render(model, pageId = "capability-model") {
     .stack {
       display: flex;
       flex-direction: column;
-    }
-    .stack .row {
-      padding: 0;
-      margin: 0 0 28px;
-    }
-    .stack .row:last-child {
-      margin-bottom: 0;
     }
     .row-head {
       display: flex;
@@ -774,7 +775,7 @@ function render(model, pageId = "capability-model") {
     }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
-      * { transition: none !important; }
+      * { transition: none !important; animation: none !important; }
     }
   </style>
 </head>
