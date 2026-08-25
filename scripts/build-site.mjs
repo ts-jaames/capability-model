@@ -35,6 +35,7 @@ function paragraphs(value) {
 
 function badge(status) {
   const label = status ?? "draft";
+  if (label === "ratified") return "";
   return `<span class="status"><i class="dot dot-${esc(label)}"></i></span>`;
 }
 
@@ -56,6 +57,30 @@ const PAGES = [
   { id: "roles-titles", title: "Roles & Titles", file: "roles-titles.html" },
   { id: "operating-view", title: "Operating View", file: "operating-view.html" },
 ];
+
+function pageToc(pageId) {
+  if (pageId === "capability-model") {
+    return `<a href="#overview">Overview</a>
+        <a href="#domains">Domains</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#agent-skills">Agent Skills</a>`;
+  }
+  if (pageId === "roles-titles") {
+    return `<a href="#overview">Overview</a>
+        <a href="#external-lines">External lines</a>
+        <a href="#title-ownership-seat">Title · Ownership · Seat</a>`;
+  }
+  return `<a href="#overview">Overview</a>`;
+}
+
+function renderPageLinks(pageId) {
+  return PAGES.map((item) => {
+    const active = item.id === pageId;
+    const href = active ? "#overview" : item.file;
+    const current = active ? ' aria-current="page"' : "";
+    return `<a class="uppercase mono page-link"${current} href="${esc(href)}">${esc(item.title)}</a>`;
+  }).join("\n        ");
+}
 
 async function loadDir(dir) {
   const abs = join(ROOT, dir);
@@ -167,11 +192,139 @@ function renderCap(cap, domains) {
     </article>`;
 }
 
+function renderLine(id, name, intro, fields) {
+  const kvs = fields
+    .map(([label, body]) => kv(label, `<p>${esc(body)}</p>`))
+    .join("");
+  return `
+    <article class="row" id="${esc(id)}">
+      <header class="row-head">
+        <h3 class="domain-name">${esc(name)}</h3>
+      </header>
+      <div class="prose"><p>${esc(intro)}</p></div>
+      <div class="kvs">${kvs}</div>
+    </article>`;
+}
+
+function renderNote(id, name, body) {
+  return `
+    <article class="row" id="${esc(id)}">
+      <header class="row-head">
+        <h3 class="domain-name">${esc(name)}</h3>
+      </header>
+      <div class="prose">${paragraphs(body)}</div>
+    </article>`;
+}
+
+function renderRolesMain() {
+  const lines = [
+    renderLine(
+      "line-product-architect",
+      "Product Architect",
+      "Owns whether it's the right thing: framed, priced, and adopted honestly. Leads presales, because shaping a deal is the same judgment as delivering one.",
+      [
+        [
+          "Owns",
+          "Commercial, Framing, Enablement, client-side Continuity (operating-model, transition/warranty), and Interface.",
+        ],
+        [
+          "Executes",
+          "Frames the ask to one lever; names the hard constraints and collapse risks; makes the go/redirect/stop call; shapes and prices the envelope; aligns blockers; carries adoption and handoff. Ships interface directly on smaller jobs.",
+        ],
+        [
+          "Shape",
+          "Barbell: one M-shaped person clears the envelope, or a Framing and an Interface specialist clear it together. Same SOW line either way.",
+        ],
+      ],
+    ),
+    renderLine(
+      "line-ai-architect",
+      "AI Architect",
+      "Owns whether a probabilistic system is trustworthy: working on real data, proven before ship, safe once the client runs it.",
+      [
+        ["Owns", "AI systems engineering; autonomous-system governance."],
+        [
+          "Executes",
+          "Evaluation before architecture; models grounded in the client's corpus; deploy gated on eval evidence, not a demo; controls and stop-rules for post-handoff autonomy.",
+        ],
+        [
+          "Shape",
+          "Deep-T: the specialist consultant, narrow coverage, full judgment in the lane.",
+        ],
+      ],
+    ),
+    renderLine(
+      "line-forward-deployed-engineer",
+      "Forward Deployed Engineer",
+      "Owns whether a deterministic system is built and proven: durable, ownable, and visibly true.",
+      [
+        [
+          "Owns",
+          "Core systems, production hardening, durable delivery, slice building; all of Proof.",
+        ],
+        [
+          "Executes",
+          "Instrumented slices to test assumptions early; core systems fit to the client's stack; hardened against real load; a clean codebase the client can extend; proven against criteria set up front.",
+        ],
+        [
+          "Shape",
+          "Deep-T to barbell (build + proof, or build + AI). Highest-volume line.",
+        ],
+      ],
+    ),
+  ].join("");
+
+  return `
+      <section id="overview">
+        <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
+        <p class="lede">Capabilities are the contract. Roles are the fulfillment. Title tracks coverage.</p>
+        <p class="lede">The SOW promises capabilities-at-levels (outcome-priced), never headcount. A role is internal shorthand for a person's capability-and-level profile.</p>
+        <p class="lede">An Owner is the atomic internal unit (accountable for one capability cluster's maturity). Owners compose into the external lines below; the external lines are just the common compositions with market-legible names.</p>
+        <p class="lede">A pair of single-spike Owners and one M-shaped person can fulfil the same SOW line. The contract doesn't care which.</p>
+      </section>
+      <section id="external-lines">
+        <h2 class="mono uppercase eyebrow">External lines</h2>
+        <div class="stack">
+        ${lines}
+        ${renderNote(
+          "how-they-relate",
+          "How they relate",
+          "They divide by the confidence they earn: right-thing (PA), trustworthy-AI (AI Architect), built-and-proven (FDE). Owners are the atomic unit; a line is a named composition of Owners, met by one broad person or several deep ones.",
+        )}
+        </div>
+      </section>
+      <section id="title-ownership-seat">
+        <h2 class="mono uppercase eyebrow">Title · Ownership · Seat</h2>
+        <p class="lede">A person is described by three separate things at once. Keeping them apart is what lets us sell capabilities instead of people, staff flexibly, and reward maturity instead of billed hours.</p>
+        <div class="stack">
+        ${renderNote(
+          "layer-title",
+          "Title",
+          "How clients buy.\n\nThe market-facing line on the rate card and SOW (Product Architect, AI Architect, FDE). Coarse by design: clients buy a capability line at a level, not a list of niche roles. Titles are peer categories, not a ladder. Seniority is not carried here.",
+        )}
+        ${renderNote(
+          "layer-ownership",
+          "Capability ownership",
+          "What you're accountable for.\n\nThe atomic, permanent unit. An Owner keeps a capability cluster fit: authors the guardrails, prompt packs, and templates, and sets the standard others execute against. This is a person's durable identity, and where progression lives. You advance by deepening ownership and building the assets the firm runs on, not by billing more hours.",
+        )}
+        ${renderNote(
+          "layer-seat",
+          "Project seat",
+          "What you're doing now.\n\nThe role you occupy on a specific squad for a specific slice of work. Seats shift within an engagement as the work changes. The same person may sit Slice Builder one sprint and Governance Lead the next. Because seats are activated by what the work needs, their catalog lives in the operating view, not here.",
+        )}
+        ${renderNote(
+          "layers-how-they-relate",
+          "How they relate",
+          "A title rolls up many ownerships (one-to-many): one Product Architect line sits above the Commercial, Framing, and Interface owners. A person holds ownership permanently, wears a title externally, and moves through seats over an engagement's life. Seniority lives in the seat's level (L1-L3), not the title. A junior and senior FDE are both \"FDE\" to the client; the level sets the rate. The SOW promises a capability line at a level. How we fulfil it (one broad person or several deep owners, in which seats) is an internal call the client never sees. Example: an AI Architect (title) who is the AI Systems Owner (ownership) sits the Eval Harness Engineer seat in sprint 1 and the Governance Lead seat at handoff.",
+        )}
+        </div>
+      </section>`;
+}
+
 function render(model, pageId = "capability-model") {
   const { levels, domains, capabilities, skills } = model;
   const page = PAGES.find((item) => item.id === pageId);
   if (!page) throw new Error(`Unknown page: ${pageId}`);
-  const isHome = pageId === "capability-model";
   const capsByDomain = new Map(domains.map((d) => [d.id, []]));
   for (const cap of capabilities) {
     if (!capsByDomain.has(cap.domain)) capsByDomain.set(cap.domain, []);
@@ -255,26 +408,9 @@ function render(model, pageId = "capability-model") {
     .join("");
 
   const generated = new Date().toISOString().slice(0, 10);
-  const toc = isHome
-    ? `<a href="#overview">Overview</a>
-        <a href="#domains">Domains</a>
-        <a href="#capabilities">Capabilities</a>
-        <a href="#agent-skills">Agent Skills</a>`
-    : `<a href="#overview">Overview</a>`;
-  const statusKey = isHome
-    ? `<div class="status-key">
-        <div class="status-key-row"><i class="dot dot-draft"></i><span class="eq">=</span><span>draft</span></div>
-        <div class="status-key-row"><i class="dot dot-ratified"></i><span class="eq">=</span><span>ratified</span></div>
-      </div>`
-    : "";
-  const otherPages = PAGES.filter((item) => item.id !== pageId)
-    .map(
-      (item) =>
-        `<a class="uppercase mono" href="${esc(item.file)}">${esc(item.title)}</a>`,
-    )
-    .join("\n        ");
-  const main = isHome
-    ? `
+  const main =
+    pageId === "capability-model"
+      ? `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
         <p class="lede">Domains are types of work. They do not change and they do not have levels. Capabilities are the named outcomes we promise inside a domain.</p>
@@ -313,7 +449,9 @@ function render(model, pageId = "capability-model") {
           </tbody>
         </table>
       </section>`
-    : `
+      : pageId === "roles-titles"
+        ? renderRolesMain()
+        : `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
         <p class="lede">TBD</p>
@@ -338,7 +476,6 @@ function render(model, pageId = "capability-model") {
       --hover: #F5F5F5;
       --accent: #5E6AD2;
       --draft: #FF9800;
-      --ratified: #22C55E;
     }
     * { box-sizing: border-box; }
     html {
@@ -420,7 +557,7 @@ function render(model, pageId = "capability-model") {
       text-decoration: none;
       font-weight: 400;
       font-synthesis: none;
-      transition: font-weight 200ms ease;
+      transition: color 180ms ease, opacity 180ms ease;
     }
     a:hover { font-weight: 600; }
     .uppercase { text-transform: uppercase; }
@@ -443,29 +580,35 @@ function render(model, pageId = "capability-model") {
       position: sticky;
       top: 48px;
       align-self: start;
-      height: calc(100vh - 96px);
+    }
+    .pages {
       display: flex;
       flex-direction: column;
+      gap: 8px;
     }
+    .page-link {
+      color: var(--ink);
+      opacity: 0.4;
+      transition: opacity 180ms ease;
+    }
+    .page-link:hover,
+    .page-link[aria-current="page"] {
+      opacity: 1;
+    }
+    .page-link:hover { font-weight: 400; }
+    .page-link[aria-current="page"] { font-weight: 600; }
+    .page-link[aria-current="page"]:hover { font-weight: 600; }
     .side .toc {
       display: flex;
       flex-direction: column;
       gap: 8px;
-    }
-    .side .toc a {
-      font-size: 13.5px;
-    }
-    .side .toc a:hover { font-weight: 600; }
-    .page-switch {
-      margin-top: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      margin-top: 16px;
       padding-top: 16px;
       border-top: 1px solid var(--line);
     }
-    .page-switch a {
-      font-size: 12px;
+    .side .toc a {
+      font-size: 13.5px;
+      transition: none;
     }
     .doc { min-width: 0; }
     h1, h2, h3, .domain-name {
@@ -499,6 +642,17 @@ function render(model, pageId = "capability-model") {
       padding: 28px 0;
     }
     .row:first-of-type { padding-top: 0; }
+    .stack {
+      display: flex;
+      flex-direction: column;
+    }
+    .stack .row {
+      padding: 0;
+      margin: 0 0 28px;
+    }
+    .stack .row:last-child {
+      margin-bottom: 0;
+    }
     .row-head {
       display: flex;
       flex-wrap: wrap;
@@ -506,7 +660,8 @@ function render(model, pageId = "capability-model") {
       gap: 8px 16px;
       margin-bottom: 4px;
     }
-    #capabilities .row-head {
+    #capabilities .row-head,
+    .stack .row-head {
       margin-bottom: 12px;
     }
     .row-meta {
@@ -530,22 +685,7 @@ function render(model, pageId = "capability-model") {
       display: inline-block;
     }
     .dot-reviewed { background: var(--accent); }
-    .dot-ratified { background: var(--ratified); }
     .dot-draft { background: var(--draft); }
-    .side .status-key {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 32px;
-    }
-    .side .status-key-row {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 13.5px;
-      font-weight: 400;
-      font-style: italic;
-    }
     .agent-skills {
       display: flex;
       flex-wrap: wrap;
@@ -577,6 +717,8 @@ function render(model, pageId = "capability-model") {
     .meta, .dim { color: var(--muted); font-size: 12px; }
     .dim { color: var(--dim); }
     .prose { margin-bottom: 24px; max-width: 700px; }
+    .stack .prose { margin-bottom: 8px; }
+    .stack .prose:last-child { margin-bottom: 0; }
     .kvs { display: flex; flex-direction: column; gap: 12px; }
     .kv {
       display: flex;
@@ -627,9 +769,8 @@ function render(model, pageId = "capability-model") {
         gap: 32px;
         padding: 32px 16px 64px;
       }
-      .side { position: static; height: auto; }
+      .side { position: static; }
       .side .toc { flex-direction: row; flex-wrap: wrap; gap: 8px 16px; }
-      .page-switch { margin-top: 32px; }
     }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
@@ -640,15 +781,11 @@ function render(model, pageId = "capability-model") {
 <body>
   <div class="shell">
     <aside class="side">
-      <div class="side-main">
-        <a class="uppercase mono eyebrow" href="#overview">${esc(page.title)}</a>
-        <nav class="toc">
-          ${toc}
-        </nav>
-        ${statusKey}
-      </div>
-      <nav class="page-switch" aria-label="Pages">
-        ${otherPages}
+      <nav class="pages" aria-label="Pages">
+        ${renderPageLinks(pageId)}
+      </nav>
+      <nav class="toc" aria-label="On this page">
+        ${pageToc(pageId)}
       </nav>
     </aside>
     <div class="doc">
