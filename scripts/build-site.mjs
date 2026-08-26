@@ -1066,6 +1066,9 @@ function serve() {
   const pages = new Set(PAGES.map((page) => `/${page.file}`));
   const server = createServer(async (req, res) => {
     let pathname = new URL(req.url ?? "/", `http://localhost:${PORT}`).pathname;
+    if (pathname.length > 1 && pathname.endsWith("/")) {
+      pathname = pathname.slice(0, -1);
+    }
     if (pathname === "/") pathname = "/index.html";
     const isPage = pages.has(pathname);
     const isAsset = pathname.startsWith("/assets/") && pathname.endsWith(".png");
@@ -1086,7 +1089,17 @@ function serve() {
       res.end(isPage ? "Build missing. Run without --serve first." : "Not found");
     }
   });
-  server.listen(PORT, () => {
+  server.on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(
+        `Port ${PORT} is already in use, so this preview never came up. Stop the old process (lsof -ti :${PORT} | xargs kill) and run npm run dev again.`,
+      );
+      process.exit(1);
+    }
+    throw err;
+  });
+  // 0.0.0.0 so Cursor / cloud port forwarding can reach the preview.
+  server.listen(PORT, "0.0.0.0", () => {
     console.log(`Preview at http://localhost:${PORT}`);
   });
 }

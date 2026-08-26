@@ -11,9 +11,11 @@ Node 20 or newer.
 ```bash
 npm install
 npm run validate
-npm run build          # writes site/ (landing is index.html)
+npm run build          # writes site/ (landing is index.html, plus drawings)
 npm run dev            # build + preview at http://localhost:4173
 ```
+
+`npm run dev` serves the HTML **and** the relation-map PNGs. If the page loads but drawings 404, an older preview is still bound to 4173 — stop it (`lsof -ti :4173 | xargs kill`) and run `npm run dev` again.
 
 On merge to `main`, CI validates, rebuilds the site, and deploys it to GitHub Pages. Set the repository Pages source to **GitHub Actions** once.
 
