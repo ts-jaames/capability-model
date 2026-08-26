@@ -70,6 +70,11 @@ function pageToc(pageId) {
         <a href="#external-lines">External lines</a>
         <a href="#title-ownership-seat">Title · Ownership · Seat</a>`;
   }
+  if (pageId === "operating-view") {
+    return `<a href="#overview">Overview</a>
+        <a href="#intensity">Intensity</a>
+        <a href="#risk-shapes">Risk shapes</a>`;
+  }
   return `<a href="#overview">Overview</a>`;
 }
 
@@ -216,6 +221,17 @@ function renderNote(id, name, body) {
     </article>`;
 }
 
+function renderShape(id, name, question, pushes) {
+  return `
+    <article class="row" id="${esc(id)}">
+      <header class="row-head">
+        <h3 class="domain-name">${esc(name)}</h3>
+      </header>
+      <p>${esc(question)}</p>
+      <p>Pushes: ${esc(pushes)}</p>
+    </article>`;
+}
+
 function renderRolesMain() {
   const lines = [
     renderLine(
@@ -307,6 +323,80 @@ function renderRolesMain() {
           "What you're doing now.\n\nThe role you occupy on a specific squad for a specific slice of work. Seats shift within an engagement as the work changes. The same person may sit Slice Builder one sprint and Governance Lead the next. Because seats are activated by what the work needs, their catalog lives in the operating view, not here.",
         )}
         </div>
+      </section>`;
+}
+
+function renderOperatingMain() {
+  const shapes = [
+    renderShape(
+      "shape-problem-clarity",
+      "Problem clarity",
+      "Are we solving the right thing?",
+      "Problem framing, direction qualification, stakeholder alignment, outcome definition.",
+    ),
+    renderShape(
+      "shape-value",
+      "Value",
+      "Will anyone care enough to change behavior?",
+      "Slice building, signal design, validation & testing, demonstration & evidence review.",
+    ),
+    renderShape(
+      "shape-feasibility",
+      "Feasibility",
+      "Can it be built within the hard limits?",
+      "Slice building, core systems engineering, constraint framing, signal design.",
+    ),
+    renderShape(
+      "shape-ai-reliability",
+      "AI reliability",
+      "Is the probabilistic system trustworthy on real data?",
+      "AI systems engineering, validation & testing (evals), signal design, autonomous-system governance.",
+    ),
+    renderShape(
+      "shape-commercial",
+      "Commercial / viability",
+      "Do the economics, scope, and price hold?",
+      "Commercial scoping, confidence-based estimation, pricing under uncertainty, direction qualification.",
+    ),
+    renderShape(
+      "shape-adoption",
+      "Adoption",
+      "Will the wider org trust and use it?",
+      "Org change & adoption, capability transfer, stakeholder alignment, talent development.",
+    ),
+    renderShape(
+      "shape-proof",
+      "Proof / acceptance",
+      "Can we show it's true, not just claim it?",
+      "Signal design, acceptance proving, validation & testing, transparent delivery.",
+    ),
+    renderShape(
+      "shape-continuity",
+      "Continuity / operational",
+      "Can they run it safely once we're gone?",
+      "Autonomous-system governance, client operating-model design, transition & warranty design, production hardening.",
+    ),
+  ].join("");
+
+  return `
+      <section id="overview">
+        <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
+        <p class="lede">Work is driven by risk, not time. One question, asked continuously: what's the riskiest unknown right now? The answer is a mix of risk shapes — the input. That mix sets the intensity of every capability — the output. Retire an unknown, re-ask, the board re-reads. No phases, no packages: nothing is scheduled, and nothing is ever fully off.</p>
+      </section>
+      <section id="intensity">
+        <h2 class="mono uppercase eyebrow">Intensity — the capability dial</h2>
+        <p class="lede">Every capability sits somewhere on a four-step dial at all times. The live risk mix moves the dials.</p>
+        <ul class="bullets">
+          <li>Dormant: Present but idle; re-activates on the right signal</li>
+          <li>Low: Live but light; a check or a spike</li>
+          <li>Active: A primary workstream now</li>
+          <li>Peak: The dominant demand</li>
+        </ul>
+        <p class="lede">Dormant ≠ absent. A phase model closes things; this only turns them down. That distinction is what makes it a dial and not a sequence.</p>
+      </section>
+      <section id="risk-shapes">
+        <h2 class="mono uppercase eyebrow">Risk shapes — the input</h2>
+        ${shapes}
       </section>`;
 }
 
@@ -440,11 +530,7 @@ function render(model, pageId = "capability-model") {
       </section>`
       : pageId === "roles-titles"
         ? renderRolesMain()
-        : `
-      <section id="overview">
-        <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
-        <p class="lede">TBD</p>
-      </section>`;
+        : renderOperatingMain();
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -662,6 +748,7 @@ function render(model, pageId = "capability-model") {
       margin-bottom: 4px;
     }
     #capabilities .row-head,
+    #risk-shapes .row-head,
     .stack .row-head {
       margin-bottom: 12px;
     }
