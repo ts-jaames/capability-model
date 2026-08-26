@@ -1,83 +1,55 @@
-# How it all relates — the one-page map
+# How it all relates
 
-The convolution comes from treating six things as six lists. There's **one list**. Everything else points at it.
+The site's snapshot landing page. Published as `index.html` by `npm run build`. This file is the same argument, for editing.
+
+The convolution comes from treating six things as six lists. There is one list. Everything else points at it.
 
 ![One list](assets/how-it-all-relates-illustrations/01-one-list.png)
 
----
+## The spine
 
-## The only real list (source of truth)
+Domain contains capability. Capability is executed at a level (L1–L3). Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.
 
-```
-DOMAIN  ──contains──▸  CAPABILITY  ──executed at──▸  LEVEL (L1–L3)
-```
-
-This is the model. Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.
+That catalog — the six domains, the named outcomes inside them, and the execution scale — is Capability Model.
 
 ![The spine](assets/how-it-all-relates-illustrations/02-the-spine.png)
 
----
+## Three verbs
 
-## Three ways a person binds to a capability
-
-Title, ownership, and seat are **not three more taxonomies** — they're three verbs on the same capabilities. Same noun, three relationships:
-
-```
-                        CAPABILITY (@ level)
-                         ▲       ▲        ▲
-                sold as  │       │ keeps  │ executes
-                         │       │  fit   │
-                       TITLE  OWNERSHIP  SEAT
-```
+Title, ownership, and seat are not three more taxonomies. They are three relationships to the same capabilities. Same noun, three verbs: sold as, keeps fit, executes.
 
 | Binding | Verb | What it points at | Scope |
 |---|---|---|---|
-| **Title** | sold as | a *bundle* of capabilities | external · coarse · stable |
-| **Ownership** | keeps fit | the *capabilities* you author guardrails for | internal · permanent |
-| **Seat** | executes | *one capability at one level*, this squad | internal · dynamic |
+| **Title** | sold as | a bundle of capabilities | external · coarse · stable |
+| **Ownership** | keeps fit | the capabilities you author guardrails for | internal · permanent |
+| **Seat** | executes | one capability at one level, this squad | internal · dynamic |
+
+That binding lives on Roles & Titles.
 
 ![Three verbs](assets/how-it-all-relates-illustrations/03-three-verbs.png)
 
-**The unlock:** a **seat is a capability-at-level with a person in it.** "Eval Harness Engineer" = someone executing *Validation & testing @ L2* on this engagement. That's why seats "pertain to a capability at a level" — that's literally their definition. Likewise: ownership = a capability + a person (permanent); title = a bundle of capabilities + a person (market-facing).
+## A seat is runtime
 
-So seats and capabilities aren't two parallel lists to reconcile. A seat is the *runtime instance* of a capability-at-level. The seat vocabulary can churn (Context Engineer, Red Teamer) without touching the capability list underneath.
+A seat is a capability-at-level with a person in it. "Eval Harness Engineer" is someone executing Validation & testing at L2 on this engagement. Ownership is a capability plus a person, permanently. Title is a bundle of capabilities plus a person, facing the market.
+
+Seats and capabilities are not two lists to reconcile. A seat is the runtime instance of a capability-at-level. Seat names can churn without touching the capability list underneath.
+
+The operating view is where those seats get dialed up and down by live risk, not by a phase plan.
 
 ![Seat is runtime](assets/how-it-all-relates-illustrations/04-seat-is-runtime.png)
 
----
+## What the SOW shows
 
-## What the SOW references
+The contract guarantees capabilities at levels. Title-lines on the rate card are optional packaging. Seats never appear.
 
-```
-SOW  ──guarantees──▸  CAPABILITIES @ LEVELS
-        packaged as ▸  title-lines (optional)
-        never shows  ▸  seats
-```
-
-- ✅ **Capabilities @ levels** — the contracted, outcome-priced deliverable (Framing L3, Interface L2, Signal design L2).
-- ◐ **Title-lines** — optional commercial packaging on the rate card (1× Product Architect L3), because clients want a familiar unit to buy. Shorthand for the capabilities underneath.
-- ❌ **Seats** — never on the SOW. Pure internal squad assembly.
-
-**Rule of thumb:** client buys capabilities · firm fulfils with people in seats · title is the shorthand between them.
+Client buys capabilities. The firm fulfils with people in seats. Title is the shorthand between them.
 
 ![SOW window](assets/how-it-all-relates-illustrations/05-sow-window.png)
 
----
+Six words that were blurring together: three of them are people-to-capability bindings, and the SOW only ever buys the capability spine. Nothing else is a list you have to maintain.
 
-## The whole thing in one read
+## Where to go
 
-```
-              ┌──────────────── SOURCE OF TRUTH ────────────────┐
-              │  DOMAIN ▸ CAPABILITY ▸ LEVEL                     │
-              └──────────────────────┬──────────────────────────┘
-                                     │  (everything points here)
-        ┌────────────────────────────┼────────────────────────────┐
-      TITLE                       OWNERSHIP                        SEAT
-   bundle, sold              capabilities, kept fit        capability@level, staffed
-   (external)                  (permanent)                    (dynamic)
-        │                                                          │
-        └───────── SOW buys CAPABILITIES@LEVELS ───────────────────┘
-             (titles = packaging · seats = never shown)
-```
-
-Six words that were blurring together, three of them are just people-to-capability bindings, and the SOW only ever buys the capability spine. Nothing else is a list you have to maintain.
+- Capability Model — the spine
+- Roles & Titles — how people bind
+- Operating View — how seats run
