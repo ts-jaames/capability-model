@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -53,10 +53,13 @@ const DOMAIN_NAME_TO_ID = {
 };
 
 const PAGES = [
-  { id: "capability-model", title: "Capability Model", file: "index.html" },
+  { id: "how-it-all-relates", title: "How it all relates", file: "index.html" },
+  { id: "capability-model", title: "Capability Model", file: "capability-model.html" },
   { id: "roles-titles", title: "Roles & Titles", file: "roles-titles.html" },
   { id: "operating-view", title: "Operating View", file: "operating-view.html" },
 ];
+
+const ILLUSTRATIONS = "assets/how-it-all-relates-illustrations";
 
 const TOC_LINK_ICON = `<svg class="link-icon" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6.5 9.5a3.5 3.5 0 0 0 5.28.38l2.12-2.12a3.5 3.5 0 0 0-4.95-4.95L7.8 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M9.5 6.5a3.5 3.5 0 0 0-5.28-.38L2.1 8.24a3.5 3.5 0 0 0 4.95 4.95L8.2 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
 
@@ -65,6 +68,13 @@ function tocLink(href, label) {
 }
 
 const PAGE_TOC = {
+  "how-it-all-relates": [
+    ["#overview", "One list"],
+    ["#the-spine", "The spine"],
+    ["#three-verbs", "Three verbs"],
+    ["#seats", "Seats"],
+    ["#the-sow", "The SOW"],
+  ],
   "capability-model": [
     ["#overview", "Overview"],
     ["#domains", "Domains"],
@@ -410,7 +420,95 @@ function renderOperatingMain() {
       </section>`;
 }
 
-function render(model, pageId = "capability-model") {
+function figure(file, caption) {
+  const src = `${ILLUSTRATIONS}/${file}`;
+  return `<figure class="figure">
+        <img src="${esc(src)}" alt="${esc(caption)}" width="1536" height="1024">
+        <figcaption>${esc(caption)}</figcaption>
+      </figure>`;
+}
+
+function to(href, label) {
+  return `<p class="to"><a href="${esc(href)}">${esc(label)} →</a></p>`;
+}
+
+function renderHowItRelatesMain() {
+  return `
+      <section id="overview">
+        <h1 class="mono uppercase eyebrow">How it all relates</h1>
+        <p class="lede">The convolution comes from treating six things as six lists. There is one list. Everything else points at it.</p>
+        ${figure("01-one-list.png", "One list")}
+      </section>
+      <section id="the-spine">
+        <h2 class="mono uppercase eyebrow">The only real list</h2>
+        <p class="lede">Domain contains capability. Capability is executed at a level — L1, L2, L3. Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.</p>
+        ${figure("02-the-spine.png", "The spine")}
+        <p class="lede">That catalog — the six domains, the named outcomes inside them, and the execution scale — is Capability Model.</p>
+        ${to("capability-model.html", "Capability Model")}
+      </section>
+      <section id="three-verbs">
+        <h2 class="mono uppercase eyebrow">Three ways a person binds</h2>
+        <p class="lede">Title, ownership, and seat are not three more taxonomies. They are three verbs on the same capabilities. Same noun, three relationships: sold as, keeps fit, executes.</p>
+        <table class="hairline-table">
+          <thead>
+            <tr>
+              <th>Binding</th>
+              <th>Verb</th>
+              <th>What it points at</th>
+              <th>Scope</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Title</td>
+              <td>sold as</td>
+              <td>a bundle of capabilities</td>
+              <td>external · coarse · stable</td>
+            </tr>
+            <tr>
+              <td>Ownership</td>
+              <td>keeps fit</td>
+              <td>the capabilities you author guardrails for</td>
+              <td>internal · permanent</td>
+            </tr>
+            <tr>
+              <td>Seat</td>
+              <td>executes</td>
+              <td>one capability at one level, this squad</td>
+              <td>internal · dynamic</td>
+            </tr>
+          </tbody>
+        </table>
+        ${figure("03-three-verbs.png", "Three verbs")}
+        <p class="lede">That binding lives on Roles &amp; Titles.</p>
+        ${to("roles-titles.html#title-ownership-seat", "Roles & Titles")}
+      </section>
+      <section id="seats">
+        <h2 class="mono uppercase eyebrow">A seat is runtime</h2>
+        <p class="lede">A seat is a capability-at-level with a person in it. "Eval Harness Engineer" is someone executing Validation &amp; testing at L2 on this engagement. That's why seats pertain to a capability at a level — that's literally their definition. Ownership is a capability plus a person, permanently. Title is a bundle of capabilities plus a person, facing the market.</p>
+        <p class="lede">Seats and capabilities are not two lists to reconcile. A seat is the runtime instance of a capability-at-level. Seat names can churn without touching the capability list underneath.</p>
+        ${figure("04-seat-is-runtime.png", "Seat is runtime")}
+        <p class="lede">The operating view is where those seats get dialed up and down by live risk, not by a phase plan.</p>
+        ${to("operating-view.html", "Operating View")}
+      </section>
+      <section id="the-sow">
+        <h2 class="mono uppercase eyebrow">What the SOW references</h2>
+        <p class="lede">The contract guarantees capabilities at levels — Framing L3, Interface L2, Signal design L2. Title-lines on the rate card are optional packaging, because clients want a familiar unit to buy. Seats never appear. Pure internal squad assembly.</p>
+        <ul class="bullets">
+          <li>Capabilities at levels — the contracted, outcome-priced deliverable</li>
+          <li>Title-lines — optional commercial packaging on the rate card</li>
+          <li>Seats — never on the SOW</li>
+        </ul>
+        <p class="lede">Client buys capabilities. The firm fulfils with people in seats. Title is the shorthand between them.</p>
+        ${figure("05-sow-window.png", "SOW window")}
+        <p class="lede">Six words that were blurring together: three of them are people-to-capability bindings, and the SOW only ever buys the capability spine. Nothing else is a list you have to maintain.</p>
+        ${to("capability-model.html", "Capability Model — the spine")}
+        ${to("roles-titles.html", "Roles & Titles — how people bind")}
+        ${to("operating-view.html", "Operating View — how seats run")}
+      </section>`;
+}
+
+function render(model, pageId = "how-it-all-relates") {
   const { levels, domains, capabilities, skills } = model;
   const page = PAGES.find((item) => item.id === pageId);
   if (!page) throw new Error(`Unknown page: ${pageId}`);
@@ -498,7 +596,9 @@ function render(model, pageId = "capability-model") {
 
   const generated = new Date().toISOString().slice(0, 10);
   const main =
-    pageId === "capability-model"
+    pageId === "how-it-all-relates"
+      ? renderHowItRelatesMain()
+      : pageId === "capability-model"
       ? `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
@@ -742,6 +842,29 @@ function render(model, pageId = "capability-model") {
       margin: 0 0 16px;
       max-width: 760px;
     }
+    .figure {
+      margin: 24px 0 32px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+    .figure img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      background: #fff;
+    }
+    .figure figcaption {
+      margin: 0;
+      padding: 8px 12px 10px;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .to {
+      margin: 0 0 8px;
+    }
+    .to:last-child { margin-bottom: 0; }
     section { margin: 0 0 84px; padding: 0; }
     section[id], article[id], tr[id] { scroll-margin-top: 24px; }
     .label {
@@ -913,6 +1036,7 @@ async function build() {
   const model = { levels, domains, capabilities, skills };
   const outDir = join(ROOT, "site");
   await mkdir(outDir, { recursive: true });
+  await cp(join(ROOT, ILLUSTRATIONS), join(outDir, ILLUSTRATIONS), { recursive: true });
   for (const page of PAGES) {
     await writeFile(join(outDir, page.file), render(model, page.id));
   }
