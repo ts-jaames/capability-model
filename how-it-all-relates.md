@@ -2,6 +2,8 @@
 
 The convolution comes from treating six things as six lists. There's **one list**. Everything else points at it.
 
+![One list](assets/how-it-all-relates-illustrations/01-one-list.png)
+
 ---
 
 ## The only real list (source of truth)
@@ -11,6 +13,8 @@ DOMAIN  ──contains──▸  CAPABILITY  ──executed at──▸  LEVEL (
 ```
 
 This is the model. Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.
+
+![The spine](assets/how-it-all-relates-illustrations/02-the-spine.png)
 
 ---
 
@@ -32,9 +36,13 @@ Title, ownership, and seat are **not three more taxonomies** — they're three v
 | **Ownership** | keeps fit | the *capabilities* you author guardrails for | internal · permanent |
 | **Seat** | executes | *one capability at one level*, this squad | internal · dynamic |
 
+![Three verbs](assets/how-it-all-relates-illustrations/03-three-verbs.png)
+
 **The unlock:** a **seat is a capability-at-level with a person in it.** "Eval Harness Engineer" = someone executing *Validation & testing @ L2* on this engagement. That's why seats "pertain to a capability at a level" — that's literally their definition. Likewise: ownership = a capability + a person (permanent); title = a bundle of capabilities + a person (market-facing).
 
 So seats and capabilities aren't two parallel lists to reconcile. A seat is the *runtime instance* of a capability-at-level. The seat vocabulary can churn (Context Engineer, Red Teamer) without touching the capability list underneath.
+
+![Seat is runtime](assets/how-it-all-relates-illustrations/04-seat-is-runtime.png)
 
 ---
 
@@ -51,6 +59,8 @@ SOW  ──guarantees──▸  CAPABILITIES @ LEVELS
 - ❌ **Seats** — never on the SOW. Pure internal squad assembly.
 
 **Rule of thumb:** client buys capabilities · firm fulfils with people in seats · title is the shorthand between them.
+
+![SOW window](assets/how-it-all-relates-illustrations/05-sow-window.png)
 
 ---
 
