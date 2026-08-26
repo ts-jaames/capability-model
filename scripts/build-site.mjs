@@ -58,24 +58,34 @@ const PAGES = [
   { id: "operating-view", title: "Operating View", file: "operating-view.html" },
 ];
 
+const TOC_LINK_ICON = `<svg class="link-icon" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6.5 9.5a3.5 3.5 0 0 0 5.28.38l2.12-2.12a3.5 3.5 0 0 0-4.95-4.95L7.8 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M9.5 6.5a3.5 3.5 0 0 0-5.28-.38L2.1 8.24a3.5 3.5 0 0 0 4.95 4.95L8.2 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+
+function tocLink(href, label) {
+  return `<a href="${esc(href)}">${TOC_LINK_ICON}${esc(label)}</a>`;
+}
+
+const PAGE_TOC = {
+  "capability-model": [
+    ["#overview", "Overview"],
+    ["#domains", "Domains"],
+    ["#capabilities", "Capabilities"],
+    ["#agent-skills", "Agent Skills"],
+  ],
+  "roles-titles": [
+    ["#overview", "Overview"],
+    ["#external-lines", "External lines"],
+    ["#title-ownership-seat", "Title · Ownership · Seat"],
+  ],
+  "operating-view": [
+    ["#overview", "Overview"],
+    ["#intensity", "Intensity"],
+    ["#risk-shapes", "Risk shapes"],
+  ],
+};
+
 function pageToc(pageId) {
-  if (pageId === "capability-model") {
-    return `<a href="#overview">Overview</a>
-        <a href="#domains">Domains</a>
-        <a href="#capabilities">Capabilities</a>
-        <a href="#agent-skills">Agent Skills</a>`;
-  }
-  if (pageId === "roles-titles") {
-    return `<a href="#overview">Overview</a>
-        <a href="#external-lines">External lines</a>
-        <a href="#title-ownership-seat">Title · Ownership · Seat</a>`;
-  }
-  if (pageId === "operating-view") {
-    return `<a href="#overview">Overview</a>
-        <a href="#intensity">Intensity</a>
-        <a href="#risk-shapes">Risk shapes</a>`;
-  }
-  return `<a href="#overview">Overview</a>`;
+  const links = PAGE_TOC[pageId] ?? [["#overview", "Overview"]];
+  return links.map(([href, label]) => tocLink(href, label)).join("\n        ");
 }
 
 function renderPageLinks(pageId) {
@@ -701,8 +711,18 @@ function render(model, pageId = "capability-model") {
       border-top: 1px solid var(--line);
     }
     .side .toc a {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
       font-size: 13.5px;
-      transition: none;
+    }
+    .side .toc .link-icon {
+      flex-shrink: 0;
+      margin-top: 4px;
+      color: var(--dim);
+    }
+    .side .toc a:hover .link-icon {
+      color: var(--ink);
     }
     .doc { min-width: 0; }
     h1, h2, h3, .domain-name {
