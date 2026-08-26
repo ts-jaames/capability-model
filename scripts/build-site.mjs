@@ -5,7 +5,7 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 
-const ROOT = fileURLToPath(new URL("..", import.meta.url));
+const ROOT = fileURLToPath(new URL("..", import.meta.url)).replace(/\/$/, "");
 const PORT = Number(process.env.PORT) || 4173;
 const DOMAIN_ORDER = [
   "commercial",
@@ -1024,7 +1024,8 @@ function mime(pathname) {
 }
 
 function underRoot(root, file) {
-  return file === root || file.startsWith(`${root}/`);
+  const base = root.replace(/\/$/, "");
+  return file === base || file.startsWith(`${base}/`);
 }
 
 async function readPublic(pathname) {
