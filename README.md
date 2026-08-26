@@ -12,7 +12,16 @@ Node 20 or newer.
 npm install
 npm run validate
 npm run build          # writes site/index.html
-npm run dev            # build + preview at http://localhost:4173
+npm run dev            # build + preview at http://127.0.0.1:4173
+```
+
+Open **http://127.0.0.1:4173** (IPv4). `site/` is gitignored, so there is nothing to open until you run `build` or `dev`.
+
+If the page never loads, an old process is probably still bound to 4173:
+
+```bash
+lsof -ti :4173 | xargs kill
+npm run dev
 ```
 
 On merge to `main`, CI validates, rebuilds the site, and deploys it to GitHub Pages. Set the repository Pages source to **GitHub Actions** once.
