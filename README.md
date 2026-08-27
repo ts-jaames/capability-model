@@ -11,7 +11,7 @@ Node 20 or newer.
 ```bash
 npm install
 npm run validate
-npm run build          # writes site/index.html
+npm run build          # writes site/ (landing is index.html, plus drawings)
 npm run dev            # build + preview at http://127.0.0.1:4173
 ```
 
@@ -37,6 +37,7 @@ You do not need to edit YAML.
 
 ## Layout
 
+- `how-it-all-relates.md` — landing-page argument (published as `index.html`)
 - `levels.yaml` — agency-wide L1 / L2 / L3 / Owner legend
 - `domains/*.yaml` — six closed domains
 - `capabilities/<domain-slug>/<kebab-id>.yaml` — capabilities nested by domain

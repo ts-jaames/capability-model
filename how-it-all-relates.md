@@ -1,5 +1,7 @@
 # How it all relates — the one-page map
 
+The site's snapshot landing page. Published as `index.html` by `npm run build`. This file is the same argument, for editing.
+
 The convolution comes from treating six things as six lists. There's **one list**. Everything else points at it.
 
 ![One list](assets/how-it-all-relates-illustrations/01-one-list.png)
