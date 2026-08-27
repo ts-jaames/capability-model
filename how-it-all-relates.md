@@ -2,7 +2,9 @@
 
 The site's snapshot landing page. Published as `index.html` by `npm run build`. This file is the same argument, for editing.
 
-The convolution comes from treating six things as six lists. There's **one list**. Everything else points at it.
+Domains, capabilities, levels, roles, titles, seats. That looks like six lists. It is one list. Everything else is a way of pointing at it.
+
+The convolution comes from treating those six words as six things to keep. Domains and capabilities are the list. Levels are how a capability is executed. Roles, titles, and seats are people pointing at it — not parallel inventories.
 
 ![One list](assets/how-it-all-relates-illustrations/01-one-list.png)
 
@@ -14,7 +16,7 @@ The convolution comes from treating six things as six lists. There's **one list*
 DOMAIN  ──contains──▸  CAPABILITY  ──executed at──▸  LEVEL (L1–L3)
 ```
 
-This is the model. Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.
+This is the model. A capability is the named outcome we promise. It can be delivered at L1, L2, or L3 — same promise, different depth of judgment. The capability is the whole piece; the level is which piece you slot in to assemble it. Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.
 
 ![The spine](assets/how-it-all-relates-illustrations/02-the-spine.png)
 
@@ -40,7 +42,9 @@ Title, ownership, and seat are **not three more taxonomies** — they're three v
 
 ![Three verbs](assets/how-it-all-relates-illustrations/03-three-verbs.png)
 
-**The unlock:** a **seat is a capability-at-level with a person in it.** "Eval Harness Engineer" = someone executing *Validation & testing @ L2* on this engagement. That's why seats "pertain to a capability at a level" — that's literally their definition. Likewise: ownership = a capability + a person (permanent); title = a bundle of capabilities + a person (market-facing).
+**The unlock:** a **seat is a capability-at-level with a person in it.** That is a runtime instance, not a second list. We sell the capability at a level, not a headcount. One person can staff it, or several people together can make up that capability at the level needed, depending on resources.
+
+"Eval Harness Engineer" = someone executing *Validation & testing @ L2* on this engagement. That's why seats "pertain to a capability at a level" — that's literally their definition. Likewise: ownership = a capability + a person (permanent); title = a bundle of capabilities + a person (market-facing).
 
 So seats and capabilities aren't two parallel lists to reconcile. A seat is the *runtime instance* of a capability-at-level. The seat vocabulary can churn (Context Engineer, Red Teamer) without touching the capability list underneath.
 

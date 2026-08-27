@@ -423,8 +423,7 @@ function renderOperatingMain() {
 function figure(file, caption) {
   const src = `${ILLUSTRATIONS}/${file}`;
   return `<figure class="figure">
-        <img src="${esc(src)}" alt="${esc(caption)}" width="1536" height="864">
-        <figcaption>${esc(caption)}</figcaption>
+        <img src="${esc(src)}" alt="${esc(caption)}" width="1536" height="1024">
       </figure>`;
 }
 
@@ -436,31 +435,41 @@ function renderHowItRelatesMain() {
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">How it all relates</h1>
-        <p class="lede">There is one list. Everything else points at it.</p>
-        ${figure("01-one-list.png", "One list")}
+        <p class="lede">Domains, capabilities, levels, roles, titles, seats. That looks like six lists. It is one list. Everything else is a way of pointing at it.</p>
+        <p class="lede">The convolution comes from treating those six words as six things to keep. Domains and capabilities are the list. Levels are how a capability is executed. Roles, titles, and seats are people pointing at it — not parallel inventories.</p>
+        ${figure("01-one-list.png", "One list, not several lists")}
       </section>
       <section id="the-spine">
         <h2 class="mono uppercase eyebrow">The spine</h2>
-        <p class="lede">Domain contains capability. Capability is executed at a level.</p>
-        ${figure("02-the-spine.png", "The spine")}
+        <p class="lede">Domain contains capability. A capability is the named outcome we promise. It can be delivered at L1, L2, or L3 — same promise, different depth of judgment.</p>
+        <p class="lede">The capability is the whole piece. The level is which piece you slot in to assemble it. Same promise either way. Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.</p>
+        ${figure("02-the-spine.png", "Capability assembled at a level")}
         ${to("capability-model.html", "Capability Model")}
       </section>
       <section id="three-verbs">
         <h2 class="mono uppercase eyebrow">Three verbs</h2>
-        <p class="lede">Title, ownership, and seat are not more lists. Same noun, three verbs: sold as, keeps fit, executes.</p>
-        ${figure("03-three-verbs.png", "Three verbs")}
+        <p class="lede">Title, ownership, and seat are not three more lists. They are three verbs on the same capability: sold as, keeps fit, executes.</p>
+        <p class="lede">Title is sold as — a bundle of capabilities, external and coarse. Ownership is keeps fit — the capabilities you author guardrails for, internal and permanent. Seat is executes — one capability at one level, this squad, internal and dynamic.</p>
+        ${figure("03-three-verbs.png", "Three verbs on one capability")}
         ${to("roles-titles.html#title-ownership-seat", "Roles & Titles")}
       </section>
       <section id="seats">
         <h2 class="mono uppercase eyebrow">A seat is runtime</h2>
-        <p class="lede">A seat is a capability-at-level with a person in it. Names can churn. The capability does not.</p>
-        ${figure("04-seat-is-runtime.png", "Seat is runtime")}
+        <p class="lede">A seat is a capability-at-level with a person in it, on this engagement. That is a runtime instance, not a second list. We sell the capability at a level, not a headcount.</p>
+        <p class="lede">One person can staff it, or several people together can make up that capability at the level needed, depending on resources. Seat names can churn. The capability underneath does not.</p>
+        ${figure("04-seat-is-runtime.png", "One capability, staffed one or several ways")}
         ${to("operating-view.html", "Operating View")}
       </section>
       <section id="the-sow">
         <h2 class="mono uppercase eyebrow">What the SOW shows</h2>
-        <p class="lede">The contract buys capabilities at levels. Titles are packaging. Seats never appear.</p>
-        ${figure("05-sow-window.png", "SOW window")}
+        <p class="lede">The contract buys the spine: capabilities at levels. That is the outcome-priced deliverable (Framing L3, Interface L2). Title-lines may appear as optional packaging on the rate card, because clients want a familiar unit to buy — shorthand for the capabilities underneath. Seats never appear. They are internal assembly: how we staff the runtime.</p>
+        <ul class="bullets sow">
+          <li><strong>Yes — capabilities at levels.</strong> Contracted. This is what the SOW guarantees.</li>
+          <li><strong>Sometimes — title-lines.</strong> Optional packaging, not a second deliverable.</li>
+          <li><strong>Never — seats.</strong> Pure internal squad assembly. Not on the contract.</li>
+        </ul>
+        <p class="lede">Rule of thumb: the client buys capabilities. The firm fulfils with people in seats. Title is the shorthand between them.</p>
+        ${figure("05-sow-window.png", "SOW shows capabilities at levels, optional titles, never seats")}
       </section>`;
 }
 
@@ -810,13 +819,6 @@ function render(model, pageId = "how-it-all-relates") {
       height: auto;
       background: #fff;
     }
-    .figure figcaption {
-      margin: 0;
-      padding: 8px 12px 10px;
-      border-top: 1px solid var(--line);
-      font-size: 12px;
-      color: var(--muted);
-    }
     .to {
       margin: 0 0 8px;
     }
@@ -895,6 +897,10 @@ function render(model, pageId = "how-it-all-relates") {
     ul.bullets {
       margin: 6px 0;
       padding-left: 16px;
+    }
+    ul.sow {
+      margin: 0 0 16px;
+      max-width: 760px;
     }
     ul.bullets li {
       padding: 0;
