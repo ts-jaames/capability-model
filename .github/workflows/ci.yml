@@ -25,10 +25,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run validate
-      - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: npm run build
-      - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v5
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: pages
+      - run: npm run build
+        env:
+          PAGES_BASE: ${{ steps.pages.outputs.base_path }}
+      - run: test -s site/assets/how-it-all-relates-illustrations/01-one-list.png
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
