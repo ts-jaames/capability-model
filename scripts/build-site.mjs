@@ -423,7 +423,7 @@ function renderOperatingMain() {
 function figure(file, caption) {
   const src = `${ILLUSTRATIONS}/${file}`;
   return `<figure class="figure">
-        <img src="${esc(src)}" alt="${esc(caption)}" width="1536" height="1024">
+        <img src="${esc(src)}" alt="${esc(caption)}" width="1536" height="864">
         <figcaption>${esc(caption)}</figcaption>
       </figure>`;
 }
@@ -436,75 +436,31 @@ function renderHowItRelatesMain() {
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">How it all relates</h1>
-        <p class="lede">The convolution comes from treating six things as six lists. There is one list. Everything else points at it.</p>
+        <p class="lede">There is one list. Everything else points at it.</p>
         ${figure("01-one-list.png", "One list")}
       </section>
       <section id="the-spine">
-        <h2 class="mono uppercase eyebrow">The only real list</h2>
-        <p class="lede">Domain contains capability. Capability is executed at a level — L1, L2, L3. Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.</p>
+        <h2 class="mono uppercase eyebrow">The spine</h2>
+        <p class="lede">Domain contains capability. Capability is executed at a level.</p>
         ${figure("02-the-spine.png", "The spine")}
-        <p class="lede">That catalog — the six domains, the named outcomes inside them, and the execution scale — is Capability Model.</p>
         ${to("capability-model.html", "Capability Model")}
       </section>
       <section id="three-verbs">
-        <h2 class="mono uppercase eyebrow">Three ways a person binds</h2>
-        <p class="lede">Title, ownership, and seat are not three more taxonomies. They are three verbs on the same capabilities. Same noun, three relationships: sold as, keeps fit, executes.</p>
-        <table class="hairline-table">
-          <thead>
-            <tr>
-              <th>Binding</th>
-              <th>Verb</th>
-              <th>What it points at</th>
-              <th>Scope</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Title</td>
-              <td>sold as</td>
-              <td>a bundle of capabilities</td>
-              <td>external · coarse · stable</td>
-            </tr>
-            <tr>
-              <td>Ownership</td>
-              <td>keeps fit</td>
-              <td>the capabilities you author guardrails for</td>
-              <td>internal · permanent</td>
-            </tr>
-            <tr>
-              <td>Seat</td>
-              <td>executes</td>
-              <td>one capability at one level, this squad</td>
-              <td>internal · dynamic</td>
-            </tr>
-          </tbody>
-        </table>
+        <h2 class="mono uppercase eyebrow">Three verbs</h2>
+        <p class="lede">Title, ownership, and seat are not more lists. Same noun, three verbs: sold as, keeps fit, executes.</p>
         ${figure("03-three-verbs.png", "Three verbs")}
-        <p class="lede">That binding lives on Roles &amp; Titles.</p>
         ${to("roles-titles.html#title-ownership-seat", "Roles & Titles")}
       </section>
       <section id="seats">
         <h2 class="mono uppercase eyebrow">A seat is runtime</h2>
-        <p class="lede">A seat is a capability-at-level with a person in it. "Eval Harness Engineer" is someone executing Validation &amp; testing at L2 on this engagement. That's why seats pertain to a capability at a level — that's literally their definition. Ownership is a capability plus a person, permanently. Title is a bundle of capabilities plus a person, facing the market.</p>
-        <p class="lede">Seats and capabilities are not two lists to reconcile. A seat is the runtime instance of a capability-at-level. Seat names can churn without touching the capability list underneath.</p>
+        <p class="lede">A seat is a capability-at-level with a person in it. Names can churn. The capability does not.</p>
         ${figure("04-seat-is-runtime.png", "Seat is runtime")}
-        <p class="lede">The operating view is where those seats get dialed up and down by live risk, not by a phase plan.</p>
         ${to("operating-view.html", "Operating View")}
       </section>
       <section id="the-sow">
-        <h2 class="mono uppercase eyebrow">What the SOW references</h2>
-        <p class="lede">The contract guarantees capabilities at levels — Framing L3, Interface L2, Signal design L2. Title-lines on the rate card are optional packaging, because clients want a familiar unit to buy. Seats never appear. Pure internal squad assembly.</p>
-        <ul class="bullets">
-          <li>Capabilities at levels — the contracted, outcome-priced deliverable</li>
-          <li>Title-lines — optional commercial packaging on the rate card</li>
-          <li>Seats — never on the SOW</li>
-        </ul>
-        <p class="lede">Client buys capabilities. The firm fulfils with people in seats. Title is the shorthand between them.</p>
+        <h2 class="mono uppercase eyebrow">What the SOW shows</h2>
+        <p class="lede">The contract buys capabilities at levels. Titles are packaging. Seats never appear.</p>
         ${figure("05-sow-window.png", "SOW window")}
-        <p class="lede">Six words that were blurring together: three of them are people-to-capability bindings, and the SOW only ever buys the capability spine. Nothing else is a list you have to maintain.</p>
-        ${to("capability-model.html", "Capability Model — the spine")}
-        ${to("roles-titles.html", "Roles & Titles — how people bind")}
-        ${to("operating-view.html", "Operating View — how seats run")}
       </section>`;
 }
 
