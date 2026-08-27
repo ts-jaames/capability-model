@@ -61,6 +61,16 @@ const PAGES = [
 
 const ILLUSTRATIONS = "assets/how-it-all-relates-illustrations";
 
+function pagesBase() {
+  return String(process.env.PAGES_BASE ?? "").replace(/\/+$/, "");
+}
+
+function sitePath(rel) {
+  const path = String(rel).replace(/^\/+/, "");
+  const base = pagesBase();
+  return base ? `${base}/${path}` : path;
+}
+
 const TOC_LINK_ICON = `<svg class="link-icon" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6.5 9.5a3.5 3.5 0 0 0 5.28.38l2.12-2.12a3.5 3.5 0 0 0-4.95-4.95L7.8 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M9.5 6.5a3.5 3.5 0 0 0-5.28-.38L2.1 8.24a3.5 3.5 0 0 0 4.95 4.95L8.2 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
 
 function tocLink(href, label) {
@@ -421,7 +431,7 @@ function renderOperatingMain() {
 }
 
 function figure(file, caption) {
-  const src = `${ILLUSTRATIONS}/${file}`;
+  const src = sitePath(`${ILLUSTRATIONS}/${file}`);
   return `<figure class="figure">
         <img src="${esc(src)}" alt="${esc(caption)}" width="1536" height="1024">
       </figure>`;
@@ -998,7 +1008,13 @@ async function build() {
   const model = { levels, domains, capabilities, skills };
   const outDir = join(ROOT, "site");
   await mkdir(outDir, { recursive: true });
+  await writeFile(join(outDir, ".nojekyll"), "");
   await cp(join(ROOT, ILLUSTRATIONS), join(outDir, ILLUSTRATIONS), { recursive: true });
+  const firstDrawing = join(outDir, ILLUSTRATIONS, "01-one-list.png");
+  const drawn = await readFile(firstDrawing).catch(() => null);
+  if (!drawn?.length) {
+    throw new Error(`Missing ${firstDrawing}. Drawings must copy into site/ on build.`);
+  }
   for (const page of PAGES) {
     await writeFile(join(outDir, page.file), render(model, page.id));
   }
