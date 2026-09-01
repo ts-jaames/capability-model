@@ -100,6 +100,8 @@ const PAGE_TOC = {
     ["#overview", "Overview"],
     ["#intensity", "Intensity"],
     ["#risk-shapes", "Risk shapes"],
+    ["#seams", "Seams"],
+    ["#how-to-read", "How to read it"],
   ],
 };
 
@@ -251,14 +253,17 @@ function renderNote(id, name, body) {
     </article>`;
 }
 
-function renderShape(id, name, question, pushes) {
+function renderShape(id, name, question, activates, produces) {
   return `
     <article class="row" id="${esc(id)}">
       <header class="row-head">
         <h3 class="domain-name">${esc(name)}</h3>
       </header>
-      <p>${esc(question)}</p>
-      <p>Pushes: ${esc(pushes)}</p>
+      <div class="prose"><p><em>${esc(question)}</em></p></div>
+      <div class="kvs">
+        ${kv("Activates", `<p>${esc(activates)}</p>`)}
+        ${kv("Produces", `<p>${esc(produces)}</p>`)}
+      </div>
     </article>`;
 }
 
@@ -362,71 +367,134 @@ function renderOperatingMain() {
       "shape-problem-clarity",
       "Problem clarity",
       "Are we solving the right thing?",
-      "Problem framing, direction qualification, stakeholder alignment, outcome definition.",
+      "Problem framing · Direction qualification · Stakeholder alignment · Outcome definition · Constraint framing · Risk framing.",
+      "a qualified direction, a defined outcome, a constraint set, a risk shortlist.",
     ),
     renderShape(
       "shape-value",
       "Value",
       "Will anyone care enough to change behavior?",
-      "Slice building, signal design, validation & testing, demonstration & evidence review.",
+      "Slice building · Signal design · Validation & testing · Demonstration & evidence review.",
+      "evidence the value holds — or the call to redirect or stop.",
     ),
     renderShape(
       "shape-feasibility",
       "Feasibility",
       "Can it be built within the hard limits?",
-      "Slice building, core systems engineering, constraint framing, signal design.",
+      "Slice building · Core systems engineering · Constraint framing · Signal design.",
+      "a working slice and proof of buildability within constraints.",
     ),
     renderShape(
       "shape-ai-reliability",
       "AI reliability",
       "Is the probabilistic system trustworthy on real data?",
-      "AI systems engineering, validation & testing (evals), signal design, autonomous-system governance.",
+      "AI systems engineering · Validation & testing (evals) · Signal design · Autonomous-system governance.",
+      "eval evidence against a reliability bar, and the controls to run it safely.",
     ),
     renderShape(
       "shape-commercial",
       "Commercial / viability",
       "Do the economics, scope, and price hold?",
-      "Commercial scoping, confidence-based estimation, pricing under uncertainty, direction qualification.",
+      "Commercial scoping · Confidence-based estimation · Pricing under uncertainty · Direction qualification.",
+      "a confidence-tiered envelope and price.",
     ),
     renderShape(
       "shape-adoption",
       "Adoption",
       "Will the wider org trust and use it?",
-      "Org change & adoption, capability transfer, stakeholder alignment, talent development.",
+      "Org change & adoption · Capability transfer · Stakeholder alignment · Talent development.",
+      "evidence of uptake and an adoption path.",
     ),
     renderShape(
       "shape-proof",
       "Proof / acceptance",
       "Can we show it's true, not just claim it?",
-      "Signal design, acceptance proving, validation & testing, transparent delivery.",
+      "Signal design · Acceptance proving · Validation & testing · Transparent delivery.",
+      "evidence against the bar, and acceptance.",
     ),
     renderShape(
       "shape-continuity",
       "Continuity / operational",
       "Can they run it safely once we're gone?",
-      "Autonomous-system governance, client operating-model design, transition & warranty design, production hardening.",
+      "Autonomous-system governance · Client operating-model design · Transition & warranty design · Production hardening.",
+      "a client able to run and own the system.",
+    ),
+  ].join("");
+
+  const seams = [
+    renderNote(
+      "seam-framing-building",
+      "Framing → Building",
+      "A testable definition crosses — problem, outcome, constraints. Not a wish list. Violated by requirements that can't be built or tested from.",
+    ),
+    renderNote(
+      "seam-interface-systems",
+      "Product & interface building ↔ Systems engineering",
+      "A runnable artifact crosses — built in real components against the token system, extended in place. Not a static mock, not a screenshot, not a written description of a screen. Violated by a screenshot in a ticket, or engineering rebuilding behavior from a description.",
+    ),
+    renderNote(
+      "seam-building-proof",
+      "Building → Proof",
+      "Evidence against a bar set up front crosses. Not \"looks done.\" Violated by acceptance on subjective sign-off.",
     ),
   ].join("");
 
   return `
       <section id="overview">
-        <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
-        <p class="lede">Work is driven by risk, not time. One question, asked continuously: what's the riskiest unknown right now? The answer is a mix of risk shapes — the input. That mix sets the intensity of every capability — the output. Retire an unknown, re-ask, the board re-reads. No phases, no packages: nothing is scheduled, and nothing is ever fully off.</p>
+        <h1 class="mono uppercase eyebrow">Operating View</h1>
+        <p class="lede">Risk decides which capabilities run and how hot. Contracts decide how their work flows on. This page defines both.</p>
+        <figure class="figure slot">
+          <p>A visual of the two mechanisms — the intensity dials and the risk-driven flow — belongs here.</p>
+        </figure>
       </section>
       <section id="intensity">
-        <h2 class="mono uppercase eyebrow">Intensity — the capability dial</h2>
-        <p class="lede">Every capability sits somewhere on a four-step dial at all times. The live risk mix moves the dials.</p>
-        <ul class="bullets">
-          <li>Dormant: Present but idle; re-activates on the right signal</li>
-          <li>Low: Live but light; a check or a spike</li>
-          <li>Active: A primary workstream now</li>
-          <li>Peak: The dominant demand</li>
-        </ul>
-        <p class="lede">Dormant ≠ absent. A phase model closes things; this only turns them down. That distinction is what makes it a dial and not a sequence.</p>
+        <h2 class="mono uppercase eyebrow">Intensity</h2>
+        <p class="lede">Every capability sits on a four-step dial at all times. The live risk mix moves the dials.</p>
+        <table class="hairline-table">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Dormant</strong></td>
+              <td>present but idle; re-activates on the right signal</td>
+            </tr>
+            <tr>
+              <td><strong>Low</strong></td>
+              <td>live but light — a check or a spike</td>
+            </tr>
+            <tr>
+              <td><strong>Active</strong></td>
+              <td>a primary workstream now</td>
+            </tr>
+            <tr>
+              <td><strong>Peak</strong></td>
+              <td>the dominant demand</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="lede">Dormant is not absent. Capabilities turn down, never off.</p>
       </section>
       <section id="risk-shapes">
-        <h2 class="mono uppercase eyebrow">Risk shapes — the input</h2>
+        <h2 class="mono uppercase eyebrow">Risk shapes</h2>
+        <p class="lede">The recurring kinds of "riskiest unknown." Each names an unknown, activates a set of capabilities, and produces an output that becomes available as input to whatever fires next. Shapes co-occur, recur, and persist — the order they fire in is not fixed.</p>
+        <div class="stack">
         ${shapes}
+        </div>
+      </section>
+      <section id="seams">
+        <h2 class="mono uppercase eyebrow">Seams</h2>
+        <p class="lede">The load-bearing handoffs between capabilities. A seam is the interface between two capabilities: what must cross, in what form. This is the floor — the minimum for a valid handoff. It holds regardless of tool; AI carries the artifact across, judgment decides whether what crossed is right.</p>
+        <div class="stack">
+        ${seams}
+        </div>
+      </section>
+      <section id="how-to-read">
+        <h2 class="mono uppercase eyebrow">How to read it</h2>
+        <p class="lede">A risk shape lights up capabilities at an intensity (the dials), and their outputs flow across the seams to the next capabilities and the next risk shape. The seams are fixed; the risk mix decides which path fires. Read the whole board at once: given what's unknown now, here is where every capability sits, and here is how its output moves on.</p>
       </section>`;
 }
 
@@ -829,6 +897,14 @@ function render(model, pageId = "how-it-all-relates") {
       height: auto;
       background: #fff;
     }
+    .figure.slot {
+      padding: 48px 24px;
+    }
+    .figure.slot p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 760px;
+    }
     .to {
       margin: 0 0 8px;
     }
@@ -860,6 +936,7 @@ function render(model, pageId = "how-it-all-relates") {
     }
     #capabilities .row-head,
     #risk-shapes .row-head,
+    #seams .row-head,
     .stack .row-head {
       margin-bottom: 12px;
     }
