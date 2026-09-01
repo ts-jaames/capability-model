@@ -1,0 +1,13 @@
+id: continuity-operational
+name: Continuity / operational
+order: 8
+question: Can they run it safely once we're gone?
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-01
+pushes:
+  - capability: autonomous-system-governance
+  - capability: client-operating-model-design
+  - capability: transition-warranty-design
+  - capability: production-hardening

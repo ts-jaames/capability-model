@@ -1,0 +1,13 @@
+id: ai-reliability
+name: AI reliability
+order: 4
+question: Is the probabilistic system trustworthy on real data?
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-01
+pushes:
+  - capability: ai-systems-engineering
+  - capability: validation-testing
+  - capability: signal-design
+  - capability: autonomous-system-governance

@@ -251,14 +251,29 @@ function renderNote(id, name, body) {
     </article>`;
 }
 
-function renderShape(id, name, question, pushes) {
+function renderShape(shape, capabilities) {
+  const pushes = (shape.pushes ?? [])
+    .map((push) => {
+      const cap = capabilities.find((item) => item.id === push?.capability);
+      const label = cap?.name ?? push?.capability ?? "";
+      const dial = push?.intensity
+        ? `<span class="mono"> · ${esc(push.intensity)}</span>`
+        : `<span class="mono"> · dial unset</span>`;
+      const href = cap ? `capability-model.html#capability-${esc(cap.id)}` : null;
+      const text = href ? `<a href="${href}">${esc(label)}</a>` : esc(label);
+      return `<li>${text}${dial}</li>`;
+    })
+    .join("");
   return `
-    <article class="row" id="${esc(id)}">
+    <article class="row" id="shape-${esc(shape.id)}">
       <header class="row-head">
-        <h3 class="domain-name">${esc(name)}</h3>
+        <h3 class="domain-name">${esc(shape.name)}</h3>
+        <div class="row-meta">${badge(statusOf(shape))}</div>
       </header>
-      <p>${esc(question)}</p>
-      <p>Pushes: ${esc(pushes)}</p>
+      <p>${esc(shape.question)}</p>
+      <div class="kvs">
+        ${kv("Pushes", `<ul class="bullets">${pushes}</ul>`)}
+      </div>
     </article>`;
 }
 
@@ -356,57 +371,17 @@ function renderRolesMain() {
       </section>`;
 }
 
-function renderOperatingMain() {
-  const shapes = [
-    renderShape(
-      "shape-problem-clarity",
-      "Problem clarity",
-      "Are we solving the right thing?",
-      "Problem framing, direction qualification, stakeholder alignment, outcome definition.",
-    ),
-    renderShape(
-      "shape-value",
-      "Value",
-      "Will anyone care enough to change behavior?",
-      "Slice building, signal design, validation & testing, demonstration & evidence review.",
-    ),
-    renderShape(
-      "shape-feasibility",
-      "Feasibility",
-      "Can it be built within the hard limits?",
-      "Slice building, core systems engineering, constraint framing, signal design.",
-    ),
-    renderShape(
-      "shape-ai-reliability",
-      "AI reliability",
-      "Is the probabilistic system trustworthy on real data?",
-      "AI systems engineering, validation & testing (evals), signal design, autonomous-system governance.",
-    ),
-    renderShape(
-      "shape-commercial",
-      "Commercial / viability",
-      "Do the economics, scope, and price hold?",
-      "Commercial scoping, confidence-based estimation, pricing under uncertainty, direction qualification.",
-    ),
-    renderShape(
-      "shape-adoption",
-      "Adoption",
-      "Will the wider org trust and use it?",
-      "Org change & adoption, capability transfer, stakeholder alignment, talent development.",
-    ),
-    renderShape(
-      "shape-proof",
-      "Proof / acceptance",
-      "Can we show it's true, not just claim it?",
-      "Signal design, acceptance proving, validation & testing, transparent delivery.",
-    ),
-    renderShape(
-      "shape-continuity",
-      "Continuity / operational",
-      "Can they run it safely once we're gone?",
-      "Autonomous-system governance, client operating-model design, transition & warranty design, production hardening.",
-    ),
-  ].join("");
+function renderOperatingMain(model) {
+  const { riskShapes = [], dials, capabilities = [] } = model;
+  const shapes = riskShapes.length
+    ? riskShapes.map((shape) => renderShape(shape, capabilities)).join("")
+    : `<p class="lede">No risk shapes are recorded in <span class="mono">risk-shapes/</span>.</p>`;
+  const intensities = (dials?.intensities ?? [])
+    .map(
+      (item) =>
+        `<li>${esc(item.name)}: ${esc(String(item.description ?? "").trim().replace(/\s+/g, " "))}</li>`,
+    )
+    .join("");
 
   return `
       <section id="overview">
@@ -415,17 +390,12 @@ function renderOperatingMain() {
       </section>
       <section id="intensity">
         <h2 class="mono uppercase eyebrow">Intensity — the capability dial</h2>
-        <p class="lede">Every capability sits somewhere on a four-step dial at all times. The live risk mix moves the dials.</p>
-        <ul class="bullets">
-          <li>Dormant: Present but idle; re-activates on the right signal</li>
-          <li>Low: Live but light; a check or a spike</li>
-          <li>Active: A primary workstream now</li>
-          <li>Peak: The dominant demand</li>
-        </ul>
-        <p class="lede">Dormant ≠ absent. A phase model closes things; this only turns them down. That distinction is what makes it a dial and not a sequence.</p>
+        <p class="lede">${esc(String(dials?.description ?? "").trim().replace(/\s+/g, " "))}</p>
+        <ul class="bullets">${intensities}</ul>
       </section>
       <section id="risk-shapes">
         <h2 class="mono uppercase eyebrow">Risk shapes — the input</h2>
+        <p class="lede">Each shape names the capabilities it pushes, and how hard. A capability marked <span class="mono">dial unset</span> is a weighting nobody has authored yet.</p>
         ${shapes}
       </section>`;
 }
@@ -615,7 +585,7 @@ function render(model, pageId = "how-it-all-relates") {
       </section>`
       : pageId === "roles-titles"
         ? renderRolesMain()
-        : renderOperatingMain();
+        : renderOperatingMain(model);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1002,10 +972,14 @@ function render(model, pageId = "how-it-all-relates") {
 
 async function build() {
   const levels = parse(await readFile(join(ROOT, "levels.yaml"), "utf8"));
+  const dials = parse(await readFile(join(ROOT, "dials.yaml"), "utf8"));
   const domains = sortKnown(await loadDir("domains"));
   const capabilities = await loadCapabilities();
   const skills = await loadDir("skills");
-  const model = { levels, domains, capabilities, skills };
+  const riskShapes = (await loadDir("risk-shapes")).sort(
+    (a, b) => (a.order ?? 99) - (b.order ?? 99) || String(a.name).localeCompare(String(b.name)),
+  );
+  const model = { levels, dials, domains, capabilities, skills, riskShapes };
   const outDir = join(ROOT, "site");
   await mkdir(outDir, { recursive: true });
   await writeFile(join(outDir, ".nojekyll"), "");

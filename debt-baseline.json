@@ -1,0 +1,16 @@
+{
+  "note": "Known holes in the model. The validator fails if any count grows or a new code appears. Lower these; do not raise them.",
+  "updated": "2026-09-01",
+  "counts": {
+    "capability-freshness-missing": 26,
+    "capability-owner-missing": 26,
+    "dial-weighting-missing": 32,
+    "level-undefined-but-should-be-specific": 6,
+    "no-method-recorded": 25,
+    "no-review-record": 26,
+    "placeholder-l2-floor": 9,
+    "published-but-unmodelled": 2,
+    "unowned-capability": 25,
+    "unstaffed-capability": 24
+  }
+}

@@ -9,6 +9,7 @@ client_experience: >
 sparq_how: >
   Run automated suites + generated edge cases; for AI features, run eval suites
   against the signal bar; archive a summary naming passes and misses.
+levels_mode: standard-ladder
 levels:
   L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
   L2: Executes end-to-end independently and handles edge cases without escalating the method.

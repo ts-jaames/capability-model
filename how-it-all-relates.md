@@ -1,6 +1,10 @@
 # How it all relates — the one-page map
 
-The site's snapshot landing page. Published as `index.html` by `npm run build`. This file is the same argument, for editing.
+The site's snapshot landing page argument, kept here for editing.
+
+> **Heads up:** `npm run build` does *not* read this file. The published `index.html` is
+> generated from prose hardcoded in `scripts/build-site.mjs`. Editing this file alone changes
+> nothing a reader sees. Change both, or move the prose into YAML the validator can check.
 
 Domains, capabilities, levels, roles, titles, seats. That looks like six lists. It is one list. Everything else is a way of pointing at it.
 

@@ -9,6 +9,7 @@ client_experience: >
 sparq_how: >
   Map who can block or bless; put the lever in front of them in a working
   session; secure sign-off on a standard that holds without us.
+levels_mode: standard-ladder
 levels:
   L2: Executes end-to-end independently and handles edge cases without escalating the method.
   L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.

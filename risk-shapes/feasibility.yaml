@@ -1,0 +1,13 @@
+id: feasibility
+name: Feasibility
+order: 3
+question: Can it be built within the hard limits?
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-01
+pushes:
+  - capability: slice-building
+  - capability: core-systems-engineering
+  - capability: constraint-framing
+  - capability: signal-design

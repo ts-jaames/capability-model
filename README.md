@@ -39,7 +39,24 @@ You do not need to edit YAML.
 
 - `how-it-all-relates.md` — landing-page argument (published as `index.html`)
 - `levels.yaml` — agency-wide L1 / L2 / L3 / Owner legend
+- `dials.yaml` — agency-wide intensity legend (dormant / low / active / peak)
 - `domains/*.yaml` — six closed domains
 - `capabilities/<domain-slug>/<kebab-id>.yaml` — capabilities nested by domain
 - `skills/*.yaml` — methods used inside capabilities (`agent_skills`)
+- `risk-shapes/*.yaml` — the kinds of unknown that move the capability dials; the operating view is generated from these
+- `reviews/<capability-id>.yaml` — capability-critic memory: last run, open FAILs, open FLAGs, ratification
 - `roles/interface-lead.yaml` — staffing bound example (not rendered on the site yet)
+- `deferred.yaml` — concepts we talk about publicly but deliberately do not model yet (title, seat)
+- `debt-baseline.json` — the agreed size of every known hole; the build fails if one grows
+
+## Known holes are counted, not hidden
+
+`npm run validate` prints a **Debt** section after the errors: capabilities with no owner, level text copied from the legend, `not_at_l1` still reading `TBD`, capabilities no role can staff, risk shapes with unset dials, concepts published to readers but missing from the data.
+
+None of it blocks a commit. All of it is ratcheted against `debt-baseline.json`, so the build fails if a count rises or a new kind of hole appears. Paid something down?
+
+```bash
+npm run validate -- --update-baseline
+```
+
+Commit the lower number. Raising one is a human decision that belongs in the PR description.

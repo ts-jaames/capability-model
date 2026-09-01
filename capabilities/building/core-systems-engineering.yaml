@@ -9,6 +9,7 @@ sparq_how: >
   Choose proven patterns matched to the constraint set; build clean seams
   across services, data, and APIs; document interfaces well enough for a
   third-party dev.
+levels_mode: standard-ladder
 levels:
   L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
   L2: Executes end-to-end independently and handles edge cases without escalating the method.

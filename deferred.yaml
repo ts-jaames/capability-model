@@ -1,0 +1,48 @@
+id: deferrals
+name: Deliberate deferrals
+description: >
+  Concepts the model talks about in public but does not represent as data yet.
+  Recording one is how a known hole stops being an accidental contradiction:
+  a reader can see we mean it, and a reviewer can see what would close it.
+  Anything marked published is a live gap between what readers are told and
+  what the source of truth can actually answer, and the validator counts it.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-01
+
+deferred:
+  - id: title
+    concept: >
+      Title — the market-facing bundle of capabilities a client buys on the
+      rate card (Product Architect, AI Architect, Forward Deployed Engineer).
+    why_deferred: >
+      A title is a commercial packaging decision, not a delivery unit. Minting
+      a title entity before the bundles are decided would freeze a rate card
+      shape by accident, and admission tests already bar titles from being
+      capabilities or roles.
+    unblocks_when: >
+      The three external lines are agreed as capability bundles, with each
+      line's owned and executed capabilities named as ids rather than prose.
+      Then title becomes an entity that resolves against the capability list.
+    published: true
+    published_where: >
+      site/roles-titles.html renders three named title lines whose owned and
+      executed capabilities are hardcoded English in scripts/build-site.mjs.
+      Nothing validates them against capabilities/, so they can drift silently.
+  - id: seat
+    concept: >
+      Seat — one capability at one level with a person in it, on one
+      engagement. The runtime instance of a capability-at-level.
+    why_deferred: >
+      A seat is per-engagement runtime state, not agency-wide truth. It belongs
+      to an engagement record, and no engagement record type exists yet. Adding
+      seats to this repo would mix a live squad roster into the source of truth.
+    unblocks_when: >
+      An engagement entity exists to hold per-engagement state (dial positions,
+      gates cleared, current staffing). Seats hang off that, not off the model.
+    published: true
+    published_where: >
+      site/roles-titles.html tells readers the seat catalog lives in the
+      operating view. No seat catalog exists in the operating view or anywhere
+      else in the repo.

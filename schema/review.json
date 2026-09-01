@@ -1,0 +1,38 @@
+{
+  "$id": "https://capability-model.local/schema/review.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Review",
+  "description": "Memory for the capability-critic loop. One file per capability, named for the capability id. Records the last critic pass, the open FLAGs only an owner can close, and any ratification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "capability", "critic_run", "open_fails"],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "capability": { "$ref": "common.json#/$defs/kebabId" },
+    "critic_run": { "$ref": "common.json#/$defs/isoDate" },
+    "critic_version": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "open_fails": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Mechanical FAILs still open. An entry is critic-passed at 0."
+    },
+    "flags": {
+      "type": "array",
+      "description": "Judgment calls the critic surfaced. Only the capability owner may close one.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["test", "note", "state"],
+        "properties": {
+          "test": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "note": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "state": { "type": "string", "enum": ["open", "closed"] },
+          "closed_by": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "closed_on": { "$ref": "common.json#/$defs/isoDate" }
+        }
+      }
+    },
+    "ratified_by": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "ratified_on": { "$ref": "common.json#/$defs/isoDate" }
+  }
+}

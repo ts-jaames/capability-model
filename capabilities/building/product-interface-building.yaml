@@ -9,6 +9,7 @@ client_experience: >
 sparq_how: >
   Assemble from design tokens + a Figma/code component library; ship increments
   to preview; check token use and accessibility on every build.
+levels_mode: specific
 levels:
   L1: Assembly from guardrails.
   L2: State and edge-case behaviour.

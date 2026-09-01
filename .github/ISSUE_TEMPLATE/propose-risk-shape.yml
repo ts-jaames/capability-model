@@ -1,0 +1,41 @@
+name: Propose a risk shape
+description: Name a kind of unknown an engagement can carry, and the capabilities it pushes. You do not need to edit YAML.
+title: "[Risk shape] "
+labels: ["risk-shape", "draft"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A risk shape is the input to the capability dials: when this unknown is the riskiest thing on the engagement, these capabilities turn up. It is agency-wide, not one client's risk register. It lands at `risk-shapes/<kebab-id>.yaml` and is rendered on the Operating View page.
+  - type: input
+    id: name
+    attributes:
+      label: Risk shape name
+      placeholder: Feasibility
+    validations:
+      required: true
+  - type: input
+    id: question
+    attributes:
+      label: The question it asks
+      placeholder: Can it be built within the hard limits?
+    validations:
+      required: true
+  - type: textarea
+    id: pushes
+    attributes:
+      label: Capabilities it pushes
+      description: One per line, as "capability name — intensity", where intensity is dormant, low, active or peak. Leave the intensity off only if it genuinely has not been decided; it will be recorded as debt.
+      placeholder: |
+        Slice building — peak
+        Core systems engineering — active
+        Constraint framing — low
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Owner
+      description: Who decides what this shape means and how hard it pushes.
+    validations:
+      required: true

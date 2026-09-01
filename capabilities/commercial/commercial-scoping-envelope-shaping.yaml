@@ -10,6 +10,7 @@ sparq_how: >
   Define scope by outcomes + non-negotiable boundaries, not a feature list;
   build an explicit emergence allowance into the budget; set checkpoint gates
   where trade-offs are decided together.
+levels_mode: standard-ladder
 levels:
   L2: Executes end-to-end independently and handles edge cases without escalating the method.
   L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.

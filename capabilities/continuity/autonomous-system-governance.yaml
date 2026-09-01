@@ -10,6 +10,7 @@ sparq_how: >
   Define operating boundaries, drift measures, and escalation triggers
   post-launch; build kill rules and override paths for client operators;
   deliver a runbook tied to known failure modes.
+levels_mode: specific
 levels:
   L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
   L2: Executes end-to-end independently and handles edge cases without escalating the method.

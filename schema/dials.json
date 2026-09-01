@@ -1,0 +1,41 @@
+{
+  "$id": "https://capability-model.local/schema/dials.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dials",
+  "description": "The agency-wide intensity legend. Every capability sits somewhere on this dial at all times; the live risk mix moves it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "description",
+    "owner",
+    "source",
+    "last_updated",
+    "intensities"
+  ],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "description": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "status": { "$ref": "common.json#/$defs/status" },
+    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "source": { "$ref": "common.json#/$defs/source" },
+    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
+    "intensities": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "description"],
+        "properties": {
+          "id": { "$ref": "common.json#/$defs/intensity" },
+          "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    }
+  }
+}

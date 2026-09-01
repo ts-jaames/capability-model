@@ -1,0 +1,13 @@
+id: value
+name: Value
+order: 2
+question: Will anyone care enough to change behavior?
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-01
+pushes:
+  - capability: slice-building
+  - capability: signal-design
+  - capability: validation-testing
+  - capability: demonstration-evidence-review

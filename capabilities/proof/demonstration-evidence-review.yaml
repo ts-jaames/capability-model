@@ -8,6 +8,7 @@ client_experience: >
 sparq_how: >
   Demo only from live preview; walk the signal alongside the functionality;
   capture decisions in the session.
+levels_mode: standard-ladder
 levels:
   L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
   L2: Executes end-to-end independently and handles edge cases without escalating the method.

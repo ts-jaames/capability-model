@@ -1,0 +1,49 @@
+{
+  "$id": "https://capability-model.local/schema/risk-shape.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Risk shape",
+  "description": "A kind of unknown an engagement can be carrying. The live mix of risk shapes is the input to the capability dials.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "question",
+    "owner",
+    "source",
+    "last_updated",
+    "pushes"
+  ],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "order": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Reading order on the operating view. Must be unique across risk shapes."
+    },
+    "question": {
+      "$ref": "common.json#/$defs/nonEmptyString",
+      "description": "The plain question this shape asks of the engagement."
+    },
+    "status": { "$ref": "common.json#/$defs/status" },
+    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "source": { "$ref": "common.json#/$defs/source" },
+    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
+    "pushes": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Capabilities this shape drives when it is the riskiest unknown. intensity is the dial weighting; omit it only while it is unauthored.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capability"],
+        "properties": {
+          "capability": { "$ref": "common.json#/$defs/kebabId" },
+          "intensity": { "$ref": "common.json#/$defs/intensity" },
+          "why": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    }
+  }
+}

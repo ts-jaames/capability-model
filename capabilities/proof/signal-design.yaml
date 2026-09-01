@@ -9,6 +9,7 @@ sparq_how: >
   Define metric, source, and threshold before slice build; embed measurement
   hooks in components/services; record the bar so results can't be
   re-litigated.
+levels_mode: specific
 levels:
   L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
   L2: Executes end-to-end independently and handles edge cases without escalating the method.

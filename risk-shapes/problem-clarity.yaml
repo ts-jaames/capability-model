@@ -1,0 +1,13 @@
+id: problem-clarity
+name: Problem clarity
+order: 1
+question: Are we solving the right thing?
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-01
+pushes:
+  - capability: problem-framing
+  - capability: direction-qualification
+  - capability: stakeholder-alignment
+  - capability: outcome-definition

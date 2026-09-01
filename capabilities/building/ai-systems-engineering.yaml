@@ -10,6 +10,7 @@ sparq_how: >
   Stand up an eval harness with golden sets before architecture; ingest domain
   data into model-agnostic context pipelines; gate deploy on eval scores, not
   demo quality.
+levels_mode: standard-ladder
 levels:
   L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
   L2: Executes end-to-end independently and handles edge cases without escalating the method.

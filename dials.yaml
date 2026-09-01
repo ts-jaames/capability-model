@@ -1,0 +1,25 @@
+id: capability-dial
+name: Capability dial
+description: >
+  The agency-wide intensity legend. Every capability sits somewhere on this
+  four-step dial at all times, and the live risk mix moves it. Dormant is not
+  absent: a phase model closes work down, this only turns it down. That
+  distinction is what makes it a dial and not a sequence.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-01
+
+intensities:
+  - id: dormant
+    name: Dormant
+    description: Present but idle; re-activates on the right signal.
+  - id: low
+    name: Low
+    description: Live but light; a check or a spike.
+  - id: active
+    name: Active
+    description: A primary workstream now.
+  - id: peak
+    name: Peak
+    description: The dominant demand.

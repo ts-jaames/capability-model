@@ -55,9 +55,14 @@ body:
       description: L1-floor capabilities get guardrails. L2-floor capabilities are Not at L1 until those exist.
       options:
         - L1-floor (include L1 + l1_guardrails + L1→L2 boundary)
-        - L2-floor (omit L1 fields; not_at_l1 is TBD)
+        - L2-floor (omit L1 fields; say why below)
     validations:
       required: true
+  - type: textarea
+    id: not_at_l1
+    attributes:
+      label: Why there is no L1 floor
+      description: Required for L2-floor. What judgment does this need that a guardrail cannot carry? "TBD" is accepted but is recorded as debt until someone answers it.
   - type: textarea
     id: l1_guardrails
     attributes:
@@ -68,8 +73,20 @@ body:
     attributes:
       label: L1→L2 boundary
       description: Required for L1-floor. What L1 may do vs what must escalate to L2. Leave blank if this is L2-floor.
+  - type: input
+    id: owner
+    attributes:
+      label: Owner
+      description: The person accountable for this capability staying fit — not a team name.
+    validations:
+      required: true
+  - type: textarea
+    id: levels
+    attributes:
+      label: What L1, L2 and L3 mean here
+      description: One line each, specific to this capability. Repeating the agency-wide ladder is recorded as debt, because it makes the level unsellable.
   - type: textarea
     id: agent_skills
     attributes:
       label: Linked skills
-      description: Up to 10 existing skill ids (kebab-case). Names are enough. Leave blank if the skills do not exist yet.
+      description: Up to 10 skill ids (kebab-case), one per line. Mark any we do not have yet as "name — gap"; naming a missing method is better than leaving this blank.

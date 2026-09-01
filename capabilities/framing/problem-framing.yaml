@@ -8,6 +8,7 @@ client_experience: >
 sparq_how: >
   Run a framing session with sponsor + a blocker; ladder symptom → lever live;
   draft, swap-test, and lock the sentence in the room.
+levels_mode: specific
 levels:
   L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
   L2: Executes end-to-end independently and handles edge cases without escalating the method.

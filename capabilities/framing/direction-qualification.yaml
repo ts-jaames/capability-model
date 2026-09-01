@@ -9,6 +9,7 @@ sparq_how: >
   Score candidates against the problem sentence, constraint set, and risk
   shortlist; sequence only what survives; record the call; treat stop as a
   valid outcome.
+levels_mode: specific
 levels:
   L2: Executes end-to-end independently and handles edge cases without escalating the method.
   L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.

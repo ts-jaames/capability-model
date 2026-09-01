@@ -1,0 +1,13 @@
+id: proof-acceptance
+name: Proof / acceptance
+order: 7
+question: Can we show it's true, not just claim it?
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-01
+pushes:
+  - capability: signal-design
+  - capability: acceptance-proving
+  - capability: validation-testing
+  - capability: transparent-delivery

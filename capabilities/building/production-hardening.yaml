@@ -9,6 +9,7 @@ sparq_how: >
   Run security, load, and observability against the constraint set + risk
   shortlist; wire monitoring/tracing into the deploy; map each fix to a named
   risk.
+levels_mode: standard-ladder
 levels:
   L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
   L2: Executes end-to-end independently and handles edge cases without escalating the method.

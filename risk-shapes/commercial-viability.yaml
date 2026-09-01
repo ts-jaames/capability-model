@@ -1,0 +1,13 @@
+id: commercial-viability
+name: Commercial / viability
+order: 5
+question: Do the economics, scope, and price hold?
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-01
+pushes:
+  - capability: commercial-scoping-envelope-shaping
+  - capability: confidence-based-estimation
+  - capability: pricing-under-uncertainty
+  - capability: direction-qualification

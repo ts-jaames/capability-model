@@ -1,0 +1,13 @@
+id: adoption
+name: Adoption
+order: 6
+question: Will the wider org trust and use it?
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-01
+pushes:
+  - capability: org-change-adoption
+  - capability: capability-transfer
+  - capability: stakeholder-alignment
+  - capability: talent-development-coaching
