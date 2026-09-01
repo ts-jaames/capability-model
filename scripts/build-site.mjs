@@ -459,19 +459,19 @@ function renderOperatingMain() {
           </thead>
           <tbody>
             <tr>
-              <td>Dormant</td>
+              <td><strong>Dormant</strong></td>
               <td>present but idle; re-activates on the right signal</td>
             </tr>
             <tr>
-              <td>Low</td>
+              <td><strong>Low</strong></td>
               <td>live but light — a check or a spike</td>
             </tr>
             <tr>
-              <td>Active</td>
+              <td><strong>Active</strong></td>
               <td>a primary workstream now</td>
             </tr>
             <tr>
-              <td>Peak</td>
+              <td><strong>Peak</strong></td>
               <td>the dominant demand</td>
             </tr>
           </tbody>
