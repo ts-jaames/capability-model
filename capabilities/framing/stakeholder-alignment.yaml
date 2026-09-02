@@ -12,5 +12,8 @@ sparq_how: >
 levels:
   L2: Executes end-to-end independently and handles edge cases without escalating the method.
   L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
-not_at_l1: TBD
+not_at_l1: >
+  Reading who can actually kill the work and moving them to a shared standard is
+  live political judgment; the kill-map is prep, the room is not L1.
+levels_mode: standard-ladder
 agent_skills: []

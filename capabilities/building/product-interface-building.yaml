@@ -10,9 +10,15 @@ sparq_how: >
   Assemble from design tokens + a Figma/code component library; ship increments
   to preview; check token use and accessibility on every build.
 levels:
-  L1: Assembly from guardrails.
-  L2: State and edge-case behaviour.
-  L3: Sets tokens, contracts, motion.
+  L1: >
+    Assembly from guardrails: build pages from existing components against the
+    token sheet.
+  L2: >
+    Owns state and edge-case interface behaviour without escalating the method.
+  L3: >
+    Sets the tokens, the component contracts, and the motion language others
+    build to.
+levels_mode: specific
 l1_guardrails:
   - Component token sheet
   - page assembly template (Figma + code scaffold)

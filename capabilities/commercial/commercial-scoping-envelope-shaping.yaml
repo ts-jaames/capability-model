@@ -13,5 +13,8 @@ sparq_how: >
 levels:
   L2: Executes end-to-end independently and handles edge cases without escalating the method.
   L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
-not_at_l1: TBD
+not_at_l1: >
+  Deciding which boundaries are truly non-negotiable and how much emergence to
+  fund is a commercial judgment a template can frame but not make.
+levels_mode: standard-ladder
 agent_skills: []

@@ -12,5 +12,8 @@ sparq_how: >
 levels:
   L2: Executes end-to-end independently and handles edge cases without escalating the method.
   L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
-not_at_l1: TBD
+not_at_l1: >
+  The proceed / redirect / stop call is the judgment; a guardrail can assemble
+  the inputs but can't own the decision or its consequences.
+levels_mode: standard-ladder
 agent_skills: []

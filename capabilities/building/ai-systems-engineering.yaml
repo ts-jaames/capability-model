@@ -11,9 +11,16 @@ sparq_how: >
   data into model-agnostic context pipelines; gate deploy on eval scores, not
   demo quality.
 levels:
-  L1: Operates safely using defined guardrails and templates. Non-specialists execute without inventing method.
-  L2: Executes end-to-end independently and handles edge cases without escalating the method.
-  L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
+  L1: >
+    Runs the eval harness and corpus ingestion from scaffolds; doesn't touch
+    model or pipeline logic.
+  L2: >
+    Builds and modifies the context pipelines; tunes reliability against the
+    eval bar independently.
+  L3: >
+    Sets the eval methodology and reliability architecture others build to; owns
+    what "trustworthy enough to ship" means.
+levels_mode: specific
 l1_guardrails:
   - Eval-harness scaffold
   - corpus-ingestion checklist
