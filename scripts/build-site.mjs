@@ -152,15 +152,78 @@ function agentSkillChip(id, href) {
   return href ? `<a class="agent-skill-link" href="${esc(href)}">${chip}</a>` : chip;
 }
 
-function renderCap(cap, domains) {
+function levelLegendMap(levels) {
+  const map = new Map();
+  for (const level of levels?.execution_levels ?? []) {
+    if (level?.id) map.set(level.id, level);
+  }
+  return map;
+}
+
+function levelRow(tag, body, cls = "") {
+  return `<div class="lvl-row${cls ? ` ${cls}` : ""}"><span class="lvl-tag mono">${esc(tag)}</span><div class="lvl-content">${body}</div></div>`;
+}
+
+// The Levels block. Level prose comes from YAML only: authored copy for
+// `specific` capabilities, and the single firm ladder (levels.yaml) for
+// `standard-ladder` ones — never hardcoded per-capability prose here.
+function renderLevelsBlock(cap, legend) {
+  const mode = cap.levels_mode === "specific" ? "specific" : "standard-ladder";
+  const badgeText = mode === "specific" ? "capability-specific" : "standard ladder";
+  const isL2Floor = Object.hasOwn(cap, "not_at_l1");
+  const capLevels = cap.levels ?? {};
+
+  let l1Row;
+  if (isL2Floor) {
+    const reason = esc(String(cap.not_at_l1 ?? "").trim().replace(/\s+/g, " "));
+    l1Row = levelRow(
+      "L1",
+      `<p class="lvl-no-l1"><span class="lvl-no-l1-tag">No L1</span>${reason}</p>`,
+      "is-reason",
+    );
+  } else {
+    const chips = (cap.l1_guardrails ?? [])
+      .map((item) => `<code class="guardrail-chip">${esc(item)}</code>`)
+      .join("");
+    const boundary = cap.l1_l2_boundary
+      ? `<p class="lvl-boundary">${esc(String(cap.l1_l2_boundary).trim().replace(/\s+/g, " "))}</p>`
+      : "";
+    l1Row = levelRow(
+      "L1",
+      `${chips ? `<div class="guardrail-chips">${chips}</div>` : ""}${boundary}`,
+    );
+  }
+
+  const specificRow = (tag) =>
+    levelRow(tag, `<p>${esc(String(capLevels[tag] ?? "").trim().replace(/\s+/g, " "))}</p>`);
+
+  const ladderRow = (tag) => {
+    const name = esc(legend.get(tag)?.name ?? "");
+    return levelRow(
+      tag,
+      `<a class="lvl-ladder" href="#capabilities">${name}</a><span class="lvl-ladder-note"> · standard ladder</span>`,
+      "is-ladder",
+    );
+  };
+
+  const l2Row = mode === "specific" ? specificRow("L2") : ladderRow("L2");
+  const l3Row = mode === "specific" ? specificRow("L3") : ladderRow("L3");
+
+  return kv(
+    "Levels",
+    `<div class="levels-block" data-mode="${mode}">
+          <div class="levels-block-head"><span class="lvl-mode lvl-mode-${mode}">${esc(badgeText)}</span></div>
+          <div class="lvl-rows">${l1Row}${l2Row}${l3Row}</div>
+        </div>`,
+  );
+}
+
+function renderCap(cap, domains, legend) {
   const domain = domains.find((d) => d.id === cap.domain);
   const skillChips = (cap.agent_skills ?? [])
     .map((item) => item?.name)
     .filter(Boolean)
     .map((id) => agentSkillChip(id, `#agent-skill-${id}`))
-    .join("");
-  const guardrails = (cap.l1_guardrails ?? [])
-    .map((item) => `<li>${esc(item)}</li>`)
     .join("");
   return `
     <article class="row" id="capability-${esc(cap.id)}">
@@ -175,18 +238,7 @@ function renderCap(cap, domains) {
         ${kv("Core promise", `<p>${esc(String(cap.promise ?? "").trim().replace(/\s+/g, " "))}</p>`)}
         ${kv("Client experience", `<p>${esc(String(cap.client_experience ?? "").trim().replace(/\s+/g, " "))}</p>`)}
         ${kv("Sparq How", paragraphs(cap.sparq_how))}
-        ${
-          guardrails
-            ? kv("L1 guardrails", `<ul class="bullets">${guardrails}</ul>`)
-            : cap.not_at_l1
-              ? kv("Not at L1", `<p>${esc(String(cap.not_at_l1).trim())}</p>`)
-              : ""
-        }
-        ${
-          cap.l1_l2_boundary
-            ? kv("L1→L2 boundary", `<p>${esc(String(cap.l1_l2_boundary).trim().replace(/\s+/g, " "))}</p>`)
-            : ""
-        }
+        ${renderLevelsBlock(cap, legend)}
         ${kv(
           "Agent Skills",
           skillChips
@@ -404,6 +456,7 @@ function render(model, pageId = "capability-model") {
   const { levels, domains, capabilities, skills } = model;
   const page = PAGES.find((item) => item.id === pageId);
   if (!page) throw new Error(`Unknown page: ${pageId}`);
+  const legend = levelLegendMap(levels);
   const capsByDomain = new Map(domains.map((d) => [d.id, []]));
   for (const cap of capabilities) {
     if (!capsByDomain.has(cap.domain)) capsByDomain.set(cap.domain, []);
@@ -439,14 +492,14 @@ function render(model, pageId = "capability-model") {
       a.name.localeCompare(b.name),
     );
     if (!domain || !caps.length) return "";
-    return caps.map((cap) => renderCap(cap, domains)).join("");
+    return caps.map((cap) => renderCap(cap, domains, legend)).join("");
   }).join("");
 
   const leftover = capabilities.filter((cap) => !DOMAIN_ORDER.includes(cap.domain));
   const extraCaps = leftover.length
     ? leftover
         .sort((a, b) => a.name.localeCompare(b.name))
-        .map((cap) => renderCap(cap, domains))
+        .map((cap) => renderCap(cap, domains, legend))
         .join("")
     : "";
 
@@ -813,6 +866,56 @@ function render(model, pageId = "capability-model") {
       flex-direction: column;
     }
     .kv-body, .kv-body p { font-size: 13.5px; font-weight: 400; line-height: 1.6; }
+    .levels-block { display: flex; flex-direction: column; gap: 8px; }
+    .levels-block-head { display: flex; align-items: center; gap: 8px; }
+    .lvl-mode {
+      display: inline-block;
+      font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .lvl-mode-specific { color: var(--accent); background: #EEF0FB; }
+    .lvl-mode-standard-ladder { color: var(--muted); background: var(--hover); }
+    .lvl-rows { display: flex; flex-direction: column; }
+    .lvl-row {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+    }
+    .lvl-row:first-child { border-top: 0; }
+    .lvl-tag { flex: 0 0 24px; color: var(--muted); font-size: 12px; padding-top: 1px; }
+    .lvl-content { min-width: 0; }
+    .lvl-content p { font-size: 13.5px; line-height: 1.6; margin: 0; }
+    .lvl-row.is-ladder .lvl-tag { color: var(--dim); }
+    .lvl-ladder { color: var(--dim); font-size: 13px; }
+    .lvl-ladder:hover { color: var(--muted); }
+    .lvl-ladder-note { color: var(--dim); font-size: 13px; }
+    .guardrail-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+    .guardrail-chip {
+      display: inline-block;
+      font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
+      font-size: 12px;
+      letter-spacing: 0.01em;
+      color: var(--muted);
+      background: var(--hover);
+      padding: 2px 6px;
+      border-radius: 3px;
+      line-height: 1.4;
+    }
+    .lvl-boundary { color: var(--ink); }
+    .lvl-no-l1 { color: var(--ink); }
+    .lvl-no-l1-tag {
+      display: inline-block;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      margin-right: 8px;
+    }
     ul.plain { list-style: none; padding: 0; margin: 0; }
     ul.plain li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
     ul.plain li:last-child { border-bottom: 0; padding-bottom: 0; }
