@@ -86,18 +86,34 @@ These are shape rules. Passing them does not mean the entity should exist.
 - Every skill is referenced by at least one capability.
 - A capability lists at most 10 `agent_skills`.
 - A role owns at most 2 capabilities and executes at most 7. Owned and executable lists are disjoint.
-- L1-floor capabilities include `levels.L1`, `l1_guardrails`, and `l1_l2_boundary`, and omit `not_at_l1`. L2-floor capabilities include `not_at_l1: TBD`, and omit `levels.L1`, `l1_guardrails`, and `l1_l2_boundary`.
+- L1-floor capabilities include `levels.L1`, `l1_guardrails`, and `l1_l2_boundary`, and omit `not_at_l1`. L2-floor capabilities include a one-sentence `not_at_l1` reason (never `TBD`, never blank), and omit `levels.L1`, `l1_guardrails`, and `l1_l2_boundary`.
 - Execution scale is exactly L1, L2, L3, plus ownership designation `Owner`.
+- Every capability sets `levels_mode`: `standard-ladder` (inherits the firm ladder) or `specific` (carries authored L1/L2/L3 copy). Default is `standard-ladder`.
 
 ## Field notes
 
 - `source` is `sfia` | `adapted` | `original`.
 - Skill `type` is `core_technique` | `transient_tool`. Some agent skills may later be listed as L1 guardrails; that is a capability fact, not a field on the skill.
 - Capability `promise` is the named client outcome. `client_experience` is what they walk away with. `sparq_how` is internal methodology.
-- Per-capability `levels` is how that capability is executed (generic ladder unless authored copy exists). `l1_l2_boundary` is required on L1-floor capabilities. `levels.yaml` remains the agency-wide legend. Still no L1–L3 on domains or skill files.
+- Per-capability `levels` is how that capability is executed. `levels_mode: standard-ladder` means it inherits the firm ladder (defined once in `levels.yaml`); `levels_mode: specific` means the authored L1/L2/L3 copy is the real thing. `l1_l2_boundary` is required on L1-floor capabilities. `levels.yaml` remains the agency-wide legend. Still no L1–L3 on domains or skill files.
 - `agent_skills[].name` is a skill file stem. Do not invent SKILL.md names. Map only skills that already exist in `skills/`.
 - Role `owned_capabilities` are kebab ids (Owner accountability). `executable_capabilities` are `{ id, required_level }` with `required_level` L1–L3.
 
 ## Contribution path
 
 Non-engineers should use GitHub Issue forms or natural language. Translate those into draft YAML only when the admission tests pass; do not ask them to hand-edit schemas.
+
+## Levels block — render rule
+
+The capability detail page renders a **Levels** block: three rows (L1 · L2 · L3) plus a mode badge.
+
+- **Badge:** `standard ladder` or `capability-specific`, from `levels_mode`.
+- **L1 row:**
+  - L1-floor capability → the guardrail chips + the `L1→L2` boundary line.
+  - L2-floor capability → a muted row reading **No L1** followed by the `not_at_l1` reason inline. Never blank, never "TBD".
+- **L2 / L3 rows:**
+  - `specific` → the authored L2/L3 text, full weight.
+  - `standard-ladder` → one light, de-emphasised line per level showing the ladder meaning (L2 "executes solo, handles edge cases" · L3 "sets the standard others follow").
+- **The standard ladder is defined once** (Overview, or a hover from any ladder row). Light ladder rows point to it; the ladder text is never duplicated per capability.
+- **Visual weight is the point:** ladder rows are de-emphasised, specific/reason rows are full weight, so the page reads honest at a glance — a reader instantly sees what's genuinely defined here versus what inherits the firm standard.
+- **Ban:** do not add hardcoded per-capability level prose to the build script. Level content comes from YAML only.

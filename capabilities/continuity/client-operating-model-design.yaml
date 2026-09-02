@@ -12,5 +12,9 @@ sparq_how: >
 levels:
   L2: Executes end-to-end independently and handles edge cases without escalating the method.
   L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
-not_at_l1: TBD
+not_at_l1: >
+  Deciding who owns what and which calls can't wait is organizational-design
+  judgment specific to each client; a template captures the format, not the
+  decision.
+levels_mode: standard-ladder
 agent_skills: []

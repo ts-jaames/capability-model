@@ -33,7 +33,7 @@ You do not need to edit YAML.
 1. Open a GitHub Issue using one of the forms: **Propose a skill**, **Propose a capability**, or **Define a role**.
 2. Or describe the change in natural language to Claude CoWork / Cursor. Point the assistant at `CLAUDE.md`. It will draft YAML at `status: draft`.
 3. A human reviews the pull request. Only a human may set `status: reviewed` or `status: ratified`.
-4. Capabilities omit `status` in YAML; tooling treats them as draft. L1-floor capabilities require `l1_guardrails`. L2-floor capabilities use `not_at_l1: TBD`.
+4. Capabilities omit `status` in YAML; tooling treats them as draft. L1-floor capabilities require `l1_guardrails`. L2-floor capabilities carry a one-sentence `not_at_l1` reason. Every capability sets `levels_mode` (`standard-ladder` or `specific`).
 
 ## Layout
 

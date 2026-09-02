@@ -11,5 +11,8 @@ sparq_how: >
 levels:
   L2: Executes end-to-end independently and handles edge cases without escalating the method.
   L3: Builds guardrails, handles extreme complexity, and defines the standards others execute against.
-not_at_l1: TBD
+not_at_l1: >
+  Growing a person's craft against their live problems is individual judgment; a
+  rubric can assess, the coaching itself isn't guardrail-executable.
+levels_mode: standard-ladder
 agent_skills: []

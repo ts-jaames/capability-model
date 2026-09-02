@@ -39,7 +39,12 @@
         "L3": { "$ref": "common.json#/$defs/nonEmptyString" }
       }
     },
-    "not_at_l1": { "type": "string", "const": "TBD" },
+    "levels_mode": {
+      "type": "string",
+      "enum": ["standard-ladder", "specific"],
+      "default": "standard-ladder"
+    },
+    "not_at_l1": { "$ref": "common.json#/$defs/nonEmptyString" },
     "l1_guardrails": {
       "type": "array",
       "minItems": 1,
