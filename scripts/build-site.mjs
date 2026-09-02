@@ -443,9 +443,7 @@ function renderOperatingMain() {
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Operating View</h1>
         <p class="lede">Risk decides which capabilities run and how hot. Contracts decide how their work flows on. This page defines both.</p>
-        <figure class="figure slot">
-          <p>A visual of the two mechanisms — the intensity dials and the risk-driven flow — belongs here.</p>
-        </figure>
+        ${figure("06-operating-view.png", "Risk turns intensity dials; work flows across seams.")}
       </section>
       <section id="intensity">
         <h2 class="mono uppercase eyebrow">Intensity</h2>
@@ -897,14 +895,6 @@ function render(model, pageId = "how-it-all-relates") {
       height: auto;
       background: #fff;
     }
-    .figure.slot {
-      padding: 48px 24px;
-    }
-    .figure.slot p {
-      margin: 0;
-      color: var(--muted);
-      max-width: 760px;
-    }
     .to {
       margin: 0 0 8px;
     }
@@ -1088,9 +1078,14 @@ async function build() {
   await writeFile(join(outDir, ".nojekyll"), "");
   await cp(join(ROOT, ILLUSTRATIONS), join(outDir, ILLUSTRATIONS), { recursive: true });
   const firstDrawing = join(outDir, ILLUSTRATIONS, "01-one-list.png");
+  const boardDrawing = join(outDir, ILLUSTRATIONS, "06-operating-view.png");
   const drawn = await readFile(firstDrawing).catch(() => null);
+  const board = await readFile(boardDrawing).catch(() => null);
   if (!drawn?.length) {
     throw new Error(`Missing ${firstDrawing}. Drawings must copy into site/ on build.`);
+  }
+  if (!board?.length) {
+    throw new Error(`Missing ${boardDrawing}. Drawings must copy into site/ on build.`);
   }
   for (const page of PAGES) {
     await writeFile(join(outDir, page.file), render(model, page.id));
