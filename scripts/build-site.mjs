@@ -443,7 +443,7 @@ function renderOperatingMain() {
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Operating View</h1>
         <p class="lede">Risk decides which capabilities run and how hot. Contracts decide how their work flows on. This page defines both.</p>
-        ${figure("06-operating-view.png", "Risk turns intensity dials; work flows across seams. Read the board at once.")}
+        ${figure("06-operating-view.png", "Risk turns intensity dials; work flows across seams.")}
       </section>
       <section id="intensity">
         <h2 class="mono uppercase eyebrow">Intensity</h2>
