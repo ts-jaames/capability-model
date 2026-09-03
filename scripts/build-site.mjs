@@ -514,6 +514,11 @@ function renderOperatingMain() {
 
   const seams = [
     renderNote(
+      "seam-commercial-framing",
+      "Commercial → Framing",
+      "A scoped commitment crosses — what's promised, at what confidence, what's still an open bet. Not a guarantee of outcomes we haven't earned. Violated by a SOW written as certainty: roadmap and deliverables promised as done before any risk is retired.",
+    ),
+    renderNote(
       "seam-framing-building",
       "Framing → Building",
       "A testable definition crosses — problem, outcome, constraints. Not a wish list. Violated by requirements that can't be built or tested from.",
@@ -527,6 +532,11 @@ function renderOperatingMain() {
       "seam-building-proof",
       "Building → Proof",
       "Evidence against a bar set up front crosses. Not \"looks done.\" Violated by acceptance on subjective sign-off.",
+    ),
+    renderNote(
+      "seam-proof-commercial",
+      "Proof → Commercial",
+      "A confidence-tagged commitment call crosses — what the evidence now earns the right to scale, price, or commit, and what it doesn't. Not \"we're done, here's the next phase.\" Violated by scaling or re-pricing on the calendar instead of the signal, or a green light no signal backs.",
     ),
   ].join("");
 
