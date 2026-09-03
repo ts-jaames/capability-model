@@ -103,7 +103,6 @@ const PAGE_TOC = {
     ["#intensity", "Intensity"],
     ["#risk-shapes", "Risk shapes"],
     ["#seams", "Seams"],
-    ["#how-to-read", "How to read it"],
   ],
 };
 
@@ -583,10 +582,6 @@ function renderOperatingMain() {
         <div class="stack">
         ${seams}
         </div>
-      </section>
-      <section id="how-to-read">
-        <h2 class="mono uppercase eyebrow">How to read it</h2>
-        <p class="lede">A risk shape lights up capabilities at an intensity (the dials), and their outputs flow across the seams to the next capabilities and the next risk shape. The seams are fixed; the risk mix decides which path fires. Read the whole board at once: given what's unknown now, here is where every capability sits, and here is how its output moves on.</p>
       </section>`;
 }
 
