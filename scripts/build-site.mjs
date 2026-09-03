@@ -281,7 +281,7 @@ function renderCap(cap, domains, legend) {
     </article>`;
 }
 
-function renderLine(id, name, intro, fields) {
+function renderLine(id, name, intro, fields, note) {
   const kvs = fields
     .map(([label, body]) => kv(label, `<p>${esc(body)}</p>`))
     .join("");
@@ -292,6 +292,7 @@ function renderLine(id, name, intro, fields) {
       </header>
       <div class="prose"><p>${esc(intro)}</p></div>
       <div class="kvs">${kvs}</div>
+      ${note ? `<p class="line-note">${esc(note)}</p>` : ""}
     </article>`;
 }
 
@@ -324,21 +325,32 @@ function renderRolesMain() {
     renderLine(
       "line-product-architect",
       "Product Architect",
-      "Owns whether it's the right thing: framed, priced, and adopted honestly. Leads presales, because shaping a deal is the same judgment as delivering one.",
+      "Owns whether it's the right thing: framed, priced, and directed honestly. Leads presales, because shaping a deal is the same judgment as delivering one.",
       [
-        [
-          "Owns",
-          "Commercial, Framing, Enablement, client-side Continuity (operating-model, transition/warranty), and Interface.",
-        ],
+        ["Owns", "Commercial, Framing."],
         [
           "Executes",
-          "Frames the ask to one lever; names the hard constraints and collapse risks; makes the go/redirect/stop call; shapes and prices the envelope; aligns blockers; carries adoption and handoff. Ships interface directly on smaller jobs.",
+          "Frames the ask to one lever; names the hard constraints and collapse risks; makes the go / redirect / stop call; shapes and prices the envelope; aligns the people who can block the work.",
         ],
         [
           "Shape",
-          "Barbell: one M-shaped person clears the envelope, or a Framing and an Interface specialist clear it together. Same SOW line either way.",
+          "Deep-T to barbell: the judgment core of an engagement, framing and commercial in one lane.",
         ],
       ],
+    ),
+    renderLine(
+      "line-experience-architect",
+      "Experience Architect",
+      "Owns whether the thing users touch is real and usable: a working product, not a prototype.",
+      [
+        ["Owns", "Product & interface building."],
+        [
+          "Executes",
+          "Assembles from design tokens and a component library; ships increments to live preview; owns state and edge-case behaviour; sets tokens, component contracts, and motion at depth.",
+        ],
+        ["Shape", "Deep-T: the experience layer."],
+      ],
+      "Held separate from Product Architect deliberately — a fold is possible in principle, blocked in practice by bench (we don't have strategists who also carry a designer's craft).",
     ),
     renderLine(
       "line-ai-architect",
@@ -375,6 +387,23 @@ function renderRolesMain() {
         ],
       ],
     ),
+    renderLine(
+      "line-adoption-architect",
+      "Adoption Architect",
+      "Owns whether the client's people and organization can actually run and own what was built.",
+      [
+        [
+          "Owns",
+          "Capability transfer, org change & adoption, talent development; client operating-model design, transition & warranty design.",
+        ],
+        [
+          "Executes",
+          "Puts client people in the hard calls so they inherit the judgment, not just the repo; designs the adoption path against the org's real incentives and fears; leaves an operating model the team can run and a handoff with explicit dates and boundaries.",
+        ],
+        ["Shape", "Deep-T: judgment-heavy, senior."],
+      ],
+      "Proposed — weak as a standalone market line, under discussion. Held as its own line so Enablement and client-side Continuity have a home instead of hiding inside another title.",
+    ),
   ].join("");
 
   return `
@@ -384,6 +413,7 @@ function renderRolesMain() {
         <p class="lede">The SOW promises capabilities-at-levels (outcome-priced), never headcount. A role is internal shorthand for a person's capability-and-level profile.</p>
         <p class="lede">An Owner is the atomic internal unit (accountable for one capability cluster's maturity). Owners compose into the external lines below; the external lines are just the common compositions with market-legible names.</p>
         <p class="lede">A pair of single-spike Owners and one M-shaped person can fulfil the same SOW line. The contract doesn't care which.</p>
+        <p class="lede">Five external lines cover every capability, so each has a coherent home and none is a grab-bag.</p>
       </section>
       <section id="external-lines">
         <h2 class="mono uppercase eyebrow">External lines</h2>
@@ -397,7 +427,7 @@ function renderRolesMain() {
         ${renderNote(
           "layer-title",
           "Title",
-          "How clients buy.\n\nThe market-facing line on the rate card and SOW (Product Architect, AI Architect, FDE). Coarse by design: clients buy a capability line at a level, not a list of niche roles. Titles are peer categories, not a ladder. Seniority is not carried here.",
+          "How clients buy.\n\nThe market-facing line on the rate card and SOW (Product Architect, Experience Architect, AI Architect, FDE, Adoption Architect). Coarse by design: clients buy a capability line at a level, not a list of niche roles. Titles are peer categories, not a ladder — seniority is carried on the band and the level, not here.",
         )}
         ${renderNote(
           "layer-ownership",
@@ -405,9 +435,19 @@ function renderRolesMain() {
           "What you're accountable for.\n\nThe atomic, permanent unit. An Owner keeps a capability cluster fit: authors the guardrails, prompt packs, and templates, and sets the standard others execute against. This is a person's durable identity, and where progression lives. You advance by deepening ownership and building the assets the firm runs on, not by billing more hours.",
         )}
         ${renderNote(
+          "layer-level",
+          "Level",
+          "How deeply, per capability.\n\nL1 guided, L2 solo, L3 sets the standard. Per-capability, not per-person — the same person can be L3 in one capability and L1 in another they're growing into. The level on the external line is what a client buys and what sets the price (\"Product Architect, L3\").",
+        )}
+        ${renderNote(
           "layer-seat",
           "Project seat",
-          "What you're doing now.\n\nThe role you occupy on a specific squad for a specific slice of work. Seats shift within an engagement as the work changes. The same person may sit Slice Builder one sprint and Governance Lead the next. Because seats are activated by what the work needs, their catalog lives in the operating view, not here.",
+          "What you're doing now.\n\nThe role you occupy on a specific squad for a specific slice of work. Seats shift within an engagement as the work changes; the same person may sit Slice Builder one sprint and Governance Lead the next. Because seats are activated by what the work needs, their catalog lives in the operating view, not here.",
+        )}
+        ${renderNote(
+          "layer-band",
+          "Consultant band",
+          "Who you are at the firm.\n\nThe whole-person HR identity — Senior Consultant, Principal Consultant. This is where career seniority lives: comp, progression band, the title on an offer letter. It correlates with level (a Principal is typically L3 in their owned capabilities) but never collapses into it — the band is per-person, the level is per-capability. Seniority didn't disappear from the model; it moved here, out of the market-facing title, so what a client buys and how senior you are can be stated separately.",
         )}
         </div>
       </section>`;
@@ -1039,6 +1079,13 @@ function render(model, pageId = "how-it-all-relates") {
     ul.bullets li:last-child { margin-bottom: 0; }
     .meta, .dim { color: var(--muted); font-size: 12px; }
     .dim { color: var(--dim); }
+    .line-note {
+      color: var(--muted);
+      font-size: 12px;
+      font-style: italic;
+      margin-top: 12px;
+      max-width: 700px;
+    }
     .prose { margin-bottom: 24px; max-width: 700px; }
     .stack .prose { margin-bottom: 8px; }
     .stack .prose:last-child { margin-bottom: 0; }
