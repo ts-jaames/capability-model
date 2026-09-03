@@ -32,8 +32,8 @@ function run(cmd, cmdArgs) {
 
 async function main() {
   const fps = 30;
-  // draft = 640x360, guide = 1280x720, master = 1920x1080
-  const scale = DRAFT ? 1 / 3 : GUIDE ? 2 / 3 : 1;
+  // draft = 960x540, guide = 1280x720, master = 1920x1080
+  const scale = DRAFT ? 0.5 : GUIDE ? 2 / 3 : 1;
   const width = Math.round(1920 * scale);
   const height = Math.round(1080 * scale);
 
@@ -43,7 +43,7 @@ async function main() {
   await mkdir(join(ROOT, "out"), { recursive: true });
 
   const browser = await chromium.launch({ executablePath: CHROME, args: ["--no-sandbox", "--force-color-profile=srgb"] });
-  const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
+  const page = await browser.newPage({ viewport: { width: Math.max(width, 640), height: Math.max(height, 360) }, deviceScaleFactor: 1 });
   page.on("console", (m) => m.type() === "error" && console.log("PAGE ERROR:", m.text()));
   page.on("pageerror", (e) => console.log("PAGE EXCEPTION:", e.message));
 
@@ -51,6 +51,16 @@ async function main() {
   await page.waitForFunction(() => window.Explainer && window.Explainer.ready);
   await page.evaluate(() => window.Explainer.ready());
   await page.evaluate((c) => window.Explainer.setCaptions(c), captions);
+  // Resize the canvas and pre-scale the context so frames are captured at the
+  // target resolution (element screenshots use the canvas's intrinsic size).
+  await page.evaluate((s) => {
+    const c = document.getElementById("board");
+    c.width = Math.round(1920 * s);
+    c.height = Math.round(1080 * s);
+    const ctx = c.getContext("2d");
+    ctx.setTransform(s, 0, 0, s, 0, 0);
+    window.__ctx = ctx;
+  }, scale);
 
   const info = await page.evaluate(() => ({
     duration: window.Explainer.duration,
