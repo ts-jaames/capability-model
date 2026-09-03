@@ -16,4 +16,7 @@ not_at_l1: >
   The proceed / redirect / stop call is the judgment; a guardrail can assemble
   the inputs but can't own the decision or its consequences.
 levels_mode: standard-ladder
-agent_skills: []
+agent_skills:
+  - name: engagement-change-runner
+    what: Test whether a mid-delivery change crosses the product-vision line → surfaces it as a proceed / redirect / stop re-qualification event instead of absorbing it silently into delivery.
+    status: building

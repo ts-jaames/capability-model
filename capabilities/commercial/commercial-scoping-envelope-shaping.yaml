@@ -17,4 +17,7 @@ not_at_l1: >
   Deciding which boundaries are truly non-negotiable and how much emergence to
   fund is a commercial judgment a template can frame but not make.
 levels_mode: standard-ladder
-agent_skills: []
+agent_skills:
+  - name: engagement-change-runner
+    what: Reason over the source-of-truth model when a mid-delivery change lands → a proposed re-scope with the emergence-vs-new-envelope test and a confidence-tiered re-estimate for owners to decide.
+    status: building
