@@ -27,6 +27,9 @@ l1_l2_boundary: >
   L1 assembles from tokenized components; defining new tokens or state hooks is
   L2.
 agent_skills:
+  - name: judgment-kit
+    what: Run the judgment pass before any interface work → names activity, participant, decision, outcome, and disclosure boundary and emits a handoff contract (or blocks) before any UI is designed or generated.
+    status: building
   - name: accessible-component-audit
     what: Audit interface components against accessibility criteria → later screens inherit a passable baseline instead of shipping inaccessible patterns.
     status: building

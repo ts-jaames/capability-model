@@ -1,0 +1,16 @@
+id: judgment-kit
+name: Judgment Kit
+description: >
+  Run the judgment pass before any interface work. Given a brief, a data source,
+  or an existing workflow, refuse to produce labels, navigation, or actions
+  until five things are named — activity, participant, decision, outcome,
+  disclosure boundary — and emit a handoff contract of product-language
+  responsibilities, approved states, and disclosure and action boundaries. Use
+  before designing or generating any UI, before treating a workflow as ready to
+  build, and before installing any generated candidate. Not a design system; it
+  runs upstream of one.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-03
+type: core_technique
