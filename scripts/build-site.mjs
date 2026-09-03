@@ -35,7 +35,9 @@ function paragraphs(value) {
 
 function badge(status) {
   const label = status ?? "draft";
-  if (label === "ratified") return "";
+  // The whole model is draft; suppress the draft (orange) status dot so the
+  // page isn't peppered with it. Only non-draft, non-ratified states show a dot.
+  if (label === "ratified" || label === "draft") return "";
   return `<span class="status"><i class="dot dot-${esc(label)}"></i></span>`;
 }
 
