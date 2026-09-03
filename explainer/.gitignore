@@ -1,6 +1,0 @@
-node_modules/
-frames/
-out/*.mp4
-out/*.log
-dist/*.bundle.js
-assets/hand_raw.png
