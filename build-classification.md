@@ -2,284 +2,277 @@
 
 Reference for anything built to make SparqOS infrastructural rather than supervised. Read-only in the repo; not rendered on the site.
 
-This file is written human-first but structured so an agent or app can consume it later without a rewrite. Every item has a stable ID (A–P, plus the agent items) and the same field set. See §0 for the upgrade path.
-
-Governing constraint that shaped the whole list: **the build roadmap obeys Evidence Work.** The cheap skills are thin slices — they generate the signal that earns the expensive substrate. We do not build the substrate first.
+Written human-first but structured so an agent can consume it later without a rewrite: stable IDs (A–Y), uniform fields, machine-legible summary in §6. Upgrade path: lift the per-item fields into YAML front-matter or a sidecar keyed by the same IDs. One source, multiple views — never hand-maintain two copies.
 
 ---
 
-## 0. How this file is meant to be consumed
+## 0. The honest reframe
 
-- **Now:** humans read it. There is no agent consumer yet, so a machine schema now would be building before validating.
-- **When an agent needs it:** lift the per-item fields into YAML front-matter or a sidecar `.yaml`/`.json` keyed by the same IDs. The markdown stays the human view; the extract becomes the agent's source.
-- **One source, multiple views.** Never hand-maintain two copies — the moment there are two, they drift, which is the drift problem the canonical-source-of-truth work exists to prevent.
-- The summary table in §7 is the machine-legible affordance: human-scannable and parseable as-is.
+Most of this list is not an app to build. It is an instruction to write.
+
+Claude already does the reasoning — structuring assumptions, qualifying slices, tiering artifact language by confidence, checking a draft against its evidence, composing pricing from rules, writing a client update. What Claude cannot do on its own is remember across sessions, see your private context mid-work, trigger itself on a clock or event, run a guarded multi-step loop, or hold a surface for people who aren't in a Claude session. Those five gaps are the only real builds.
+
+Everything else is a **SKILL.md**: a written rubric that encodes *your* definitions so Claude applies them the same way every time. "Building" those means writing a good instruction file. The over-build is a custom UI for what a skill plus a connector already does.
+
+**Build-now total is three (D, E, J).** Everything added since — including the client experience and the skill-hygiene items — is a SKILL.md, a file, a practice, or deferred. That the count stays at three is the test that this list hasn't re-inflated.
 
 ---
 
-## 1. Classification — what a thing is, before you build it
+## 1. The build test — five reasons to build past a skill
 
-### 1a. Two axes, not one size ladder
+If a candidate needs one of these, it earns a real build. If it needs none, it is a SKILL.md.
 
-**Axis A — Nature (what kind of thing is it?)**
+1. **Durable state across sessions and engagements.** Claude has no memory. This is the one true gap. → **D**
+   *Horizon note:* Claude's own memory improving does not close this — per-user chat memory is not a shared, structured, auditable engagement record. D stands.
+2. **Exposing proprietary structured context to Claude mid-work.** This is what MCP is for. → **E**, plus the connector that lets Claude read/write **D**.
+3. **Proactive or scheduled action.** Claude doesn't self-trigger on a clock or an event. → **J**; any auto-running variant of **K**; **R**.
+4. **Guarded autonomy over a multi-step loop.** An agent: skills + tools + loop + guardrails + leash. → **Q**, **T**.
+5. **A standing surface for people who won't be in a Claude session** — i.e. clients. → **U** (a doc, borderline), **V** (the portal).
 
-| Kind | It… | Test |
-|---|---|---|
-| **Substrate / App** | holds state, is a source of truth, others depend on it | Does something break if it loses its memory? |
-| **Skill** | encodes judgment, is stateless, does one job when invoked | Same inputs → same *shape* of output, no memory after it finishes? |
-| **Tool** | exposes or watches something else; light or no state | Is its job to serve or check, rather than to own? |
+**Proprietary-info nuance.** The instinct to protect proprietary context is right, but it elevates a thing to *storage + MCP*, not to an app.
+- Proprietary **rubric** (assumption format, gate criteria, pricing tiers) → lives in skill instructions/files. No app.
+- Proprietary **evidence and model** → must be stored and exposed → **D** and **E**.
 
-**Axis B — Autonomy (how much does it act on its own?)** — this is where **Agent** lives.
+---
 
-An agent is not a bigger skill. An agent is: one or more **skills** + **tool access** + a **loop** + **guardrails** + a **leash length**. An agent reads/writes substrates and calls skills; it sits between them.
+## 2. Classification (condensed)
 
-Autonomy levels, lightest to heaviest: **human-invoked** (one shot) → **human-in-the-loop** (agent runs, human approves each step) → **human-on-the-loop** (agent runs, human reviews after) → **fully auto**.
+### 2a. Two axes, not a size ladder
+- **Nature.** *App/substrate* holds state and is a source of truth. *Skill* encodes judgment, is stateless, does one job. *Tool* exposes or watches something.
+- **Autonomy.** Where *agent* lives: skills + tool access + loop + guardrails + leash length. An agent reads/writes substrates and calls skills. Levels: human-invoked → human-in-the-loop → human-on-the-loop → fully auto.
 
-### 1b. The layering (where commercial packages, kits, and playbooks sit)
-
-These are not the same kind of thing as skill/agent/app. They stack:
-
+### 2b. Layering (not the same kind of thing as skill/agent/app)
 ```
-COMMERCIAL PACKAGE   ← what the client buys      (IQ suites: Blueprint.IQ, Ask.IQ…)   [volatile label]
-        │  packages
-CAPABILITY           ← the atomic unit, has a LEVEL                                   [stable]
-        │  delivered via
-PLAYBOOK             ← the how-to / delivery enablement                               [the missing piece]
-        │  run/supported by
-TOOLING              ← skills · agents · tools, each with guardrails + owner
-        │  reads/writes
-SUBSTRATE            ← evidence kit / evidence substrate / source-of-truth stores     [stable]
+COMMERCIAL PACKAGE  ← what the client buys (IQ suites)          [volatile label]
+   packages ↓
+CAPABILITY          ← atomic unit, has a LEVEL                  [stable]
+   delivered via ↓
+PLAYBOOK            ← the how-to / delivery enablement          [often the missing piece]
+   run/supported by ↓
+TOOLING             ← skills · agents · tools (guardrails + owner)
+   reads/writes ↓
+SUBSTRATE           ← evidence store, source-of-truth files     [stable]
 ```
+A commercial package does not get its own level ladder; its maturity is a view over the levels of the capabilities it packages, plus whether a playbook, guardrails, and owner exist. A kit is substrate. A playbook is enablement, not a tool.
 
-Rules that fall out:
-- **A commercial package does not get its own level ladder.** Its maturity is a view over the levels of the capabilities it packages, plus whether a playbook, guardrails, and owner exist. Giving a package its own levels couples a volatile label to the stable layer — the error the operating view avoids by referencing capabilities, not external-line names.
-- **A "kit" is substrate.** The Evidence Operating Kit is substrate-v0 (a spreadsheet). A filled kit (e.g. Imagine) is an instance.
-- **A playbook is delivery enablement, not a tool.** Its absence is why a commercial label can exist with nothing runnable beneath it.
+### 2c. The four-question gate
+Governs "is this agent safe to run?", "is this package sellable as delivered?", and "can we put this client surface in front of a client?": (1) Can you run it with guardrails? (2) What are they? (3) Can it run on its own? (4) Who owns it? Until all four are answered, the thing is Concept-state — nameable and showable as vision, not sellable/runnable as if committed.
 
-### 1c. The four-question gate
+### 2d. Ownership tag (orthogonal to type)
+**Sponsored** — owner + team, standing project. **One-off** — one person clears it.
 
-The same four questions govern two promotions — **"is this agent safe to run?"** and **"is this commercial package sellable as delivered?"** — because both ask whether a thing can operate without a person standing over it.
-
-1. **Can you run it with guardrails?** — does bounded operation exist at all?
-2. **What are the guardrails?** — the leash, tool permissions, stop conditions.
-3. **Can you execute it on your own?** — autonomy level.
-4. **Who owns it?** — accountability when it runs or ships.
-
-Until all four are answered, the thing is **Concept-state**: a direction, a pitch, a prototype. It may be named and positioned. It may not be sold or run as though it's Commitment-state. Deliverables referencing it must reflect that confidence level.
-
-### 1d. Ownership tags
-
-Every build carries one, orthogonal to type:
-- **Sponsored** — has an owner and a team; a standing project.
-- **One-off** — one person can clear it.
-
-### 1e. Naming guardrail
-
-Naming a thing that doesn't exist defines it for everyone. Any component name below marked *working name* or *proposed* is a label, not a constructed thing; referencing it as if it exists is a commitment act disguised as a description. Treat it as Concept-state until deliberately adopted.
+### 2e. Naming guardrail
+Naming a thing that doesn't exist defines it for everyone. Names marked *working* or *un-adopted* below are labels, not constructed things; referencing them as real is a commitment act. Treat as Concept-state until deliberately adopted.
 
 ---
 
-## 2. Effort / Value matrix
+## 3. Inventory, cut by build reality
 
-Value = leverage toward making the constraint system infrastructure instead of a person. Effort = build cost, roughly.
+Fields: **Pain · What Claude already does · The actual build · Justification (§1) · Owner · Sequencing.**
 
-| | **Low effort** | **High effort** |
-|---|---|---|
-| **High value** | Risk→Assumption (A) · Slice Qualifier (B) · Signal Definer (C) · Polish/Confidence Linter (H) · Tripwire Monitor (J) | Capability Model MCP (E) · Evidence Substrate (D) · Artifact-Generation skills (G) · Canonical Source of Truth (F) · Pricing Composer (L) · Evidence Loop Agent (Q) |
-| **Lower value (now)** | Onboarding Skill (P) · Decision Ledger seed | Client Confidence View (N) · Retrieval Surface / SPOT · Live-comms drift detection |
+### 3a. SKILL.md — instruction, near-zero build
 
-Reading the top row left-to-right gives the default build order.
-
----
-
-## 3. Build inventory
-
-Each item: **Pain · Solution · Type (nature + autonomy) · Effort · Value · Owner tag · Sequencing (usually-after / usually-before).** Sequencing is default gravity, not a gate — any item can be picked up out of order if signal demands.
-
-### Intake layer — runs today, no substrate required
+For every item here, Claude does the reasoning. The "build" is writing the rubric. None trip the §1 test.
 
 **A. Risk-to-Assumption Structurer**
-- *Pain:* Assumptions stay implicit — the #1 gap from Imagine Studios. Conversations produce opinions and direction, not testable statements.
-- *Solution:* Skill that takes a vague risk and emits a declarative, testable assumption with explicit success/failure criteria and a linked decision consequence.
-- *Type:* SKILL (human-invoked) · *Effort:* S · *Value:* High · *Owner:* one-off
-- *After:* nothing — the front door. *Before:* Slice Qualifier (B).
+- *Pain:* Assumptions stay implicit — the #1 gap from Imagine Studios.
+- *Build:* SKILL.md holding your success/failure format and decision-consequence link. Runs from the first sales conversation, not just post-kickoff — evidence intake starts at the sales seam. *Owner:* one-off. *After:* front door. *Before:* B.
 
 **B. Slice Qualifier**
-- *Pain:* Slices silently become features ("does AR measurement work AND feel intuitive AND integrate with pricing…"). False confidence follows.
-- *Solution:* Skill that rejects a proposed slice unless it tests exactly one assumption, has predefined signal, is time-boxed, and is disposable-unless-promoted.
-- *Type:* SKILL (human-invoked) · *Effort:* S · *Value:* High · *Owner:* one-off
-- *After:* A. *Before:* Signal Definer (C).
+- *Pain:* Slices silently become features; false confidence follows.
+- *Build:* SKILL.md with the one-assumption / predefined-signal / time-boxed / disposable test. *Owner:* one-off. *After:* A. *Before:* C.
 
 **C. Signal / Instrumentation Definer**
-- *Pain:* "Without predefined signal criteria, slices degrade into demos." Signal isn't instrumented before building.
-- *Solution:* Skill that, given an assumption, defines what gets measured, success/failure, capture method, and the promotion threshold — before any build.
-- *Type:* SKILL (human-invoked) · *Effort:* S · *Value:* High · *Owner:* one-off
-- *After:* B. *Before:* Spike Runner (O) / any build.
-
-### Substrate layer — earned, not assumed
-
-**D. Evidence Substrate** *(currently the Evidence Operating Kit, a spreadsheet; working name for the app form: "Stacks" — un-adopted)*
-- *Pain:* Evidence lives across docs, transcripts, sheets, Cursor context, Jira. Traceability is partial and manual. Nothing else — artifact generation, retrieval/SPOT, confidence tracking — can be real until this is.
-- *Solution:* The persistent store for Risk → Assumption → Slice → Signal → Confidence → Decision, per engagement. The kit already exists as v0 and is filled for Imagine. Promote to an app only once A–C have populated it by hand enough to prove the schema holds.
-- *Type:* APP (substrate; currently spreadsheet-v0) · *Effort:* L · *Value:* Highest, but gated · *Owner:* sponsored
-- *After:* A, B, C have run against real engagements. *Before:* generation skills (G), Confidence Gate (I), retrieval/SPOT.
-
-**E. Capability Model MCP Server**
-- *Pain:* The capability model is a website humans read. Agents can't consult it mid-work, so the stable layer can't enforce anything programmatically.
-- *Solution:* Wrap the YAML (capabilities, levels, risk shapes, dials, seams) behind an MCP server so any skill or agent can ask "which capabilities does this risk shape fire, and at what dial?" Highest-leverage moderate-effort build on the list.
-- *Type:* TOOL (exposes stable layer) · *Effort:* M · *Value:* Very High · *Owner:* **one-off — James**
-- *After:* model YAML is stable (it is). *Before:* everything that reasons against the model — Change Runner (M) extension, Pricing (L), Gate checks (I).
-
-**F. Canonical Source of Truth** *(working name: Nucleus)*
-- *Pain:* Definitions drift. Substrate / generation layer / retrieval, capability/role/title, Seam/Fabric get conflated, producing real architectural errors.
-- *Solution:* The entity/definition store of record. Everything else references it.
-- *Type:* APP (substrate) · *Effort:* L · *Value:* High, later · *Owner:* sponsored
-- *After:* Capability Model MCP (E) — may share a spine. *Before:* Conflict Detector (K).
-
-### Generation layer — skills, not a platform
+- *Pain:* "Without predefined signal criteria, slices degrade into demos."
+- *Build:* SKILL.md defining measure, success/failure, capture method, promotion threshold. *Owner:* one-off. *After:* B. *Before:* O.
 
 **G. Confidence-Tiered Artifact Generation** *(proposed name VERA — un-adopted; do not reference as if it exists)*
-- *Pain:* Humans re-synthesize the same evidence into overlapping artifacts; confidence isn't reflected in the language.
-- *Solution:* A skill *per artifact* (strategy, roadmap, epic backlog, milestone plan, cost model, scope check) that reads the substrate and writes with language tied to actual confidence: high → definitive, medium → directional, low → explicit hypothesis, missing → says so. Build as separate stateless skills, not one platform — a platform here recreates polished-fiction risk at the tooling layer.
-- *Type:* SKILL family (human-invoked) · *Effort:* M each · *Value:* High · *Owner:* sponsored (family); individual artifact skills can be one-offs
-- *After:* substrate (D) holds real evidence. *Before:* Polish Linter (H) has something to check.
-
-### Enforcement layer — where "infrastructure not supervision" gets real
+- *Pain:* Humans re-synthesize the same evidence; confidence isn't reflected in the language.
+- *Build:* A SKILL.md per artifact (strategy, roadmap, backlog, milestones, cost, scope check) that reads **D** and tiers language by confidence. Separate skills, never a platform — a platform recreates polished-fiction risk in the tooling. *Owner:* sponsored (family). *After:* D holds evidence. *Before:* H.
 
 **H. Polish-vs-Confidence Linter**
-- *Pain:* Polish gets mistaken for confidence — the core failure mode. Clean roadmap, confident architecture, untested underneath.
-- *Solution:* Skill that reads a draft artifact against substrate confidence states and flags every place the language asserts more than the evidence supports.
-- *Type:* SKILL (human-invoked) · *Effort:* S–M · *Value:* Very High · *Owner:* one-off
-- *After:* substrate (D) + at least one generated artifact (G). *Before:* any client-facing send.
+- *Pain:* Polish gets mistaken for confidence — the core failure mode.
+- *Build:* SKILL.md that compares a draft against **D**'s confidence states and flags overclaiming. Native comparison; the build is the rubric + read access to D. *Owner:* one-off. *Before:* any client send.
 
 **I. Confidence Gate Checker**
-- *Pain:* Promotion from Concept→Validation→Commitment happens on enthusiasm or calendar, not earned signal.
-- *Solution:* Evaluates a capability against the gate guidelines and returns promote / iterate / pivot / stop with the rationale required to be logged.
-- *Type:* SKILL, or TOOL against the substrate (human-invoked) · *Effort:* S–M · *Value:* High · *Owner:* one-off
-- *After:* substrate (D) + Signal Definer (C). *Before:* Decision Ledger entry.
-
-**J. Two-Week Tripwire Monitor**
-- *Pain:* The two-week tripwire is a principle no one is watching. Evidence work stalls silently.
-- *Solution:* Scheduled check against the substrate; if no evidence slice has started by end of week 2 of a discovery engagement, it pings the SparqOS Slack channel. Pure structural enforcement.
-- *Type:* TOOL (watcher; human-on-the-loop) · *Effort:* S · *Value:* Medium–High · *Owner:* one-off
-- *After:* substrate-v0 (D). *Before:* nothing — a standing watcher.
+- *Pain:* Promotion happens on enthusiasm or calendar, not earned signal.
+- *Build:* SKILL.md evaluating a capability against the gate guidelines → promote/iterate/pivot/stop + logged rationale. *Owner:* one-off. *After:* D + C.
 
 **K. Conflict Detector**
-- *Pain:* Conversations and artifacts rub against defined entities and no one notices until it's an architectural error.
-- *Solution:* Skill that runs a live artifact or transcript against the canonical source of truth (F) and surfaces conflicts with defined entities.
-- *Type:* SKILL (human-invoked) · *Effort:* M · *Value:* High · *Owner:* one-off
-- *After:* F. *Before:* forward-facing drift detection.
+- *Pain:* Artifacts rub against defined entities unnoticed until it's an architectural error.
+- *Build:* SKILL.md that checks an artifact against the source-of-truth files (reached via **E**). Human-invoked = skill. (An auto-running variant is a build — see R.) *Owner:* one-off. *After:* E.
 
-### Commercial layer
-
-**L. Confidence-Tiered Pricing Composer**
-- *Pain:* Fixed-fee scope relocates risk downstream into change orders and margin erosion. Pricing doesn't distinguish validated from directional from unvalidated.
-- *Solution:* Reads capability confidence states and composes pricing: tight on validated, risk buffer on directional, explicit spike window on unvalidated. E-09 (the AI epic) is the canonical test case.
-- *Type:* TOOL, or SKILL against MCP (E) + substrate (D) · *Effort:* M · *Value:* High · *Owner:* sponsored (commercial owner needed)
-- *After:* Capability Model MCP (E) + Confidence Gate (I). *Before:* SOW / change-order generation.
+**L. Confidence-Tiered Pricing Composer** *(skill, not tool)*
+- *Pain:* Fixed-fee scope relocates risk into change orders and margin erosion.
+- *Build:* SKILL.md that reads capability confidence states + your pricing rules and composes tight / buffered / spike-window pricing. E-09 is the test case. *Feedback loop:* the same skill can compare realized margin against the confidence-tiered estimate at engagement close, so the pricing rubric learns — that's a note here, not a separate monitor. Only becomes a tool if it must plug into a quoting/SOW system. *Owner:* sponsored (commercial). *After:* E + I.
 
 **M. Engagement Change Runner** — *exists as a skill.*
-- Reference implementation of the pattern: reads the model + engagement state + change event → re-fires risks, shifts dials, re-opens the go/redirect/stop call, re-staffs, re-prices.
-- *Type:* SKILL (human-invoked) · *Owner:* tbd
-- *Next:* extend it to call the MCP server (E) once that exists, rather than carrying the model inline.
-
-### Client-experience layer — careful
-
-**N. Client Confidence View (read-only)**
-- *Pain:* Clients need honest confidence without seeing internal methodology vocabulary.
-- *Solution:* Read-only view generated from the substrate with client-safe language — confidence over time, decision ledger, risk signal. Scope as a thin generated view, not a product. The full version is a separate commercial product and should not be coupled to the internal substrate yet.
-- *Type:* APP · *Effort:* M–L · *Value:* Medium (now) · *Owner:* sponsored (deferred)
-- *After:* substrate (D) + generation (G) + Polish Linter (H). *Before:* any client-product commercialization decision.
-
-### SDLC plug-point + enablement
+- Reference implementation. Extend it to call **E** rather than carrying the model inline. *Owner:* tbd.
 
 **O. Spike Runner / Slice Executor**
-- *Pain:* The gap between a defined assumption and an actually-instrumented spike in code is manual.
-- *Solution:* Claude Code skill that takes a qualified slice + defined signal and scaffolds the instrumented, time-boxed, disposable spike. The SKILL.md plug point between the capability model and the AI-Native SDLC.
-- *Type:* SKILL now (human-invoked); candidate to become an agent later — see Q · *Effort:* M · *Value:* Medium–High · *Owner:* one-off
-- *After:* Signal Definer (C). *Before:* Confidence Gate (I) — it produces the signal the gate reads.
+- *Pain:* Turning a defined assumption into an instrumented spike is manual.
+- *Build:* A Claude Code SKILL.md — Claude Code already scaffolds instrumented code from a spec; the build is the SparqOS-shaped instruction. *Owner:* one-off. *After:* C. *Before:* I.
 
 **P. Model Onboarding Skill**
-- *Pain:* The system depends on one person holding the mental model. Enablement is the missing connector.
-- *Solution:* Skill that walks a new person through the model using their live engagement as the worked example.
-- *Type:* SKILL (human-invoked) · *Effort:* S · *Value:* Medium · *Owner:* one-off
-- *After:* enough of A–I exist to demonstrate. *Before:* wider rollout.
+- *Pain:* The system depends on one person holding the model.
+- *Build:* SKILL.md that walks a new person through the model using their live engagement. *Owner:* one-off. *After:* enough of A–I exist to demo.
 
-### Agent layer — skills wrapped in a loop, gated by §1c
+**X. Skill Index**
+- *Pain:* As SKILL.md files multiply, no one knows which exist, what they do, or which are adopted vs experimental. The volatile layer becomes illegible — the same drift the source-of-truth work fights, one layer down.
+- *Build:* a repo file (this inventory is its seed) listing adopted skills, one line each, with status. Near-zero. Same one-source discipline. *Owner:* one-off.
+
+**Y. Skill Evaluation**
+- *Pain:* A skill that encodes the wrong rubric fails silently — confident, consistent, and wrong. There's no way to know a skill is good.
+- *Build:* use skill-creator's eval tooling to test each skill against known-good cases before it's adopted. A practice, not a build. This is the skill-layer version of "signal before you trust it": don't promote a skill to adopted without evals, same as you don't promote a capability without signal. *Owner:* one-off (per skill author).
+
+### 3b. Genuine builds — now
+
+These trip the §1 test. There are three.
+
+**D. Evidence Substrate** *(currently the Evidence Operating Kit, a spreadsheet; app-form working name "Stacks" — un-adopted)*
+- *Pain:* Evidence lives across docs, transcripts, sheets, Cursor, Jira; traceability is partial and manual. Nothing else can be real until this is.
+- *Claude already does:* nothing here — **it has no memory across sessions or engagements.**
+- *The actual build:* durable storage for Risk → Assumption → Slice → Signal → Confidence → Decision, per engagement, **plus an MCP connector so Claude can read/write it mid-work.** Not a bespoke UI. The kit is v0 and is filled for Imagine; promote to stored + connected only once A–C have populated it by hand enough to prove the schema.
+- *Justification:* #1 (memory) + #2 (MCP). *Owner:* sponsored. *Before:* G, H, I, N, S.
+
+**E. Capability Model MCP Server**
+- *Pain:* The model is a website humans read; agents can't consult it mid-work, so the stable layer can't enforce anything programmatically. Definitions/source-of-truth files (the former "Nucleus," now collapsed here) have the same problem.
+- *Claude already does:* the reasoning, once it can see the model — but it can't see it.
+- *The actual build:* a thin MCP wrapper over the existing YAML (capabilities, levels, risk shapes, dials, seams) **and** the definition files, so any skill or agent can query "which capabilities does this risk shape fire, at what dial?" and "what is the canonical definition of X?"
+- *Justification:* #2 (MCP). Highest-leverage moderate-effort build. *Owner:* **one-off — James.** *After:* YAML is stable (it is). *Before:* K, L, M-extension, conflict checks.
+
+**J. Two-Week Tripwire Monitor**
+- *Pain:* The two-week tripwire is a principle no one is watching; evidence work stalls silently.
+- *Claude already does:* nothing — **it doesn't watch a clock or self-trigger.**
+- *The actual build:* a small scheduled job (cron + Slack post) that checks **D** and pings the SparqOS channel if no evidence slice has started by end of week 2. Automation, not an app.
+- *Justification:* #3 (self-triggering). *Owner:* one-off. *After:* D-v0. *Before:* standing watcher.
+
+### 3c. Genuine builds — deferred (with the trigger to revisit)
+
+Each trips the §1 test but should not be built yet. The reasoning in each is native; only the wrapper is new.
 
 **Q. Evidence Loop Agent**
-- *Pain:* Running the intake loop (structure risk → qualify slice → define signal → capture → update confidence) by hand is where evidence work stalls under delivery pressure.
-- *Solution:* An agent that wraps skills A, B, C (and reads/writes the substrate) into a loop over an engagement. Must pass the four-question gate before it runs: bounded scope, defined guardrails, and — non-negotiable — a human signs off on every confidence update. Humans govern interpretation; the agent runs the loop.
-- *Type:* AGENT (skills A/B/C + substrate access + loop; human-in-the-loop on confidence) · *Effort:* L · *Value:* High · *Owner:* sponsored
-- *After:* A, B, C exist and substrate (D) is real. *Before:* forward-facing autonomous slice loops.
+- Wraps A, B, C + reads/writes **D** into a loop over an engagement. *Justification:* #4 (guarded autonomy). Must pass the four-question gate; a human signs off every confidence update, non-negotiable. *Owner:* sponsored. **Revisit when:** running A/B/C by hand becomes the bottleneck under delivery pressure.
+
+**R. Live-Comms Drift Detection**
+- Runs transcripts against logged assumptions in **D**, flags contradictions. Reasoning is native; Zoom/Slack MCP connectors already handle ingestion. *The actual build:* a scheduled trigger + those connectors + read access to D. *Justification:* #2 + #3. *Owner:* tbd. **Revisit when:** D + K exist and drift between the room and the record is a recurring problem.
+
+**S. Cross-Engagement Pattern Surface** *(retrieval/SPOT; substrate-coupled vs -agnostic still open)*
+- "This risk resembles one we tested before; here was the signal." *The actual build:* if substrate-coupled, a query skill over **D** across engagements (near-free once D holds multiple) — if substrate-agnostic, a retrieval layer over broader corpora. *Justification:* #1 + #2. *Owner:* sponsored. **Revisit when:** the substrate holds several engagements and the coupled/agnostic question resolves on demo signal. *Horizon note:* cheaper inference + bigger context may make "read it all each time" viable and shrink this to a skill — don't oversize it now.
+
+**T. Autonomous Slice Loops**
+- **O** promoted from skill to agent: qualify slice → scaffold spike → capture signal into **D** → draft the confidence update for human sign-off. *The actual build:* the agency wrapper (loop + guardrails) over O. *Justification:* #4. *Owner:* sponsored. **Revisit when:** hand-running O across many slices hurts.
+
+### 3d. Client experience (during a live engagement)
+
+This is what a client feels while we work — distinct from the client-facing *product*. The demo blurred those; keep them separate.
+
+**The framing rule (governs every mode).** Convert *uncertainty remaining* into *risk retired*. "60% complete" reads as behind; "four of six collapse risks retired" reads as progress. Both are honest; one triggers the client's why-isn't-this-green reflex and one doesn't. A dashboard is the riskiest mode precisely because it sells certainty (gauges, %-complete) while evidence work sells calibrated uncertainty. Whatever the surface, the load-bearing work is the framing, not the pixels.
+
+**Selling ahead of the build (the Blueprint pattern).** Commercial may want to sell the portal (V) while delivery is running the push update (N). The doctrine doesn't forbid that — it bounds it. The four-question gate is the line: you may show V as vision/roadmap, explicitly Concept-state; you may not bill it as delivered. N is what's live and honest today. Selling V as delivered is the Blueprint failure mode — a label ahead of the capability — and it fails the same way. Sell the vision labeled as vision; deliver N.
+
+**N. Mode A — Client Push Update** *(build now)*
+- *Pain:* Clients need honest, current confidence without internal vocabulary, and without a standing surface to build.
+- *Build:* SKILL.md that generates a note when confidence *moves* — what we tested, what shifted, what decision it unlocks, what's still a bet — delivered into a channel they already use (email/Slack/shared doc). Reads **D**. No new surface, so it doesn't trip #5.
+- *Cadence rule:* fires on evidence change, not calendar, or it becomes status theater.
+- *Cheapest strong version:* ride the touchpoint the client already has (Scope Check, steering) and change only what it shows — risk retired, not % done. Zero software.
+- *Owner:* one-off. *After:* D + G + H. *Gated by:* W.
+
+**U. Mode B — Client Living Record** *(deferred, small)*
+- *Pain:* Between updates, clients want to pull the current state themselves.
+- *Build:* one always-current readable doc (Google Doc/Notion) — decision ledger + validated/assumed/uncertain, in prose — regenerated when evidence changes. A generated artifact in a place they already have, not a bespoke surface.
+- *Justification:* borderline #5 (standing readable, but a doc, not an app). *Owner:* sponsored. *Gated by:* W.
+- **Revisit when:** clients repeatedly ask to see the record between pushes. That pull is the promotion signal from N. *Risk:* drifts into a dashboard the moment someone adds charts.
+
+**V. Mode C — Client Portal** *(deferred product — Continua territory)*
+- *Pain:* (the demo) an interactive standing surface — confidence over time, risk signal, roadmap.
+- *Build:* a genuine app, trips #5, highest polish-risk. Separate commercial product; do not couple it to the internal substrate now. This is also where client calibration → evidence becomes possible (a client overrides a health read; that calibration feeds **D**) — a product feature, deferred with the product.
+- *Justification:* #5. *Owner:* sponsored (product). *Gated by:* W. **Revisit when:** sustained client pull on U plus a commercialization decision. May be shown as vision earlier under the sell-ahead rule.
+
+**W. Disclosure-Boundary Pass** *(gates N, U, V)*
+- *Pain:* Internal confidence language ("assumption untested," "feasibility unproven") leaking to a client can alarm or over-expose. Client-facing is not internal-facing.
+- *Build:* SKILL.md that runs the judgment-kit disclosure-boundary pass on any client-facing output before it ships — names what's internal-only vs client-safe. Existing skill applied to the client layer.
+- *Owner:* one-off. *Gates:* N, U, V.
 
 ---
 
-## 4. Sequencing spine
+## 4. Sequencing
 
 Default gravity, not gates:
 
 ```
-Risk→Assumption(A) ─▶ Slice Qualifier(B) ─▶ Signal Definer(C) ─▶ [substrate v0 seeded by hand (D)]
-        │                                                              │
-        │                        Capability Model MCP(E) ─▶ substrate app(D) ─▶ generation(G) ─▶ Polish Linter(H)
-        │                               │                        │                                   │
-        ▼                               ▼                        ▼                                   ▼
-   (feeds all)                  Pricing Composer(L)       Confidence Gate(I)                Client View(N)
-                                     │                        │
-                                     ▼                        ▼
-                               Change Runner(M)        Decision Ledger + Tripwire(J)
-                                                              │
-                          Canonical Source(F) ─▶ Conflict Detector(K)   Evidence Loop Agent(Q) wraps A/B/C
-                                                              │
-                                                              ▼
-                                          (fwd) drift detection · retrieval/SPOT
+A ─▶ B ─▶ C ─▶ [D seeded by hand]
+                     │
+   E ─────────────▶ D (stored + MCP) ─▶ G ─▶ H ─▶ N (via W) ─▶ U ─▶ V
+   │                     │
+   ▼                     ▼
+   L, M-extension    I ─▶ J (watcher)
+                          │
+                     K (needs E) ·  Q wraps A/B/C
+                          │
+                          ▼
+                 deferred: R · S · T
+skill hygiene runs alongside: X (index) · Y (evals)
 ```
-
-The load-bearing move is the top row left-to-right: the intake skills seed the substrate by hand, and that hand-seeding is the evidence slice that earns the real substrate build.
-
----
-
-## 5. Deliberately not yet (and why)
-
-- **Artifact generation as a platform** — recreates polished-fiction risk at the tooling layer. Keep it a skill family (G).
-- **Full client workspace / client product** — separate commercial product. Coupling it to the internal substrate now violates the stable/volatile rule.
-- **Retrieval Surface (SPOT) as general retrieval** — the substrate-coupled vs substrate-agnostic question is still open and correctly deferred pending demo signal.
-- **Numeric confidence scoring** — confidence stays qualitative for now, by design.
+The load-bearing move is A→B→C seeding D by hand — that hand-seeding is the evidence slice that earns D's real build.
 
 ---
 
-## 6. Forward-facing (≤ 6 months — horizon caveat: things change)
+## 5. Deliberately not built
 
-- **Live-comms drift detection** — run transcripts against logged assumptions in the substrate; flag when what's said in the room contradicts what's on the record. The Conflict Detector (K) pointed at live conversation. After F + K exist.
-- **Cross-engagement pattern surface (retrieval/SPOT, compounding version)** — "this risk resembles one we tested before; here was the signal." The compounding idea for internal delivery. Natural endpoint of the substrate.
-- **Autonomous slice loops** — Spike Runner (O) promoted from skill to agent: qualifies the slice, scaffolds the spike, captures signal into the substrate, drafts the confidence update for human sign-off. Passes the four-question gate first.
-- **MCP-native everything** — once E and F exist, any agent in any surface (Cowork, Cursor, Slack) reasons against the same model and substrate. The version where the constraint system is genuinely infrastructure.
-
----
-
-## 7. Summary table (machine-legible)
-
-| ID | Name | Nature | Autonomy | Layer | Effort | Value | Owner | State |
-|---|---|---|---|---|---|---|---|---|
-| A | Risk-to-Assumption Structurer | Skill | human-invoked | Intake | S | High | one-off | buildable now |
-| B | Slice Qualifier | Skill | human-invoked | Intake | S | High | one-off | buildable now |
-| C | Signal / Instrumentation Definer | Skill | human-invoked | Intake | S | High | one-off | buildable now |
-| D | Evidence Substrate (kit → app; name un-adopted) | App | n/a | Substrate | L | Highest (gated) | sponsored | v0 exists (spreadsheet) |
-| E | Capability Model MCP Server | Tool | n/a | Tooling | M | Very High | one-off — James | claimed |
-| F | Canonical Source of Truth (name un-adopted) | App | n/a | Substrate | L | High (later) | sponsored | Concept |
-| G | Confidence-Tiered Artifact Generation (name un-adopted) | Skill family | human-invoked | Generation | M each | High | sponsored | Concept |
-| H | Polish-vs-Confidence Linter | Skill | human-invoked | Generation | S–M | Very High | one-off | Concept |
-| I | Confidence Gate Checker | Skill/Tool | human-invoked | Enforcement | S–M | High | one-off | Concept |
-| J | Two-Week Tripwire Monitor | Tool | human-on-the-loop | Enforcement | S | Med–High | one-off | Concept |
-| K | Conflict Detector | Skill | human-invoked | Enforcement | M | High | one-off | Concept |
-| L | Confidence-Tiered Pricing Composer | Tool/Skill | human-invoked | Commercial | M | High | sponsored | Concept |
-| M | Engagement Change Runner | Skill | human-invoked | Commercial | — | — | tbd | exists |
-| N | Client Confidence View | App | n/a | Client | M–L | Medium (now) | sponsored | deferred |
-| O | Spike Runner / Slice Executor | Skill (→agent later) | human-invoked | SDLC | M | Med–High | one-off | Concept |
-| P | Model Onboarding Skill | Skill | human-invoked | Enablement | S | Medium | one-off | Concept |
-| Q | Evidence Loop Agent | Agent | human-in-the-loop | Agent | L | High | sponsored | Concept |
+- **Artifact generation as a platform** — skill family (G), never a platform.
+- **A separate "Nucleus" app** — collapsed into **E**; definitions are files behind the same MCP.
+- **A standalone margin-vs-confidence monitor** — folded into L as a close-of-engagement feedback pass.
+- **Multi-agent orchestration** — premature; revisit only after two agents run reliably.
+- **Standalone agent observability** — bundle it with the first agent (Q/T), don't build it alone now.
+- **Numeric confidence scoring** — confidence stays qualitative, by design.
+- **Any custom UI for reasoning Claude already does** — the default over-build.
 
 ---
 
-*Structural note: nearly every high-value item is a skill or agent reading a substrate. The two substrates worth owning are the evidence substrate and the capability model (via MCP). If those two are real and everything else is stateless skills or gated agents against them, the architecture stays honest — the stable layer stays fixed, the volatile layer stays disposable, and the constraint system stops depending on one person.*
+## 6. Summary table (machine-legible)
+
+| ID | Name | Real build? | What's actually built | §1 reason | Owner | State |
+|---|---|---|---|---|---|---|
+| A | Risk-to-Assumption Structurer | No | SKILL.md rubric (runs from sales seam) | — | one-off | now |
+| B | Slice Qualifier | No | SKILL.md rubric | — | one-off | now |
+| C | Signal / Instrumentation Definer | No | SKILL.md rubric | — | one-off | now |
+| D | Evidence Substrate (kit → stored + MCP) | **Yes — now** | storage + MCP connector | #1, #2 | sponsored | v0 exists |
+| E | Capability Model MCP Server | **Yes — now** | thin MCP wrapper over YAML + defs | #2 | one-off — James | claimed |
+| F | Canonical Source of Truth | No | collapsed into E (files behind MCP) | — | — | folded |
+| G | Confidence-Tiered Artifact Generation (name un-adopted) | No | SKILL.md per artifact | — | sponsored | after D |
+| H | Polish-vs-Confidence Linter | No | SKILL.md rubric + read D | — | one-off | after G |
+| I | Confidence Gate Checker | No | SKILL.md rubric | — | one-off | after D |
+| J | Two-Week Tripwire Monitor | **Yes — now** | cron + Slack, reads D | #3 | one-off | after D-v0 |
+| K | Conflict Detector | No (auto variant = yes) | SKILL.md, reads defs via E | — (#3 if auto) | one-off | after E |
+| L | Pricing Composer | No | SKILL.md (skill, not tool) | — | sponsored | after E, I |
+| M | Engagement Change Runner | No | exists; extend to call E | — | tbd | exists |
+| N | Client Push Update (Mode A) | No | SKILL.md, reads D, gated by W | — | one-off | now (after D,G,H) |
+| O | Spike Runner / Slice Executor | No | Claude Code SKILL.md | — | one-off | after C |
+| P | Model Onboarding Skill | No | SKILL.md | — | one-off | after A–I |
+| Q | Evidence Loop Agent | Yes — deferred | agent wrapper over A/B/C + D | #4 | sponsored | defer |
+| R | Live-Comms Drift Detection | Yes — deferred | trigger + Zoom/Slack MCP + D | #2, #3 | tbd | defer |
+| S | Cross-Engagement Pattern Surface (SPOT) | Yes — deferred | query/retrieval over D | #1, #2 | sponsored | defer |
+| T | Autonomous Slice Loops | Yes — deferred | agent wrapper over O | #4 | sponsored | defer |
+| U | Client Living Record (Mode B) | Yes — deferred (small) | generated doc, gated by W | #5 (borderline) | sponsored | defer |
+| V | Client Portal (Mode C, Continua) | Yes — deferred (product) | standing client surface, gated by W | #5 | sponsored | defer |
+| W | Disclosure-Boundary Pass | No | SKILL.md (judgment-kit applied) | — | one-off | gates N/U/V |
+| X | Skill Index | No | repo file | — | one-off | now |
+| Y | Skill Evaluation | No | practice (skill-creator evals) | — | one-off | now |
+
+**Build-now total: three (D, E, J).** Everything else is a SKILL.md, a file, a practice, or deferred.
+
+---
+
+## 7. End state (not a build)
+
+"MCP-native everything" — any agent in any surface reasoning against the same model and substrate — is not an item to build. It is what emerges once **D** and **E** exist. If those two are real and everything else is stateless skills or gated agents against them, the constraint system is genuinely infrastructure: the stable layer stays fixed, the volatile layer stays disposable, and it stops depending on one person.
+
+---
+
+## 8. Horizon effects (≤ 6 months — things change)
+
+- **Claude memory improving ≠ D solved.** Per-user chat memory is not a shared, structured, auditable engagement record. D stands.
+- **Cheaper inference + bigger context** may make "read it all each time" viable, shrinking retrieval (S) toward a skill. Don't oversize S now.
+- **More capable, cheaper agents** may promote Q/R/T sooner than expected — but the four-question gate and human sign-off on confidence updates do not relax as capability rises.
+- **Agent observability** becomes necessary the moment any agent runs unattended. Bundle it with the first agent, not before.
