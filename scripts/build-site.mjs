@@ -103,7 +103,6 @@ const PAGE_TOC = {
     ["#intensity", "Intensity"],
     ["#risk-shapes", "Risk shapes"],
     ["#seams", "Seams"],
-    ["#how-to-read", "How to read it"],
   ],
 };
 
@@ -517,6 +516,11 @@ function renderOperatingMain() {
 
   const seams = [
     renderNote(
+      "seam-commercial-framing",
+      "Commercial → Framing",
+      "A scoped commitment crosses — what's promised, at what confidence, what's still an open bet. Not a guarantee of outcomes we haven't earned. Violated by a SOW written as certainty: roadmap and deliverables promised as done before any risk is retired.",
+    ),
+    renderNote(
       "seam-framing-building",
       "Framing → Building",
       "A testable definition crosses — problem, outcome, constraints. Not a wish list. Violated by requirements that can't be built or tested from.",
@@ -530,6 +534,11 @@ function renderOperatingMain() {
       "seam-building-proof",
       "Building → Proof",
       "Evidence against a bar set up front crosses. Not \"looks done.\" Violated by acceptance on subjective sign-off.",
+    ),
+    renderNote(
+      "seam-proof-commercial",
+      "Proof → Commercial",
+      "A confidence-tagged commitment call crosses — what the evidence now earns the right to scale, price, or commit, and what it doesn't. Not \"we're done, here's the next phase.\" Violated by scaling or re-pricing on the calendar instead of the signal, or a green light no signal backs.",
     ),
   ].join("");
 
@@ -583,10 +592,6 @@ function renderOperatingMain() {
         <div class="stack">
         ${seams}
         </div>
-      </section>
-      <section id="how-to-read">
-        <h2 class="mono uppercase eyebrow">How to read it</h2>
-        <p class="lede">A risk shape lights up capabilities at an intensity (the dials), and their outputs flow across the seams to the next capabilities and the next risk shape. The seams are fixed; the risk mix decides which path fires. Read the whole board at once: given what's unknown now, here is where every capability sits, and here is how its output moves on.</p>
       </section>`;
 }
 
