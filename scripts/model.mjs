@@ -190,7 +190,6 @@ export function modelView(loaded) {
   };
 }
 
-export const VISIBILITY_TIERS = ["public", "internal", "confidential"];
 export const PUBLIC_SCOPE = ["public"];
 
 export function visibilityOf(entity) {

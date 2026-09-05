@@ -48,9 +48,9 @@ Point a client at it:
 }
 ```
 
-Thirteen tools, all read-only: `list_domains`, `list_capabilities`, `get_capability`, `get_levels`, `get_intensity`, `list_risk_shapes`, `get_risk_shape`, `capabilities_for_risk_shape`, `list_seams`, `get_seam`, `list_definitions`, `get_definition`, `search`. The headline query is `capabilities_for_risk_shape` — which capabilities does this risk shape fire, and at what dial. Nothing writes; humans still change the model through pull requests.
+Twelve tools, all read-only: `list_domains`, `list_capabilities`, `get_capability`, `get_levels`, `get_intensity`, `list_risk_shapes`, `capabilities_for_risk_shape`, `list_seams`, `get_seam`, `list_definitions`, `get_definition`, `search`. The headline query is `capabilities_for_risk_shape` — which capabilities does this risk shape fire, and at what dial.
 
-`mcp/core.mjs` holds the queries and knows nothing about transports or callers; `mcp/stdio.mjs` is the local transport. It speaks JSON-RPC directly rather than depending on the MCP SDK, which pulls 91 packages including two HTTP frameworks and an OAuth stack that a local process reading YAML cannot use. A hosted transport would live beside `stdio.mjs` and import the same core — that is when the SDK earns its place.
+Three files, each with one job. `mcp/core.mjs` answers questions about the model and knows nothing about transports or callers. `mcp/tools.mjs` is the tool surface: names, descriptions, argument schemas. `mcp/stdio.mjs` is the local transport and is only JSON-RPC framing. It speaks the protocol directly rather than depending on the MCP SDK, which pulls 91 packages including two HTTP frameworks and an OAuth stack that a local process reading YAML cannot use. A hosted transport would replace `stdio.mjs` alone, importing the same tools and the same core — that is when the SDK earns its place.
 
 Set `CAPABILITY_MODEL_SCOPE` (default `public`) to widen the visibility tiers the server will return.
 

@@ -8,174 +8,18 @@
 // that actually needs HTTP and OAuth, the SDK earns its place there; this file
 // stays as the local path.
 //
-// Read-only by construction: there is no tool here that writes. Nothing about a
-// caller reaches mcp/core.mjs except a visibility scope.
+// This file is only framing. What the tools are lives in tools.mjs and what
+// they answer lives in core.mjs, so neither knows it was reached over a pipe.
+// Read-only by construction: nothing here writes, and nothing about a caller
+// reaches core.mjs except a visibility scope.
 import { realpathSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
-import {
-  NotFound,
-  capabilitiesForRiskShape,
-  getCapability,
-  getDefinition,
-  getIntensity,
-  getLevels,
-  getRiskShape,
-  getSeam,
-  listCapabilities,
-  listDefinitions,
-  listDomains,
-  listRiskShapes,
-  listSeams,
-  loadIndex,
-  readScope,
-  search,
-} from "./core.mjs";
+import { NotFound, loadIndex, readScope } from "./core.mjs";
+import { callTool, hasTool, toolDescriptors } from "./tools.mjs";
 
 const SERVER = { name: "capability-model", version: "0.1.0" };
 const SUPPORTED_PROTOCOLS = ["2025-06-18", "2025-03-26", "2024-11-05"];
-
-const noArgs = { type: "object", properties: {}, additionalProperties: false };
-const oneArg = (name, description) => ({
-  type: "object",
-  properties: { [name]: { type: "string", description } },
-  required: [name],
-  additionalProperties: false,
-});
-
-export const TOOLS = [
-  {
-    name: "list_domains",
-    description:
-      "List the six domains — the closed set of types of work — with the capabilities inside each.",
-    inputSchema: noArgs,
-    run: (index) => listDomains(index),
-  },
-  {
-    name: "list_capabilities",
-    description:
-      "List capabilities, the named client outcomes the firm promises. Optionally filter by domain slug or by level floor (L1 means it can be run at L1 against guardrails; L2 means it cannot).",
-    inputSchema: {
-      type: "object",
-      properties: {
-        domain: {
-          type: "string",
-          description: "Domain slug, e.g. framing, building, proof.",
-        },
-        level_floor: { type: "string", enum: ["L1", "L2"] },
-      },
-      additionalProperties: false,
-    },
-    run: (index, args) => listCapabilities(index, args),
-  },
-  {
-    name: "get_capability",
-    description:
-      "Full record for one capability: promise, client experience, method, agent skills, the risk shapes that fire it, and its levels — including whether the level copy is authored for this capability or inherited from the firm ladder.",
-    inputSchema: oneArg("capability", "Capability id, e.g. risk-framing."),
-    run: (index, args) => getCapability(index, args),
-  },
-  {
-    name: "get_levels",
-    description:
-      "The agency-wide execution ladder: L1, L2, L3, plus Owner. How deeply a capability is executed. Not seniority, and not an intensity dial.",
-    inputSchema: noArgs,
-    run: (index) => getLevels(index),
-  },
-  {
-    name: "get_intensity",
-    description:
-      "The four-step intensity dial — dormant, low, active, peak — and what each step means. How hot a capability is running right now, as opposed to how deeply it is executed.",
-    inputSchema: noArgs,
-    run: (index) => getIntensity(index),
-  },
-  {
-    name: "list_risk_shapes",
-    description:
-      "List the recurring kinds of riskiest unknown. Each names an unknown, fires a set of capabilities, and produces an output.",
-    inputSchema: noArgs,
-    run: (index) => listRiskShapes(index),
-  },
-  {
-    name: "get_risk_shape",
-    description: "One risk shape with the capabilities it fires and the dial for each.",
-    inputSchema: oneArg("risk_shape", "Risk shape id, e.g. shape-ai-reliability."),
-    run: (index, args) => getRiskShape(index, args),
-  },
-  {
-    name: "capabilities_for_risk_shape",
-    description:
-      "Which capabilities does this risk shape fire, and at what dial. Returns each capability with its dial, what that dial means, and whether the dial values have been reviewed by a human.",
-    inputSchema: oneArg("risk_shape", "Risk shape id, e.g. shape-ai-reliability."),
-    run: (index, args) => capabilitiesForRiskShape(index, args),
-  },
-  {
-    name: "list_seams",
-    description:
-      "List the load-bearing handoffs between capabilities and domains: what must cross, and in what form.",
-    inputSchema: noArgs,
-    run: (index) => listSeams(index),
-  },
-  {
-    name: "get_seam",
-    description:
-      "One seam: what crosses, what does not count as crossing, and how the handoff is violated.",
-    inputSchema: oneArg("seam", "Seam id, e.g. seam-building-proof."),
-    run: (index, args) => getSeam(index, args),
-  },
-  {
-    name: "list_definitions",
-    description: "List the canonical terms in the model.",
-    inputSchema: noArgs,
-    run: (index) => listDefinitions(index),
-  },
-  {
-    name: "get_definition",
-    description:
-      "The canonical definition of a term, plus the confusions it exists to rule out. Use this before asserting what a word means in this model.",
-    inputSchema: oneArg("term", "Definition id, e.g. seat, level, intensity-dial."),
-    run: (index, args) => getDefinition(index, args),
-  },
-  {
-    name: "search",
-    description:
-      "Free-text search across capabilities, risk shapes, seams, definitions, and skills.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        query: { type: "string" },
-        types: {
-          type: "array",
-          items: {
-            type: "string",
-            enum: ["capability", "risk-shape", "seam", "definition", "skill"],
-          },
-        },
-        limit: { type: "integer", minimum: 1, maximum: 100 },
-      },
-      required: ["query"],
-      additionalProperties: false,
-    },
-    run: (index, args) => search(index, args),
-  },
-];
-
-const toolByName = new Map(TOOLS.map((tool) => [tool.name, tool]));
-
-export function toolDescriptors() {
-  return TOOLS.map(({ name, description, inputSchema }) => ({
-    name,
-    description,
-    inputSchema,
-  }));
-}
-
-export async function callTool(name, args, options = {}) {
-  const tool = toolByName.get(name);
-  if (!tool) throw new NotFound("tool", name, [...toolByName.keys()]);
-  const index = await loadIndex(options);
-  return tool.run(index, args ?? {});
-}
 
 function reply(id, result) {
   process.stdout.write(`${JSON.stringify({ jsonrpc: "2.0", id, result })}\n`);
@@ -198,7 +42,7 @@ function toolResult(payload, isError = false) {
   return result;
 }
 
-async function handle(message, options) {
+function handle(message, index) {
   const { id, method, params } = message;
 
   if (method === "initialize") {
@@ -218,17 +62,14 @@ async function handle(message, options) {
 
   if (method === "tools/call") {
     const name = params?.name;
-    if (!toolByName.has(name)) {
-      return replyError(id, -32602, `Unknown tool "${name}".`);
-    }
+    if (!hasTool(name)) return replyError(id, -32602, `Unknown tool "${name}".`);
     try {
-      return reply(id, toolResult(await callTool(name, params?.arguments, options)));
+      return reply(id, toolResult(callTool(index, name, params?.arguments)));
     } catch (err) {
+      // A bad id is the caller's mistake to fix, not a protocol failure, so it
+      // comes back as tool content listing what does exist.
       if (err instanceof NotFound) {
-        return reply(
-          id,
-          toolResult({ error: err.message, known_ids: err.known }, true),
-        );
+        return reply(id, toolResult({ error: err.message, known_ids: err.known }, true));
       }
       return reply(id, toolResult({ error: String(err?.message ?? err) }, true));
     }
@@ -239,6 +80,7 @@ async function handle(message, options) {
 
 async function main() {
   const scope = readScope();
+  // Read once at boot. The model is a git artifact, so edits arrive by restart.
   const index = await loadIndex({ scope });
   console.error(
     `capability-model MCP: ${index.capabilities.length} capabilities, ${index.riskShapes.length} risk shapes, ${index.seams.length} seams, ${index.definitions.length} definitions`,
@@ -260,7 +102,7 @@ async function main() {
     // Notifications carry no id and take no response.
     if (message.id === undefined || message.id === null) continue;
     try {
-      await handle(message, { scope });
+      handle(message, index);
     } catch (err) {
       replyError(message.id, -32603, String(err?.message ?? err));
     }
