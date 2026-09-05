@@ -1,20 +1,11 @@
 #!/usr/bin/env node
-import { cp, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { parse } from "yaml";
+import { DOMAIN_ORDER, REPO_ROOT, loadModel, modelView } from "./model.mjs";
 
-const ROOT = fileURLToPath(new URL("..", import.meta.url)).replace(/\/+$/, "");
+const ROOT = REPO_ROOT;
 const PORT = Number(process.env.PORT) || 4173;
-const DOMAIN_ORDER = [
-  "commercial",
-  "framing",
-  "building",
-  "proof",
-  "enablement",
-  "continuity",
-];
 
 function esc(value) {
   return String(value ?? "")
@@ -44,15 +35,6 @@ function badge(status) {
 function statusOf(entity) {
   return entity.status ?? "draft";
 }
-
-const DOMAIN_NAME_TO_ID = {
-  Commercial: "commercial",
-  Framing: "framing",
-  Building: "building",
-  Proof: "proof",
-  Enablement: "enablement",
-  Continuity: "continuity",
-};
 
 const PAGES = [
   { id: "how-it-all-relates", title: "How it all relates", file: "index.html" },
@@ -118,51 +100,6 @@ function renderPageLinks(pageId) {
     const current = active ? ' aria-current="page"' : "";
     return `<a class="page-link"${current} href="${esc(href)}">${esc(item.title)}</a>`;
   }).join("\n        ");
-}
-
-async function loadDir(dir) {
-  const abs = join(ROOT, dir);
-  let names;
-  try {
-    names = await readdir(abs);
-  } catch (err) {
-    if (err.code === "ENOENT") return [];
-    throw err;
-  }
-  const out = [];
-  for (const name of names.filter((n) => n.endsWith(".yaml")).sort()) {
-    const data = parse(await readFile(join(abs, name), "utf8"));
-    out.push(data);
-  }
-  return out;
-}
-
-async function loadCapabilities() {
-  const root = join(ROOT, "capabilities");
-  let entries;
-  try {
-    entries = await readdir(root, { withFileTypes: true });
-  } catch (err) {
-    if (err.code === "ENOENT") return [];
-    throw err;
-  }
-  const out = [];
-  for (const dir of entries
-    .filter((entry) => entry.isDirectory())
-    .sort((a, b) => a.name.localeCompare(b.name))) {
-    const names = await readdir(join(root, dir.name));
-    for (const name of names.filter((n) => n.endsWith(".yaml")).sort()) {
-      const data = parse(await readFile(join(root, dir.name, name), "utf8"));
-      out.push({
-        ...data,
-        id: name.replace(/\.yaml$/, ""),
-        name: data.capability,
-        domain: DOMAIN_NAME_TO_ID[data.domain] ?? data.domain,
-        status: data.status ?? "draft",
-      });
-    }
-  }
-  return out;
 }
 
 function sortKnown(items) {
@@ -1233,22 +1170,9 @@ function render(model, pageId = "how-it-all-relates") {
 }
 
 async function build() {
-  const levels = parse(await readFile(join(ROOT, "levels.yaml"), "utf8"));
-  const intensity = parse(await readFile(join(ROOT, "intensity.yaml"), "utf8"));
-  const domains = sortKnown(await loadDir("domains"));
-  const capabilities = await loadCapabilities();
-  const skills = await loadDir("skills");
-  const riskShapes = await loadDir("risk-shapes");
-  const seams = await loadDir("seams");
-  const model = {
-    levels,
-    intensity,
-    domains,
-    capabilities,
-    skills,
-    riskShapes,
-    seams,
-  };
+  const loaded = await loadModel();
+  const model = modelView(loaded);
+  model.domains = sortKnown(model.domains);
   const outDir = join(ROOT, "site");
   await mkdir(outDir, { recursive: true });
   await writeFile(join(outDir, ".nojekyll"), "");

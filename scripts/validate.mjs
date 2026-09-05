@@ -1,44 +1,29 @@
 #!/usr/bin/env node
-import { readdir, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
-import { parse } from "yaml";
+import {
+  DIAL_IDS,
+  DOMAIN_NAME_TO_SLUG,
+  ENTITY_TYPES,
+  LEVEL_IDS,
+  REPO_ROOT,
+  loadModel,
+} from "./model.mjs";
 
-const ROOT = fileURLToPath(new URL("..", import.meta.url));
-
-const TYPED = {
-  domain: { dir: "domains", schemaId: "https://capability-model.local/schema/domain.json" },
-  capability: {
-    dir: "capabilities",
-    schemaId: "https://capability-model.local/schema/capability.json",
-    recursive: true,
-  },
-  skill: { dir: "skills", schemaId: "https://capability-model.local/schema/skill.json" },
-  role: { dir: "roles", schemaId: "https://capability-model.local/schema/role.json" },
-  "risk-shape": {
-    dir: "risk-shapes",
-    schemaId: "https://capability-model.local/schema/risk-shape.json",
-  },
-  seam: { dir: "seams", schemaId: "https://capability-model.local/schema/seam.json" },
-  definition: {
-    dir: "definitions",
-    schemaId: "https://capability-model.local/schema/definition.json",
-  },
-};
-
-const LEVELS_SCHEMA = "https://capability-model.local/schema/levels.json";
-const INTENSITY_SCHEMA = "https://capability-model.local/schema/intensity.json";
-const LEVEL_IDS = ["L1", "L2", "L3"];
-const DIAL_IDS = ["dormant", "low", "active", "peak"];
-const DOMAIN_NAME_TO_SLUG = {
-  Commercial: "commercial",
-  Framing: "framing",
-  Building: "building",
-  Proof: "proof",
-  Enablement: "enablement",
-  Continuity: "continuity",
-};
+const SCHEMA_ID = (name) => `https://capability-model.local/schema/${name}.json`;
+const SCHEMA_NAMES = [
+  "common",
+  "domain",
+  "skill",
+  "capability",
+  "role",
+  "levels",
+  "intensity",
+  "risk-shape",
+  "seam",
+  "definition",
+];
 
 const groups = {
   parse: [],
@@ -54,90 +39,33 @@ function add(group, file, message) {
 }
 
 async function loadSchemaFiles(ajv) {
-  const names = [
-    "common",
-    "domain",
-    "skill",
-    "capability",
-    "role",
-    "levels",
-    "intensity",
-    "risk-shape",
-    "seam",
-    "definition",
-  ];
-  for (const name of names) {
-    const raw = await readFile(join(ROOT, "schema", `${name}.json`), "utf8");
+  for (const name of SCHEMA_NAMES) {
+    const raw = await readFile(join(REPO_ROOT, "schema", `${name}.json`), "utf8");
     ajv.addSchema(JSON.parse(raw));
   }
-}
-
-async function readYaml(rel) {
-  const abs = join(ROOT, rel);
-  try {
-    const raw = await readFile(abs, "utf8");
-    return { file: rel, data: parse(raw) };
-  } catch (err) {
-    add("parse", rel, err.message);
-    return null;
-  }
-}
-
-async function readDirYaml(dir, { recursive = false } = {}) {
-  const abs = join(ROOT, dir);
-  let entries;
-  try {
-    entries = await readdir(abs, { withFileTypes: true });
-  } catch (err) {
-    if (err.code === "ENOENT") return [];
-    add("parse", dir, err.message);
-    return [];
-  }
-  entries.sort((a, b) => a.name.localeCompare(b.name));
-  const out = [];
-  for (const entry of entries) {
-    const rel = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      if (recursive) out.push(...(await readDirYaml(rel, { recursive: true })));
-      continue;
-    }
-    if (!entry.isFile()) continue;
-    if (!entry.name.endsWith(".yaml") && !entry.name.endsWith(".yml")) continue;
-    const loaded = await readYaml(rel);
-    if (loaded) out.push(loaded);
-  }
-  return out;
 }
 
 function fileStem(file) {
   return basename(file).replace(/\.(yaml|yml)$/, "");
 }
 
-function recordId(type, rec) {
-  if (type === "capability") return fileStem(rec.file);
-  return rec.data?.id;
-}
-
 function statusOf(entity) {
   return entity?.status ?? "draft";
 }
 
-function indexById(records, type) {
-  const map = new Map();
+// Two files claiming the same id inside one root is an error. The same id in a
+// later root is an overlay deliberately overriding the base, so it is not.
+function reportDuplicates(records, type) {
+  const seen = new Map();
   for (const rec of records) {
-    const id = recordId(type, rec);
-    if (typeof id !== "string") continue;
-    if (map.has(id)) {
-      add(
-        "duplicates",
-        rec.file,
-        `${type} id "${id}" already defined in ${map.get(id).file}`,
-      );
+    if (typeof rec.id !== "string") continue;
+    const key = `${rec.rootIndex}\u0000${rec.id}`;
+    if (seen.has(key)) {
+      add("duplicates", rec.file, `${type} id "${rec.id}" already defined in ${seen.get(key)}`);
       continue;
     }
-    map.set(id, rec);
+    seen.set(key, rec.file);
   }
-  return map;
 }
 
 function validateFilename(type, rec) {
@@ -206,79 +134,70 @@ function enforceCapabilityFloor(rec) {
   }
 }
 
+function checkLegend(ajv, legend, name, schemaName, check) {
+  if (!legend) {
+    add("parse", `${name}.yaml`, "file is missing");
+    return;
+  }
+  if (legend.data == null || typeof legend.data !== "object") {
+    add("parse", legend.file, "file is empty");
+    return;
+  }
+  const validate = ajv.getSchema(SCHEMA_ID(schemaName));
+  if (!validate(legend.data)) {
+    for (const err of validate.errors ?? []) {
+      add("schema", legend.file, `${err.instancePath || "/"} ${err.message}`);
+    }
+    return;
+  }
+  check(legend);
+}
+
 async function main() {
   const ajv = new Ajv2020({ allErrors: true, strict: true });
   await loadSchemaFiles(ajv);
 
-  const levelsRec = await readYaml("levels.yaml");
-  const intensityRec = await readYaml("intensity.yaml");
-  const byType = {};
-  for (const [type, meta] of Object.entries(TYPED)) {
-    byType[type] = await readDirYaml(meta.dir, { recursive: Boolean(meta.recursive) });
+  const loaded = await loadModel();
+  for (const problem of loaded.problems) {
+    add(problem.group, problem.file, problem.message);
   }
 
-  if (levelsRec?.data) {
-    const validate = ajv.getSchema(LEVELS_SCHEMA);
-    if (!validate(levelsRec.data)) {
-      for (const err of validate.errors ?? []) {
-        add("schema", levelsRec.file, `${err.instancePath || "/"} ${err.message}`);
-      }
-    } else {
-      const ids = (levelsRec.data.execution_levels ?? []).map((level) => level.id);
-      const missing = LEVEL_IDS.filter((id) => !ids.includes(id));
-      const extra = ids.filter((id) => !LEVEL_IDS.includes(id));
-      if (new Set(ids).size !== ids.length) {
-        add("constraints", levelsRec.file, "execution_levels ids must be unique");
-      }
-      if (missing.length) {
-        add(
-          "constraints",
-          levelsRec.file,
-          `execution_levels missing ${missing.join(", ")}`,
-        );
-      }
-      if (extra.length) {
-        add(
-          "constraints",
-          levelsRec.file,
-          `execution_levels has unexpected ids ${extra.join(", ")}`,
-        );
-      }
+  checkLegend(ajv, loaded.legends.levels, "levels", "levels", (legend) => {
+    const ids = (legend.data.execution_levels ?? []).map((level) => level.id);
+    const missing = LEVEL_IDS.filter((id) => !ids.includes(id));
+    const extra = ids.filter((id) => !LEVEL_IDS.includes(id));
+    if (new Set(ids).size !== ids.length) {
+      add("constraints", legend.file, "execution_levels ids must be unique");
     }
-  } else if (levelsRec === null) {
-    // parse error already recorded
-  } else {
-    add("parse", "levels.yaml", "file is empty");
-  }
-
-  if (intensityRec?.data) {
-    const validate = ajv.getSchema(INTENSITY_SCHEMA);
-    if (!validate(intensityRec.data)) {
-      for (const err of validate.errors ?? []) {
-        add("schema", intensityRec.file, `${err.instancePath || "/"} ${err.message}`);
-      }
-    } else {
-      const ids = (intensityRec.data.dials ?? []).map((dial) => dial.id);
-      if (new Set(ids).size !== ids.length) {
-        add("constraints", intensityRec.file, "dial ids must be unique");
-      }
-      if (ids.join(",") !== DIAL_IDS.join(",")) {
-        add(
-          "constraints",
-          intensityRec.file,
-          `dials must be exactly ${DIAL_IDS.join(", ")} in that order`,
-        );
-      }
+    if (missing.length) {
+      add("constraints", legend.file, `execution_levels missing ${missing.join(", ")}`);
     }
-  } else if (intensityRec === null) {
-    // parse error already recorded
-  } else {
-    add("parse", "intensity.yaml", "file is empty");
-  }
+    if (extra.length) {
+      add(
+        "constraints",
+        legend.file,
+        `execution_levels has unexpected ids ${extra.join(", ")}`,
+      );
+    }
+  });
 
-  for (const [type, meta] of Object.entries(TYPED)) {
-    const validate = ajv.getSchema(meta.schemaId);
-    for (const rec of byType[type]) {
+  checkLegend(ajv, loaded.legends.intensity, "intensity", "intensity", (legend) => {
+    const ids = (legend.data.dials ?? []).map((dial) => dial.id);
+    if (new Set(ids).size !== ids.length) {
+      add("constraints", legend.file, "dial ids must be unique");
+    }
+    if (ids.join(",") !== DIAL_IDS.join(",")) {
+      add(
+        "constraints",
+        legend.file,
+        `dials must be exactly ${DIAL_IDS.join(", ")} in that order`,
+      );
+    }
+  });
+
+  for (const type of Object.keys(ENTITY_TYPES)) {
+    const validate = ajv.getSchema(SCHEMA_ID(type));
+    for (const rec of loaded.all[type]) {
       if (rec.data == null || typeof rec.data !== "object") {
         add("parse", rec.file, "YAML must be a mapping");
         continue;
@@ -290,19 +209,20 @@ async function main() {
         }
       }
     }
+    reportDuplicates(loaded.all[type], type);
   }
 
-  const domains = indexById(byType.domain, "domain");
-  const capabilities = indexById(byType.capability, "capability");
-  const skills = indexById(byType.skill, "skill");
-  const roles = indexById(byType.role, "role");
-  const riskShapes = indexById(byType["risk-shape"], "risk-shape");
-  const seams = indexById(byType.seam, "seam");
-  const definitions = indexById(byType.definition, "definition");
+  const domains = loaded.byId.domain;
+  const capabilities = loaded.byId.capability;
+  const skills = loaded.byId.skill;
+  const roles = loaded.byId.role;
+  const riskShapes = loaded.byId["risk-shape"];
+  const seams = loaded.byId.seam;
+  const definitions = loaded.byId.definition;
 
   const skillRefs = new Set();
 
-  for (const rec of byType.capability) {
+  for (const rec of loaded.records.capability) {
     const cap = rec.data;
     if (!cap || typeof cap !== "object") continue;
 
@@ -346,7 +266,7 @@ async function main() {
     }
   }
 
-  for (const rec of byType.role) {
+  for (const rec of loaded.records.role) {
     const role = rec.data;
     if (!role || typeof role !== "object") continue;
 
@@ -394,7 +314,7 @@ async function main() {
   }
 
   const readingOrders = new Map();
-  for (const rec of byType["risk-shape"]) {
+  for (const rec of loaded.records["risk-shape"]) {
     const shape = rec.data;
     if (!shape || typeof shape !== "object") continue;
 
@@ -430,7 +350,7 @@ async function main() {
     }
   }
 
-  for (const rec of byType.seam) {
+  for (const rec of loaded.records.seam) {
     const seam = rec.data;
     if (!seam || typeof seam !== "object") continue;
 
@@ -451,7 +371,7 @@ async function main() {
     }
   }
 
-  for (const rec of byType.definition) {
+  for (const rec of loaded.records.definition) {
     const definition = rec.data;
     if (!definition || typeof definition !== "object") continue;
 
@@ -514,7 +434,11 @@ async function main() {
     `${seams.size} seams`,
     `${definitions.size} definitions`,
   ].join(", ");
-  console.log(`OK — ${summary}`);
+  const overlays = loaded.roots.slice(1);
+  const from = overlays.length
+    ? ` (base + ${overlays.length} overlay${overlays.length === 1 ? "" : "s"})`
+    : "";
+  console.log(`OK — ${summary}${from}`);
 }
 
 main().catch((err) => {
