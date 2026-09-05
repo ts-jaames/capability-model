@@ -47,3 +47,15 @@ You do not need to edit YAML.
 - `seams/*.yaml` — load-bearing handoffs between capabilities or domains
 - `definitions/*.yaml` — canonical terms and the confusions each one rules out (not rendered on the site)
 - `roles/interface-lead.yaml` — staffing bound example (not rendered on the site yet)
+- `schema/*.json` — the shape rules CI enforces
+- `scripts/model.mjs` — the single loader the validator, the site build, and the MCP server share
+
+## Overlays
+
+`scripts/model.mjs` reads a list of roots, not one directory. Set `CAPABILITY_MODEL_OVERLAY` to a colon-separated list of directories laid out like this repo, and a later root extends or overrides an earlier one by id:
+
+```bash
+CAPABILITY_MODEL_OVERLAY=/path/to/private npm run validate
+```
+
+Nothing uses this yet. It exists so entries that cannot be published can later layer on top of this public base without either side knowing about the other. Two files claiming the same id inside one root is still an error; the same id in a later root is a deliberate override.
