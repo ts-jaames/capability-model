@@ -1,0 +1,20 @@
+id: shape-proof
+name: Proof / acceptance
+question: Can we show it's true, not just claim it?
+output: >
+  evidence against the bar, and acceptance.
+reading_order: 7
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05
+dials_reviewed: false
+fires:
+  - capability: signal-design
+    dial: active
+  - capability: acceptance-proving
+    dial: peak
+  - capability: validation-testing
+    dial: active
+  - capability: transparent-delivery
+    dial: low

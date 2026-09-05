@@ -1,0 +1,20 @@
+id: shape-feasibility
+name: Feasibility
+question: Can it be built within the hard limits?
+output: >
+  a working slice and proof of buildability within constraints.
+reading_order: 3
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05
+dials_reviewed: false
+fires:
+  - capability: slice-building
+    dial: peak
+  - capability: core-systems-engineering
+    dial: active
+  - capability: constraint-framing
+    dial: active
+  - capability: signal-design
+    dial: low

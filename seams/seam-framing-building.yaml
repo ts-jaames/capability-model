@@ -1,0 +1,16 @@
+id: seam-framing-building
+from:
+  domain: framing
+to:
+  domain: building
+direction: one-way
+what_crosses: >
+  A testable definition — problem, outcome, constraints.
+not: >
+  A wish list.
+violated_by: >
+  Requirements that can't be built or tested from.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05

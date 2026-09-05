@@ -1,0 +1,16 @@
+id: seam-building-proof
+from:
+  domain: building
+to:
+  domain: proof
+direction: one-way
+what_crosses: >
+  Evidence against a bar set up front.
+not: >
+  "Looks done."
+violated_by: >
+  Acceptance on subjective sign-off.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05

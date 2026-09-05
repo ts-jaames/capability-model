@@ -39,7 +39,10 @@ You do not need to edit YAML.
 
 - `how-it-all-relates.md` — landing-page argument (published as `index.html`)
 - `levels.yaml` — agency-wide L1 / L2 / L3 / Owner legend
+- `intensity.yaml` — agency-wide Dormant / Low / Active / Peak dial legend
 - `domains/*.yaml` — six closed domains
 - `capabilities/<domain-slug>/<kebab-id>.yaml` — capabilities nested by domain
 - `skills/*.yaml` — methods used inside capabilities (`agent_skills`)
+- `risk-shapes/*.yaml` — recurring riskiest unknowns, and the capabilities each fires at a dial
+- `seams/*.yaml` — load-bearing handoffs between capabilities or domains
 - `roles/interface-lead.yaml` — staffing bound example (not rendered on the site yet)

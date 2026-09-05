@@ -307,16 +307,66 @@ function renderNote(id, name, body) {
     </article>`;
 }
 
-function renderShape(id, name, question, activates, produces) {
+function oneLine(value) {
+  return String(value ?? "").trim().replace(/\s+/g, " ");
+}
+
+function dialChip(dialId, dials) {
+  const legend = dials.find((item) => item.id === dialId);
+  return `<span class="dial dial-${esc(dialId)}" title="${esc(oneLine(legend?.description))}">${esc(legend?.name ?? dialId)}</span>`;
+}
+
+function renderShape(shape, capsById, dials) {
+  const rows = (shape.fires ?? [])
+    .map((item) => {
+      const cap = capsById.get(item.capability);
+      const label = esc(cap?.name ?? item.capability);
+      const link = cap
+        ? `<a href="capability-model.html#capability-${esc(item.capability)}">${label}</a>`
+        : label;
+      const note = item.note ? ` <span class="dim">(${esc(oneLine(item.note))})</span>` : "";
+      return `<li><span class="fires-cap">${link}${note}</span>${dialChip(item.dial, dials)}</li>`;
+    })
+    .join("");
   return `
-    <article class="row" id="${esc(id)}">
+    <article class="row" id="${esc(shape.id)}">
+      <header class="row-head">
+        <h3 class="domain-name">${esc(shape.name)}</h3>
+      </header>
+      <div class="prose"><p><em>${esc(oneLine(shape.question))}</em></p></div>
+      <div class="kvs">
+        ${kv("Activates", `<ul class="fires">${rows}</ul>`)}
+        ${kv("Produces", `<p>${esc(oneLine(shape.output))}</p>`)}
+      </div>
+    </article>`;
+}
+
+function refLabel(ref, capsById, domainsById) {
+  if (ref?.capability) return capsById.get(ref.capability)?.name ?? ref.capability;
+  if (ref?.domain) return domainsById.get(ref.domain)?.name ?? ref.domain;
+  return "";
+}
+
+// Seams read in loop order (Commercial → Framing → Building → Proof → Commercial),
+// derived from where each end sits in DOMAIN_ORDER rather than an authored rank.
+function refDomainIndex(ref, capsById) {
+  const slug = ref?.domain ?? capsById.get(ref?.capability ?? "")?.domain;
+  const index = DOMAIN_ORDER.indexOf(slug);
+  return index === -1 ? 99 : index;
+}
+
+function renderSeam(seam, capsById, domainsById) {
+  const arrow = seam.direction === "two-way" ? "↔" : "→";
+  const name = `${refLabel(seam.from, capsById, domainsById)} ${arrow} ${refLabel(seam.to, capsById, domainsById)}`;
+  return `
+    <article class="row" id="${esc(seam.id)}">
       <header class="row-head">
         <h3 class="domain-name">${esc(name)}</h3>
       </header>
-      <div class="prose"><p><em>${esc(question)}</em></p></div>
       <div class="kvs">
-        ${kv("Activates", `<p>${esc(activates)}</p>`)}
-        ${kv("Produces", `<p>${esc(produces)}</p>`)}
+        ${kv("Crosses", `<p>${esc(oneLine(seam.what_crosses))}</p>`)}
+        ${kv("Not", `<p>${esc(oneLine(seam.not))}</p>`)}
+        ${kv("Violated by", `<p>${esc(oneLine(seam.violated_by))}</p>`)}
       </div>
     </article>`;
 }
@@ -454,93 +504,38 @@ function renderRolesMain() {
       </section>`;
 }
 
-function renderOperatingMain() {
-  const shapes = [
-    renderShape(
-      "shape-problem-clarity",
-      "Problem clarity",
-      "Are we solving the right thing?",
-      "Problem framing · Direction qualification · Stakeholder alignment · Outcome definition · Constraint framing · Risk framing.",
-      "a qualified direction, a defined outcome, a constraint set, a risk shortlist.",
-    ),
-    renderShape(
-      "shape-value",
-      "Value",
-      "Will anyone care enough to change behavior?",
-      "Slice building · Signal design · Validation & testing · Demonstration & evidence review.",
-      "evidence the value holds — or the call to redirect or stop.",
-    ),
-    renderShape(
-      "shape-feasibility",
-      "Feasibility",
-      "Can it be built within the hard limits?",
-      "Slice building · Core systems engineering · Constraint framing · Signal design.",
-      "a working slice and proof of buildability within constraints.",
-    ),
-    renderShape(
-      "shape-ai-reliability",
-      "AI reliability",
-      "Is the probabilistic system trustworthy on real data?",
-      "AI systems engineering · Validation & testing (evals) · Signal design · Autonomous-system governance.",
-      "eval evidence against a reliability bar, and the controls to run it safely.",
-    ),
-    renderShape(
-      "shape-commercial",
-      "Commercial / viability",
-      "Do the economics, scope, and price hold?",
-      "Commercial scoping · Confidence-based estimation · Pricing under uncertainty · Direction qualification.",
-      "a confidence-tiered envelope and price.",
-    ),
-    renderShape(
-      "shape-adoption",
-      "Adoption",
-      "Will the wider org trust and use it?",
-      "Org change & adoption · Capability transfer · Stakeholder alignment · Talent development.",
-      "evidence of uptake and an adoption path.",
-    ),
-    renderShape(
-      "shape-proof",
-      "Proof / acceptance",
-      "Can we show it's true, not just claim it?",
-      "Signal design · Acceptance proving · Validation & testing · Transparent delivery.",
-      "evidence against the bar, and acceptance.",
-    ),
-    renderShape(
-      "shape-continuity",
-      "Continuity / operational",
-      "Can they run it safely once we're gone?",
-      "Autonomous-system governance · Client operating-model design · Transition & warranty design · Production hardening.",
-      "a client able to run and own the system.",
-    ),
-  ].join("");
+function renderOperatingMain(model) {
+  const { intensity, riskShapes, seams: seamRecords, capabilities, domains } = model;
+  const dials = intensity?.dials ?? [];
+  const capsById = new Map(capabilities.map((cap) => [cap.id, cap]));
+  const domainsById = new Map(domains.map((domain) => [domain.id, domain]));
 
-  const seams = [
-    renderNote(
-      "seam-commercial-framing",
-      "Commercial → Framing",
-      "A scoped commitment crosses — what's promised, at what confidence, what's still an open bet. Not a guarantee of outcomes we haven't earned. Violated by a SOW written as certainty: roadmap and deliverables promised as done before any risk is retired.",
-    ),
-    renderNote(
-      "seam-framing-building",
-      "Framing → Building",
-      "A testable definition crosses — problem, outcome, constraints. Not a wish list. Violated by requirements that can't be built or tested from.",
-    ),
-    renderNote(
-      "seam-interface-systems",
-      "Product & interface building ↔ Systems engineering",
-      "A runnable artifact crosses — built in real components against the token system, extended in place. Not a static mock, not a screenshot, not a written description of a screen. Violated by a screenshot in a ticket, or engineering rebuilding behavior from a description.",
-    ),
-    renderNote(
-      "seam-building-proof",
-      "Building → Proof",
-      "Evidence against a bar set up front crosses. Not \"looks done.\" Violated by acceptance on subjective sign-off.",
-    ),
-    renderNote(
-      "seam-proof-commercial",
-      "Proof → Commercial",
-      "A confidence-tagged commitment call crosses — what the evidence now earns the right to scale, price, or commit, and what it doesn't. Not \"we're done, here's the next phase.\" Violated by scaling or re-pricing on the calendar instead of the signal, or a green light no signal backs.",
-    ),
-  ].join("");
+  const shapes = [...riskShapes]
+    .sort((a, b) => (a.reading_order ?? 99) - (b.reading_order ?? 99))
+    .map((shape) => renderShape(shape, capsById, dials))
+    .join("");
+
+  const seams = [...seamRecords]
+    .sort(
+      (a, b) =>
+        refDomainIndex(a.from, capsById) - refDomainIndex(b.from, capsById) ||
+        refDomainIndex(a.to, capsById) - refDomainIndex(b.to, capsById) ||
+        a.id.localeCompare(b.id),
+    )
+    .map((seam) => renderSeam(seam, capsById, domainsById))
+    .join("");
+
+  const dialRows = dials
+    .map(
+      (dial) =>
+        `<tr>
+              <td><strong>${esc(dial.name)}</strong></td>
+              <td>${esc(oneLine(dial.description))}</td>
+            </tr>`,
+    )
+    .join("");
+
+  const dialsDraft = riskShapes.some((shape) => shape.dials_reviewed !== true);
 
   return `
       <section id="overview">
@@ -559,29 +554,15 @@ function renderOperatingMain() {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td><strong>Dormant</strong></td>
-              <td>present but idle; re-activates on the right signal</td>
-            </tr>
-            <tr>
-              <td><strong>Low</strong></td>
-              <td>live but light — a check or a spike</td>
-            </tr>
-            <tr>
-              <td><strong>Active</strong></td>
-              <td>a primary workstream now</td>
-            </tr>
-            <tr>
-              <td><strong>Peak</strong></td>
-              <td>the dominant demand</td>
-            </tr>
+            ${dialRows}
           </tbody>
         </table>
-        <p class="lede">Dormant is not absent. Capabilities turn down, never off.</p>
+        <p class="lede">${esc(oneLine(intensity?.floor_note))}</p>
       </section>
       <section id="risk-shapes">
         <h2 class="mono uppercase eyebrow">Risk shapes</h2>
-        <p class="lede">The recurring kinds of "riskiest unknown." Each names an unknown, activates a set of capabilities, and produces an output that becomes available as input to whatever fires next. Shapes co-occur, recur, and persist — the order they fire in is not fixed.</p>
+        <p class="lede">The recurring kinds of "riskiest unknown." Each names an unknown, activates a set of capabilities at a dial, and produces an output that becomes available as input to whatever fires next. Shapes co-occur, recur, and persist — the order they fire in is not fixed.</p>
+        ${dialsDraft ? `<p class="line-note">Dial values are authored drafts. They have not been reviewed, and no page or document recorded them before now.</p>` : ""}
         <div class="stack">
         ${shapes}
         </div>
@@ -781,7 +762,7 @@ function render(model, pageId = "how-it-all-relates") {
       </section>`
       : pageId === "roles-titles"
         ? renderRolesMain()
-        : renderOperatingMain();
+        : renderOperatingMain(model);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1152,6 +1133,33 @@ function render(model, pageId = "how-it-all-relates") {
       letter-spacing: 0.04em;
       margin-right: 8px;
     }
+    ul.fires { list-style: none; padding: 0; margin: 0; }
+    ul.fires li {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 6px 0;
+      border-top: 1px solid var(--line);
+    }
+    ul.fires li:first-child { border-top: 0; padding-top: 0; }
+    .fires-cap { min-width: 0; }
+    .dial {
+      flex-shrink: 0;
+      display: inline-block;
+      font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 3px;
+      line-height: 1.4;
+      cursor: help;
+    }
+    .dial-dormant { color: var(--dim); background: var(--hover); }
+    .dial-low { color: var(--muted); background: var(--hover); }
+    .dial-active { color: var(--accent); background: #EEF0FB; }
+    .dial-peak { color: #FFFFFF; background: var(--accent); }
     ul.plain { list-style: none; padding: 0; margin: 0; }
     ul.plain li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
     ul.plain li:last-child { border-bottom: 0; padding-bottom: 0; }
@@ -1226,10 +1234,21 @@ function render(model, pageId = "how-it-all-relates") {
 
 async function build() {
   const levels = parse(await readFile(join(ROOT, "levels.yaml"), "utf8"));
+  const intensity = parse(await readFile(join(ROOT, "intensity.yaml"), "utf8"));
   const domains = sortKnown(await loadDir("domains"));
   const capabilities = await loadCapabilities();
   const skills = await loadDir("skills");
-  const model = { levels, domains, capabilities, skills };
+  const riskShapes = await loadDir("risk-shapes");
+  const seams = await loadDir("seams");
+  const model = {
+    levels,
+    intensity,
+    domains,
+    capabilities,
+    skills,
+    riskShapes,
+    seams,
+  };
   const outDir = join(ROOT, "site");
   await mkdir(outDir, { recursive: true });
   await writeFile(join(outDir, ".nojekyll"), "");
