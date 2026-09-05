@@ -1,0 +1,20 @@
+id: capability-ownership
+term: Capability ownership
+definition: >
+  Agency-wide accountability for one capability staying fit for use. An Owner
+  authors the guardrails, prompt packs, and templates, and is responsible for
+  the capability existing and remaining usable. This is the atomic, permanent
+  unit of internal identity, and where progression lives.
+not:
+  - A fourth execution grade. Owner sits beside L1–L3, not above L3.
+  - L3 execution. An L3 sets the standard on the work; an Owner is accountable
+    for the capability itself.
+  - A management line or a headcount.
+see_also:
+  - capability
+  - level
+  - title
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05

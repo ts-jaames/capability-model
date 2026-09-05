@@ -1,0 +1,16 @@
+id: skill
+term: Skill
+definition: >
+  An atomic method (`core_technique`) or specific tool (`transient_tool`) used
+  inside a capability. A capability lists at most ten. Every skill must be
+  attached to at least one capability, or it does not belong in the model.
+not:
+  - A capability. A skill is how delivery happens, not what is promised.
+  - Something a staffing bound references. Bounds point at capabilities only.
+  - A title or a seat.
+see_also:
+  - capability
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05

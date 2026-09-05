@@ -1,0 +1,19 @@
+id: intensity-dial
+term: Intensity dial
+definition: >
+  How hot a capability is running right now: Dormant, Low, Active, or Peak.
+  Every capability sits on the dial at all times, and the live risk mix moves
+  it. Dormant is not absent — capabilities turn down, never off.
+not:
+  - A level. A dial is the moment; a level is the depth of judgment.
+  - A maturity or seniority scale.
+  - A property of a capability file. Dials live on the risk shape that fires
+    the capability, because they describe a situation, not the capability.
+see_also:
+  - level
+  - risk-shape
+  - capability
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05

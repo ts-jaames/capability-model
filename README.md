@@ -45,4 +45,5 @@ You do not need to edit YAML.
 - `skills/*.yaml` — methods used inside capabilities (`agent_skills`)
 - `risk-shapes/*.yaml` — recurring riskiest unknowns, and the capabilities each fires at a dial
 - `seams/*.yaml` — load-bearing handoffs between capabilities or domains
+- `definitions/*.yaml` — canonical terms and the confusions each one rules out (not rendered on the site)
 - `roles/interface-lead.yaml` — staffing bound example (not rendered on the site yet)

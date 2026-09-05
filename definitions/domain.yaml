@@ -1,0 +1,18 @@
+id: domain
+term: Domain
+definition: >
+  A type of work. There are six and the list is closed: Commercial, Framing,
+  Building, Proof, Enablement, Continuity. A domain contains capabilities and
+  nothing else.
+not:
+  - A team, a department, or a practice area.
+  - A phase of an engagement. Domains run at once, not in sequence.
+  - A service line or a thing a client buys. Clients buy capabilities.
+  - Anything that carries a level. Levels attach to capabilities only.
+see_also:
+  - capability
+  - level
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05

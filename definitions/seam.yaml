@@ -1,0 +1,19 @@
+id: seam
+term: Seam
+definition: >
+  The load-bearing handoff between two capabilities or two domains: what must
+  cross, and in what form. A seam is the floor — the minimum for a valid
+  handoff. It holds regardless of tool; AI can carry the artifact across, but
+  judgment decides whether what crossed is right.
+not:
+  - A meeting, a ceremony, or a phase gate.
+  - A document template. A seam says what must cross, not what file format.
+  - A process step. Seams describe interfaces, not sequence.
+see_also:
+  - capability
+  - domain
+  - risk-shape
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05
