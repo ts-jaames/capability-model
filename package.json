@@ -1,14 +1,20 @@
 {
   "name": "capability-model",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "engines": {
     "node": ">=20"
   },
+  "bin": {
+    "capability-model-mcp": "mcp/stdio.mjs"
+  },
   "scripts": {
     "validate": "node scripts/validate.mjs",
     "build": "node scripts/build-site.mjs",
-    "dev": "node scripts/build-site.mjs --serve"
+    "dev": "node scripts/build-site.mjs --serve",
+    "mcp": "node mcp/stdio.mjs",
+    "mcp:smoke": "node mcp/smoke.mjs"
   },
   "dependencies": {
     "ajv": "^8.17.1",

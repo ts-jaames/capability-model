@@ -24,7 +24,35 @@ lsof -ti :4173 | xargs kill
 npm run dev
 ```
 
-On merge to `main`, CI validates, rebuilds the site, and deploys it to GitHub Pages. Set the repository Pages source to **GitHub Actions** once.
+On merge to `main`, CI validates, runs the MCP smoke test, rebuilds the site, and deploys it to GitHub Pages. Set the repository Pages source to **GitHub Actions** once.
+
+## MCP server
+
+The site is for people. The MCP server is the same model for agents, so a skill or assistant can consult it mid-work instead of guessing or carrying a stale copy.
+
+```bash
+npm run mcp          # speaks JSON-RPC over stdio
+npm run mcp:smoke    # boots it as a client would and checks the tool contract
+```
+
+Point a client at it:
+
+```json
+{
+  "mcpServers": {
+    "capability-model": {
+      "command": "npx",
+      "args": ["-y", "github:ts-jaames/capability-model"]
+    }
+  }
+}
+```
+
+Thirteen tools, all read-only: `list_domains`, `list_capabilities`, `get_capability`, `get_levels`, `get_intensity`, `list_risk_shapes`, `get_risk_shape`, `capabilities_for_risk_shape`, `list_seams`, `get_seam`, `list_definitions`, `get_definition`, `search`. The headline query is `capabilities_for_risk_shape` — which capabilities does this risk shape fire, and at what dial. Nothing writes; humans still change the model through pull requests.
+
+`mcp/core.mjs` holds the queries and knows nothing about transports or callers; `mcp/stdio.mjs` is the local transport. It speaks JSON-RPC directly rather than depending on the MCP SDK, which pulls 91 packages including two HTTP frameworks and an OAuth stack that a local process reading YAML cannot use. A hosted transport would live beside `stdio.mjs` and import the same core — that is when the SDK earns its place.
+
+Set `CAPABILITY_MODEL_SCOPE` (default `public`) to widen the visibility tiers the server will return.
 
 ## How to contribute
 
