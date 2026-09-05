@@ -3,11 +3,12 @@ import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, join, resolve } from "node:path";
 import {
-  DOMAIN_ORDER,
   PUBLIC_SCOPE,
   REPO_ROOT,
+  domainRank,
   loadModel,
   modelView,
+  oneLine,
   scopeView,
 } from "./model.mjs";
 
@@ -39,15 +40,33 @@ function badge(status) {
   return `<span class="status"><i class="dot dot-${esc(label)}"></i></span>`;
 }
 
-function statusOf(entity) {
-  return entity.status ?? "draft";
-}
-
+// One list of pages, each carrying the renderer for its body, so a page is
+// added in a single place. The render functions are hoisted declarations.
 const PAGES = [
-  { id: "how-it-all-relates", title: "How it all relates", file: "index.html" },
-  { id: "capability-model", title: "Capability Model", file: "capability-model.html" },
-  { id: "roles-titles", title: "Roles & Titles", file: "roles-titles.html" },
-  { id: "operating-view", title: "Operating View", file: "operating-view.html" },
+  {
+    id: "how-it-all-relates",
+    title: "How it all relates",
+    file: "index.html",
+    main: renderHowItRelatesMain,
+  },
+  {
+    id: "capability-model",
+    title: "Capability Model",
+    file: "capability-model.html",
+    main: renderCapabilityModelMain,
+  },
+  {
+    id: "roles-titles",
+    title: "Roles & Titles",
+    file: "roles-titles.html",
+    main: renderRolesMain,
+  },
+  {
+    id: "operating-view",
+    title: "Operating View",
+    file: "operating-view.html",
+    main: renderOperatingMain,
+  },
 ];
 
 const ILLUSTRATIONS = "assets/how-it-all-relates-illustrations";
@@ -109,15 +128,10 @@ function renderPageLinks(pageId) {
   }).join("\n        ");
 }
 
-function sortKnown(items) {
-  return [...items].sort((a, b) => {
-    const ia = DOMAIN_ORDER.indexOf(a.id);
-    const ib = DOMAIN_ORDER.indexOf(b.id);
-    if (ia !== -1 || ib !== -1) {
-      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-    }
-    return a.name.localeCompare(b.name);
-  });
+function sortDomains(items) {
+  return [...items].sort(
+    (a, b) => domainRank(a.id) - domainRank(b.id) || a.name.localeCompare(b.name),
+  );
 }
 
 function kv(title, inner) {
@@ -152,7 +166,7 @@ function renderLevelsBlock(cap, legend) {
 
   let l1Row;
   if (isL2Floor) {
-    const reason = esc(String(cap.not_at_l1 ?? "").trim().replace(/\s+/g, " "));
+    const reason = esc(oneLine(cap.not_at_l1));
     l1Row = levelRow(
       "L1",
       `<p class="lvl-no-l1"><span class="lvl-no-l1-tag">No L1</span>${reason}</p>`,
@@ -163,7 +177,7 @@ function renderLevelsBlock(cap, legend) {
       .map((item) => `<code class="guardrail-chip">${esc(item)}</code>`)
       .join("");
     const boundary = cap.l1_l2_boundary
-      ? `<p class="lvl-boundary">${esc(String(cap.l1_l2_boundary).trim().replace(/\s+/g, " "))}</p>`
+      ? `<p class="lvl-boundary">${esc(oneLine(cap.l1_l2_boundary))}</p>`
       : "";
     l1Row = levelRow(
       "L1",
@@ -172,7 +186,7 @@ function renderLevelsBlock(cap, legend) {
   }
 
   const specificRow = (tag) =>
-    levelRow(tag, `<p>${esc(String(capLevels[tag] ?? "").trim().replace(/\s+/g, " "))}</p>`);
+    levelRow(tag, `<p>${esc(oneLine(capLevels[tag]))}</p>`);
 
   const ladderRow = (tag) => {
     const name = esc(legend.get(tag)?.name ?? "");
@@ -208,12 +222,12 @@ function renderCap(cap, domains, legend) {
         <h3 class="domain-name">${esc(cap.name)}</h3>
         <div class="row-meta">
           <span class="mono">${esc(domain?.name ?? cap.domain)}</span>
-          ${badge(statusOf(cap))}
+          ${badge(cap.status)}
         </div>
       </header>
       <div class="kvs">
-        ${kv("Core promise", `<p>${esc(String(cap.promise ?? "").trim().replace(/\s+/g, " "))}</p>`)}
-        ${kv("Client experience", `<p>${esc(String(cap.client_experience ?? "").trim().replace(/\s+/g, " "))}</p>`)}
+        ${kv("Core promise", `<p>${esc(oneLine(cap.promise))}</p>`)}
+        ${kv("Client experience", `<p>${esc(oneLine(cap.client_experience))}</p>`)}
         ${kv("Sparq How", paragraphs(cap.sparq_how))}
         ${renderLevelsBlock(cap, legend)}
         ${kv(
@@ -249,10 +263,6 @@ function renderNote(id, name, body) {
       </header>
       ${paragraphs(body)}
     </article>`;
-}
-
-function oneLine(value) {
-  return String(value ?? "").trim().replace(/\s+/g, " ");
 }
 
 function dialChip(dialId, dials) {
@@ -294,9 +304,7 @@ function refLabel(ref, capsById, domainsById) {
 // Seams read in loop order (Commercial → Framing → Building → Proof → Commercial),
 // derived from where each end sits in DOMAIN_ORDER rather than an authored rank.
 function refDomainIndex(ref, capsById) {
-  const slug = ref?.domain ?? capsById.get(ref?.capability ?? "")?.domain;
-  const index = DOMAIN_ORDER.indexOf(slug);
-  return index === -1 ? 99 : index;
+  return domainRank(ref?.domain ?? capsById.get(ref?.capability ?? "")?.domain);
 }
 
 function renderSeam(seam, capsById, domainsById) {
@@ -573,26 +581,34 @@ function renderHowItRelatesMain() {
       </section>`;
 }
 
-function render(model, pageId = "how-it-all-relates") {
+function renderCapabilityModelMain(model) {
   const { levels, domains, capabilities, skills } = model;
-  const page = PAGES.find((item) => item.id === pageId);
-  if (!page) throw new Error(`Unknown page: ${pageId}`);
   const legend = levelLegendMap(levels);
+
+  // Grouped and sorted once, then read twice: the domain index links to
+  // capabilities, and the capability sections render them in the same order.
   const capsByDomain = new Map(domains.map((d) => [d.id, []]));
   for (const cap of capabilities) {
-    if (!capsByDomain.has(cap.domain)) capsByDomain.set(cap.domain, []);
-    capsByDomain.get(cap.domain).push(cap);
+    const group = capsByDomain.get(cap.domain);
+    if (!group) {
+      throw new Error(
+        `Capability "${cap.id}" names domain "${cap.domain}", which has no file in domains/. Run npm run validate.`,
+      );
+    }
+    group.push(cap);
   }
+  for (const group of capsByDomain.values()) {
+    group.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
   const domainSections = domains
     .map((domain) => {
-      const caps = (capsByDomain.get(domain.id) ?? []).sort((a, b) =>
-        a.name.localeCompare(b.name),
-      );
+      const caps = capsByDomain.get(domain.id) ?? [];
       const list = caps.length
         ? `<ul class="plain">${caps
             .map(
               (cap) =>
-                `<li class="inline-row"><a href="#capability-${esc(cap.id)}">${esc(cap.name)}</a>${badge(statusOf(cap))}</li>`,
+                `<li class="inline-row"><a href="#capability-${esc(cap.id)}">${esc(cap.name)}</a>${badge(cap.status)}</li>`,
             )
             .join("")}</ul>`
         : `<p class="meta">No capabilities in this domain yet.</p>`;
@@ -607,33 +623,24 @@ function render(model, pageId = "how-it-all-relates") {
     })
     .join("");
 
-  const capabilitySections = DOMAIN_ORDER.map((id) => {
-    const domain = domains.find((d) => d.id === id);
-    const caps = (capsByDomain.get(id) ?? []).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-    if (!domain || !caps.length) return "";
-    return caps.map((cap) => renderCap(cap, domains, legend)).join("");
-  }).join("");
-
-  const leftover = capabilities.filter((cap) => !DOMAIN_ORDER.includes(cap.domain));
-  const extraCaps = leftover.length
-    ? leftover
-        .sort((a, b) => a.name.localeCompare(b.name))
+  const capabilitySections = domains
+    .map((domain) =>
+      (capsByDomain.get(domain.id) ?? [])
         .map((cap) => renderCap(cap, domains, legend))
-        .join("")
-    : "";
+        .join(""),
+    )
+    .join("");
 
-  const skillRows = skills
+  const skillRows = [...skills]
     .sort((a, b) => a.id.localeCompare(b.id))
     .map((skill) => {
-      const tip = esc(String(skill.description ?? "").trim().replace(/\s+/g, " "));
+      const tip = esc(oneLine(skill.description));
       return `
         <tr id="agent-skill-${esc(skill.id)}">
           <td>
             <span class="skill-tip" tabindex="0">
               ${agentSkillChip(skill.id)}
-              ${badge(statusOf(skill))}
+              ${badge(skill.status)}
               <span class="tip">${tip}</span>
             </span>
           </td>
@@ -641,17 +648,14 @@ function render(model, pageId = "how-it-all-relates") {
     })
     .join("");
 
-  const levelRows = [
-    ...(levels.execution_levels ?? []),
-    levels.ownership,
-  ]
+  const levelRows = [...(levels?.execution_levels ?? []), levels?.ownership]
     .filter(Boolean)
     .map((level) => {
       const isOwner = level.id === "Owner";
       const label = isOwner
         ? esc(level.name)
         : `<span class="mono">${esc(level.id)}</span> ${esc(level.name)}`;
-      const desc = esc(String(level.description ?? "").trim().replace(/\s+/g, " "));
+      const desc = esc(oneLine(level.description));
       return `
             <tr>
               <td class="cap-ex-level">${label}</td>
@@ -660,12 +664,7 @@ function render(model, pageId = "how-it-all-relates") {
     })
     .join("");
 
-  const generated = new Date().toISOString().slice(0, 10);
-  const main =
-    pageId === "how-it-all-relates"
-      ? renderHowItRelatesMain()
-      : pageId === "capability-model"
-      ? `
+  return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
         <p class="lede">Domains are types of work. They do not change and they do not have levels. Capabilities are the named outcomes we promise inside a domain.</p>
@@ -688,8 +687,8 @@ function render(model, pageId = "how-it-all-relates") {
             ${levelRows}
           </tbody>
         </table>
-        ${capabilitySections}${extraCaps}
-        ${!capabilitySections && !extraCaps ? `<p class="meta">None yet.</p>` : ""}
+        ${capabilitySections}
+        ${capabilitySections ? "" : `<p class="meta">None yet.</p>`}
       </section>
       <section id="agent-skills">
         <h2 class="mono eyebrow uppercase">Agent Skills</h2>
@@ -703,10 +702,14 @@ function render(model, pageId = "how-it-all-relates") {
             ${skillRows || `<tr><td class="meta">None yet.</td></tr>`}
           </tbody>
         </table>
-      </section>`
-      : pageId === "roles-titles"
-        ? renderRolesMain()
-        : renderOperatingMain(model);
+      </section>`;
+}
+
+function render(model, pageId = "how-it-all-relates") {
+  const page = PAGES.find((item) => item.id === pageId);
+  if (!page) throw new Error(`Unknown page: ${pageId}`);
+  const main = page.main(model);
+  const generated = new Date().toISOString().slice(0, 10);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1181,7 +1184,7 @@ async function build() {
   // tier. An overlay of non-public entries can be loaded without leaking here.
   const loaded = await loadModel();
   const model = scopeView(modelView(loaded), PUBLIC_SCOPE);
-  model.domains = sortKnown(model.domains);
+  model.domains = sortDomains(model.domains);
   const outDir = join(ROOT, "site");
   await mkdir(outDir, { recursive: true });
   await writeFile(join(outDir, ".nojekyll"), "");

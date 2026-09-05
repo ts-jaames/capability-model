@@ -6,10 +6,11 @@
 // ever needs to know *who* is asking rather than *what tier* they may see, the
 // server has stopped being a read of the model and the design needs revisiting.
 import {
-  DOMAIN_ORDER,
   PUBLIC_SCOPE,
+  domainRank,
   loadModel,
   modelView,
+  oneLine,
   scopeView,
 } from "../scripts/model.mjs";
 
@@ -24,28 +25,51 @@ export function readScope(env = process.env) {
     .filter(Boolean);
 }
 
-function oneLine(value) {
-  return String(value ?? "").trim().replace(/\s+/g, " ");
-}
-
 function byId(items) {
   return new Map(items.map((item) => [item.id, item]));
 }
 
+// Sorting and grouping happen once, here, because the transport loads the model
+// at boot and reuses this index for every call.
 export function indexModel(view, roots = []) {
-  const domainOrder = (id) => {
-    const index = DOMAIN_ORDER.indexOf(id);
-    return index === -1 ? DOMAIN_ORDER.length : index;
-  };
+  const capabilities = [...view.capabilities].sort((a, b) => a.id.localeCompare(b.id));
+  const capabilityIdsByDomain = new Map();
+  for (const cap of capabilities) {
+    const list = capabilityIdsByDomain.get(cap.domain);
+    if (list) list.push(cap.id);
+    else capabilityIdsByDomain.set(cap.domain, [cap.id]);
+  }
+
+  const riskShapes = [...view.riskShapes].sort(
+    (a, b) => (a.reading_order ?? 99) - (b.reading_order ?? 99),
+  );
+
+  // Which shapes fire a given capability, built in one pass over the shapes
+  // rather than rescanning every shape on each capability lookup. Walking them
+  // in reading order keeps each capability's list deterministic.
+  const firedBy = new Map();
+  for (const shape of riskShapes) {
+    for (const item of shape.fires ?? []) {
+      const entry = {
+        risk_shape: shape.id,
+        dial: item.dial,
+        dials_reviewed: shape.dials_reviewed === true,
+      };
+      const list = firedBy.get(item.capability);
+      if (list) list.push(entry);
+      else firedBy.set(item.capability, [entry]);
+    }
+  }
+
   return {
     roots,
     view,
-    domains: [...view.domains].sort((a, b) => domainOrder(a.id) - domainOrder(b.id)),
-    capabilities: [...view.capabilities].sort((a, b) => a.id.localeCompare(b.id)),
+    capabilities,
+    capabilityIdsByDomain,
+    firedBy,
+    riskShapes,
+    domains: [...view.domains].sort((a, b) => domainRank(a.id) - domainRank(b.id)),
     skills: view.skills,
-    riskShapes: [...view.riskShapes].sort(
-      (a, b) => (a.reading_order ?? 99) - (b.reading_order ?? 99),
-    ),
     seams: view.seams,
     definitions: [...view.definitions].sort((a, b) => a.id.localeCompare(b.id)),
     levels: view.levels,
@@ -131,9 +155,7 @@ export function listDomains(index) {
       id: domain.id,
       name: domain.name,
       description: oneLine(domain.description),
-      capabilities: index.capabilities
-        .filter((cap) => cap.domain === domain.id)
-        .map((cap) => cap.id),
+      capabilities: index.capabilityIdsByDomain.get(domain.id) ?? [],
     })),
   };
 }
@@ -156,13 +178,7 @@ export function getCapability(index, { capability } = {}) {
       ...item,
       description: oneLine(index.skillById.get(item.name)?.description),
     })),
-    fired_by: index.riskShapes
-      .filter((shape) => (shape.fires ?? []).some((f) => f.capability === cap.id))
-      .map((shape) => ({
-        risk_shape: shape.id,
-        dial: (shape.fires ?? []).find((f) => f.capability === cap.id)?.dial,
-        dials_reviewed: shape.dials_reviewed === true,
-      })),
+    fired_by: index.firedBy.get(cap.id) ?? [],
   };
 }
 
@@ -311,6 +327,16 @@ const SEARCHABLE = [
   ["skill", "skills", (skill) => [skill.name, skill.description]],
 ];
 
+// Stops at the first field that matches rather than normalising every field of
+// every entity on every search.
+function firstMatch(values, needle) {
+  for (const value of values) {
+    const text = oneLine(value);
+    if (text.toLowerCase().includes(needle)) return text;
+  }
+  return null;
+}
+
 export function search(index, { query, types, limit = 20 } = {}) {
   const needle = String(query ?? "").trim().toLowerCase();
   if (!needle) return { query: "", count: 0, results: [] };
@@ -320,9 +346,7 @@ export function search(index, { query, types, limit = 20 } = {}) {
   for (const [type, key, fields] of SEARCHABLE) {
     if (wanted && !wanted.has(type)) continue;
     for (const entity of index[key] ?? []) {
-      const hit = fields(entity)
-        .map(oneLine)
-        .find((text) => text.toLowerCase().includes(needle));
+      const hit = firstMatch(fields(entity), needle);
       if (!hit) continue;
       results.push({
         type,
