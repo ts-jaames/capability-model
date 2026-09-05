@@ -14,6 +14,8 @@ When someone asks to add X, classify it before creating a file:
 4. Level?
 5. Title?
 6. Staffing bound (today stored as `roles/`)?
+7. Risk shape, intensity dial, or seam?
+8. Definition?
 
 If it is not a capability, say so. Do not create a capability file to be helpful.
 
@@ -70,6 +72,14 @@ The **load-bearing handoff** between two capabilities or two domains: what must 
 
 Pass only if you can state what crosses, what it is not, and how it is violated. Fail if it is a meeting, a ceremony, a document template, or a phase gate. A seam joins two different endpoints; its name is derived from those endpoints, never authored separately.
 
+### Definition
+
+A **canonical term** in this model, plus the confusions it exists to prevent. This is the definition store of record — the thing every other artefact should agree with.
+
+Pass only if the term is already load-bearing in this repo **and** gets conflated with something else. The `not` list is the point of the file; a definition with nothing to rule out is a glossary entry, not a definition.
+
+Fail — and reclassify — if the thing is really a capability, a title, a skill, or a tool. Writing a definition file is not a way around the admission test for those. A definition never carries a level or a dial, and defining a term does not make the thing it names exist.
+
 ### Title
 
 A market or HR label (Design Strategist, AI Engineer, Context Engineer, Forward Deployed Engineer, AI Evals Engineer). **Not in this model yet.** Do not add titles as capabilities. Do not add titles as roles.
@@ -83,7 +93,9 @@ Which capabilities a seat **owns** (max 2, Owner accountability) vs can **execut
 - Read this file, `levels.yaml`, and existing YAML before adding files.
 - Filename stem must equal `id` (kebab-case). Capabilities omit `id`; the stem **is** the id.
 - Capability files live at `capabilities/<domain-slug>/<kebab-id>.yaml`. `domain` in YAML is the display name (`Building`, not `building`).
-- Set `status: draft` on skills, domains, and roles. Capabilities omit `status`; tooling treats missing status as `draft`. Never write `reviewed` or `ratified` unless a human explicitly asked to promote that file.
+- Risk shapes live at `risk-shapes/<kebab-id>.yaml`, seams at `seams/<kebab-id>.yaml`, definitions at `definitions/<kebab-id>.yaml`. `intensity.yaml` is the dial legend, beside `levels.yaml`.
+- Set `status: draft` on skills, domains, roles, risk shapes, seams, and definitions. Capabilities omit `status`; tooling treats missing status as `draft`. Never write `reviewed` or `ratified` unless a human explicitly asked to promote that file.
+- Leave `dials_reviewed: false` on a risk shape unless a human has explicitly reviewed that shape's dial values. The dial is a judgment call, and pretending otherwise is the failure this model exists to prevent.
 - Keep YAML readable for non-engineers. Prefer short sentences and lists.
 - Run `npm run validate` after edits. Fix every error before finishing.
 
@@ -112,6 +124,7 @@ These are shape rules. Passing them does not mean the entity should exist.
 - Risk shape → `fires[].capability` must resolve; no duplicate capability inside one shape; no `dial: dormant`; `reading_order` unique across shapes.
 - Seam → `from` and `to` each resolve to exactly one domain **or** one capability, and must differ.
 - Intensity dials are exactly `dormant`, `low`, `active`, `peak`, in that order.
+- Definition → every `see_also` id resolves to another definition, and never to itself.
 
 ## Field notes
 

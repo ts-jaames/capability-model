@@ -1,0 +1,21 @@
+id: seat
+term: Seat
+definition: >
+  The runtime instance of a capability: one capability, at one level, with a
+  person in it, on this squad. Seat vocabulary can churn — Context Engineer,
+  Red Teamer — without touching the capability underneath.
+not:
+  - A second list to maintain alongside capabilities.
+  - A title. Titles face the market; seats are internal squad assembly.
+  - A line on a SOW. The contract buys capabilities at levels, never seats.
+  - A person. One person can staff a seat, or several people together can make
+    up the capability at the level needed.
+see_also:
+  - capability
+  - level
+  - title
+  - staffing-bound
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05

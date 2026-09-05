@@ -21,6 +21,10 @@ const TYPED = {
     schemaId: "https://capability-model.local/schema/risk-shape.json",
   },
   seam: { dir: "seams", schemaId: "https://capability-model.local/schema/seam.json" },
+  definition: {
+    dir: "definitions",
+    schemaId: "https://capability-model.local/schema/definition.json",
+  },
 };
 
 const LEVELS_SCHEMA = "https://capability-model.local/schema/levels.json";
@@ -60,6 +64,7 @@ async function loadSchemaFiles(ajv) {
     "intensity",
     "risk-shape",
     "seam",
+    "definition",
   ];
   for (const name of names) {
     const raw = await readFile(join(ROOT, "schema", `${name}.json`), "utf8");
@@ -293,6 +298,7 @@ async function main() {
   const roles = indexById(byType.role, "role");
   const riskShapes = indexById(byType["risk-shape"], "risk-shape");
   const seams = indexById(byType.seam, "seam");
+  const definitions = indexById(byType.definition, "definition");
 
   const skillRefs = new Set();
 
@@ -445,6 +451,21 @@ async function main() {
     }
   }
 
+  for (const rec of byType.definition) {
+    const definition = rec.data;
+    if (!definition || typeof definition !== "object") continue;
+
+    const refs = definition.see_also ?? [];
+    uniqueIds(refs, rec.file, "see_also");
+    for (const id of refs) {
+      if (id === definition.id) {
+        add("constraints", rec.file, "see_also must not point at itself");
+      } else if (!definitions.has(id)) {
+        add("refs", rec.file, `see_also "${id}" does not exist`);
+      }
+    }
+  }
+
   for (const [id, rec] of skills) {
     if (!skillRefs.has(id)) {
       add("orphans", rec.file, `skill "${id}" is not referenced by any capability`);
@@ -491,6 +512,7 @@ async function main() {
     `${roles.size} roles`,
     `${riskShapes.size} risk shapes`,
     `${seams.size} seams`,
+    `${definitions.size} definitions`,
   ].join(", ");
   console.log(`OK — ${summary}`);
 }

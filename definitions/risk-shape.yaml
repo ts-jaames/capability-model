@@ -1,0 +1,20 @@
+id: risk-shape
+term: Risk shape
+definition: >
+  A recurring kind of "riskiest unknown." Each names an unknown, fires a set of
+  capabilities at a dial, and produces an output that becomes input to whatever
+  fires next. Shapes co-occur, recur, and persist.
+not:
+  - A phase. Shapes do not run in a fixed order, and more than one is live at
+    a time.
+  - A deliverable. A shape produces an output; it is not the output.
+  - A capability restated. A shape fires capabilities it does not contain.
+  - A risk register entry. A shape is a kind of unknown, not one instance.
+see_also:
+  - intensity-dial
+  - capability
+  - seam
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05

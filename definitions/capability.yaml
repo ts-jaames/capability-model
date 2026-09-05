@@ -1,0 +1,22 @@
+id: capability
+term: Capability
+definition: >
+  A named client outcome. It answers what we promise and what the client walks
+  away with. A capability belongs to exactly one domain and is executed at a
+  level. It is the atomic unit of the model and the thing a SOW buys.
+not:
+  - A tool or platform. Figma and LangChain are tools, not outcomes.
+  - A title. Design Strategist and AI Engineer are labels for people.
+  - A task or ceremony. "Run a workshop" is an activity, not a result.
+  - A skill or method used inside delivery.
+  - A domain restated, or a staffing pattern.
+see_also:
+  - domain
+  - level
+  - skill
+  - title
+  - seat
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05

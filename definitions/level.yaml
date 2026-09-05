@@ -1,0 +1,22 @@
+id: level
+term: Level
+definition: >
+  How deeply a capability is executed: L1 guided execution, L2 practitioner,
+  L3 advanced lead. Per capability, not per person — the same person can be L3
+  in one capability and L1 in another. The level is what a client buys and what
+  sets the price.
+not:
+  - Seniority. That is the consultant band.
+  - A dial. A level is depth of judgment; a dial is how hot the capability is
+    running right now.
+  - A property of a domain, a skill, a title, or a person.
+  - A ladder with an L4. The scale is exactly L1, L2, L3, plus Owner.
+see_also:
+  - capability
+  - capability-ownership
+  - intensity-dial
+  - consultant-band
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05
