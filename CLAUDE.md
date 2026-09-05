@@ -97,7 +97,7 @@ Which capabilities a seat **owns** (max 2, Owner accountability) vs can **execut
 - Set `status: draft` on skills, domains, roles, risk shapes, seams, and definitions. Capabilities omit `status`; tooling treats missing status as `draft`. Never write `reviewed` or `ratified` unless a human explicitly asked to promote that file.
 - Leave `dials_reviewed: false` on a risk shape unless a human has explicitly reviewed that shape's dial values. The dial is a judgment call, and pretending otherwise is the failure this model exists to prevent.
 - Keep YAML readable for non-engineers. Prefer short sentences and lists.
-- Run `npm run validate` after edits. Fix every error before finishing.
+- Run `npm run validate` after edits. Fix every error before finishing. If you touched `scripts/model.mjs` or `mcp/`, run `npm test` and `npm run mcp:smoke` too.
 
 ## Do not
 
@@ -125,7 +125,7 @@ These are shape rules. Passing them does not mean the entity should exist.
 - Seam → `from` and `to` each resolve to exactly one domain **or** one capability, and must differ.
 - Intensity dials are exactly `dormant`, `low`, `active`, `peak`, in that order.
 - Definition → every `see_also` id resolves to another definition, and never to itself.
-- Every entity may set `visibility`: `public` (default), `internal`, or `confidential`. Readers filter by tier, never by caller. Leave it unset unless a human asked for a non-public entry.
+- Every entity may set `visibility`: `public` (default), `internal`, or `confidential`. Readers filter by tier, never by caller. Leave it unset unless a human asked for a non-public entry. Containment cascades: hiding a domain hides every capability inside it.
 
 ## Field notes
 
