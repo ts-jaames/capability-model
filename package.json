@@ -14,7 +14,8 @@
     "build": "node scripts/build-site.mjs",
     "dev": "node scripts/build-site.mjs --serve",
     "mcp": "node mcp/stdio.mjs",
-    "mcp:smoke": "node mcp/smoke.mjs"
+    "mcp:smoke": "node mcp/smoke.mjs",
+    "test": "node --test"
   },
   "dependencies": {
     "ajv": "^8.17.1",

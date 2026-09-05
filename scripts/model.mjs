@@ -217,17 +217,24 @@ export function visibilityOf(entity) {
 // References are filtered too, so an in-scope entity can never name an
 // out-of-scope one: a risk shape drops fires it may not show, a seam drops out
 // entirely if either end is out of scope, and see_also drops unreachable terms.
+//
+// Containment cascades. A domain contains its capabilities, so hiding a domain
+// hides everything inside it — otherwise hiding a domain would still leak its
+// name through every capability that names it, which is the opposite of what
+// setting the tier asked for.
 export function scopeView(view, scope = PUBLIC_SCOPE) {
   const allowed = new Set(scope);
   const visible = (entity) => allowed.has(visibilityOf(entity));
 
   const domains = view.domains.filter(visible);
-  const capabilities = view.capabilities.filter(visible);
+  const domainIds = new Set(domains.map((domain) => domain.id));
+  const capabilities = view.capabilities.filter(
+    (cap) => visible(cap) && domainIds.has(cap.domain),
+  );
   const skills = view.skills.filter(visible);
   const definitions = view.definitions.filter(visible);
 
   const capIds = new Set(capabilities.map((cap) => cap.id));
-  const domainIds = new Set(domains.map((domain) => domain.id));
   const skillIds = new Set(skills.map((skill) => skill.id));
   const definitionIds = new Set(definitions.map((item) => item.id));
 
@@ -242,7 +249,13 @@ export function scopeView(view, scope = PUBLIC_SCOPE) {
       agent_skills: (cap.agent_skills ?? []).filter((item) => skillIds.has(item?.name)),
     })),
     skills,
-    roles: view.roles.filter(visible),
+    roles: view.roles.filter(visible).map((role) => ({
+      ...role,
+      owned_capabilities: (role.owned_capabilities ?? []).filter((id) => capIds.has(id)),
+      executable_capabilities: (role.executable_capabilities ?? []).filter((item) =>
+        capIds.has(item?.id),
+      ),
+    })),
     riskShapes: view.riskShapes.filter(visible).map((shape) => ({
       ...shape,
       fires: (shape.fires ?? []).filter((item) => capIds.has(item?.capability)),

@@ -10,7 +10,8 @@ Node 20 or newer.
 
 ```bash
 npm install
-npm run validate
+npm run validate       # schema, references, and model constraints
+npm test               # visibility scoping
 npm run build          # writes site/ (landing is index.html, plus drawings)
 npm run dev            # build + preview at http://127.0.0.1:4173
 ```
@@ -24,7 +25,7 @@ lsof -ti :4173 | xargs kill
 npm run dev
 ```
 
-On merge to `main`, CI validates, runs the MCP smoke test, rebuilds the site, and deploys it to GitHub Pages. Set the repository Pages source to **GitHub Actions** once.
+On merge to `main`, CI validates, runs the tests and the MCP smoke test, rebuilds the site, and deploys it to GitHub Pages. Set the repository Pages source to **GitHub Actions** once.
 
 ## MCP server
 
@@ -88,4 +89,6 @@ CAPABILITY_MODEL_OVERLAY=/path/to/private npm run validate
 
 Nothing uses this yet. It exists so entries that cannot be published can later layer on top of this public base without either side knowing about the other. Two files claiming the same id inside one root is still an error; the same id in a later root is a deliberate override.
 
-Every entity may carry `visibility: public | internal | confidential`, defaulting to `public`. Readers filter by tier, never by who is asking. `npm run build` renders the public tier only, so an overlay of non-public entries can be loaded without anything reaching `site/` — including references: a risk shape drops fires it may not show, and a seam disappears if either end is out of scope.
+Every entity may carry `visibility: public | internal | confidential`, defaulting to `public`. Readers filter by tier, never by who is asking. `npm run build` renders the public tier only, so an overlay of non-public entries can be loaded without anything reaching `site/` — including references: a risk shape drops fires it may not show, a seam disappears if either end is out of scope, and a role stops naming capabilities the reader cannot see.
+
+Containment cascades. Hiding a domain hides every capability inside it, because a capability names its domain and would otherwise leak the name of the thing that was hidden. `npm test` covers this; the cases are in `test/scope.test.mjs`.
