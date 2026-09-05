@@ -1,0 +1,20 @@
+id: shape-commercial
+name: Commercial / viability
+question: Do the economics, scope, and price hold?
+output: >
+  a confidence-tiered envelope and price.
+reading_order: 5
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05
+dials_reviewed: false
+fires:
+  - capability: commercial-scoping-envelope-shaping
+    dial: peak
+  - capability: confidence-based-estimation
+    dial: active
+  - capability: pricing-under-uncertainty
+    dial: active
+  - capability: direction-qualification
+    dial: low

@@ -1,0 +1,18 @@
+id: seam-commercial-framing
+from:
+  domain: commercial
+to:
+  domain: framing
+direction: one-way
+what_crosses: >
+  A scoped commitment — what's promised, at what confidence, what's still an
+  open bet.
+not: >
+  A guarantee of outcomes we haven't earned.
+violated_by: >
+  A SOW written as certainty: roadmap and deliverables promised as done before
+  any risk is retired.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05

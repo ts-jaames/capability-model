@@ -1,0 +1,44 @@
+{
+  "$id": "https://capability-model.local/schema/risk-shape.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Risk shape",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "question",
+    "output",
+    "reading_order",
+    "owner",
+    "source",
+    "last_updated",
+    "fires"
+  ],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "question": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "output": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "reading_order": { "type": "integer", "minimum": 1 },
+    "status": { "$ref": "common.json#/$defs/status" },
+    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "source": { "$ref": "common.json#/$defs/source" },
+    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
+    "dials_reviewed": { "type": "boolean", "default": false },
+    "fires": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capability", "dial"],
+        "properties": {
+          "capability": { "$ref": "common.json#/$defs/kebabId" },
+          "dial": { "$ref": "common.json#/$defs/dialId" },
+          "note": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    }
+  }
+}

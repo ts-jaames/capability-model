@@ -1,0 +1,20 @@
+id: shape-value
+name: Value
+question: Will anyone care enough to change behavior?
+output: >
+  evidence the value holds — or the call to redirect or stop.
+reading_order: 2
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05
+dials_reviewed: false
+fires:
+  - capability: slice-building
+    dial: peak
+  - capability: signal-design
+    dial: active
+  - capability: validation-testing
+    dial: active
+  - capability: demonstration-evidence-review
+    dial: active

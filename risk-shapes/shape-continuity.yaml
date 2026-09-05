@@ -1,0 +1,20 @@
+id: shape-continuity
+name: Continuity / operational
+question: Can they run it safely once we're gone?
+output: >
+  a client able to run and own the system.
+reading_order: 8
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05
+dials_reviewed: false
+fires:
+  - capability: autonomous-system-governance
+    dial: active
+  - capability: client-operating-model-design
+    dial: peak
+  - capability: transition-warranty-design
+    dial: active
+  - capability: production-hardening
+    dial: low

@@ -1,0 +1,27 @@
+id: intensity-scale
+name: Intensity scale
+description: >
+  Every capability sits on a four-step dial at all times. The live risk mix
+  moves the dials. Dials describe how hot a capability is running right now;
+  they are not a maturity or seniority scale.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05
+
+dials:
+  - id: dormant
+    name: Dormant
+    description: present but idle; re-activates on the right signal
+  - id: low
+    name: Low
+    description: live but light — a check or a spike
+  - id: active
+    name: Active
+    description: a primary workstream now
+  - id: peak
+    name: Peak
+    description: the dominant demand
+
+floor_note: >
+  Dormant is not absent. Capabilities turn down, never off.

@@ -1,0 +1,24 @@
+id: shape-problem-clarity
+name: Problem clarity
+question: Are we solving the right thing?
+output: >
+  a qualified direction, a defined outcome, a constraint set, a risk shortlist.
+reading_order: 1
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05
+dials_reviewed: false
+fires:
+  - capability: problem-framing
+    dial: peak
+  - capability: direction-qualification
+    dial: active
+  - capability: stakeholder-alignment
+    dial: low
+  - capability: outcome-definition
+    dial: active
+  - capability: constraint-framing
+    dial: active
+  - capability: risk-framing
+    dial: active

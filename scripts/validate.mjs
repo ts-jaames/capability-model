@@ -16,10 +16,17 @@ const TYPED = {
   },
   skill: { dir: "skills", schemaId: "https://capability-model.local/schema/skill.json" },
   role: { dir: "roles", schemaId: "https://capability-model.local/schema/role.json" },
+  "risk-shape": {
+    dir: "risk-shapes",
+    schemaId: "https://capability-model.local/schema/risk-shape.json",
+  },
+  seam: { dir: "seams", schemaId: "https://capability-model.local/schema/seam.json" },
 };
 
 const LEVELS_SCHEMA = "https://capability-model.local/schema/levels.json";
+const INTENSITY_SCHEMA = "https://capability-model.local/schema/intensity.json";
 const LEVEL_IDS = ["L1", "L2", "L3"];
+const DIAL_IDS = ["dormant", "low", "active", "peak"];
 const DOMAIN_NAME_TO_SLUG = {
   Commercial: "commercial",
   Framing: "framing",
@@ -43,7 +50,17 @@ function add(group, file, message) {
 }
 
 async function loadSchemaFiles(ajv) {
-  const names = ["common", "domain", "skill", "capability", "role", "levels"];
+  const names = [
+    "common",
+    "domain",
+    "skill",
+    "capability",
+    "role",
+    "levels",
+    "intensity",
+    "risk-shape",
+    "seam",
+  ];
   for (const name of names) {
     const raw = await readFile(join(ROOT, "schema", `${name}.json`), "utf8");
     ajv.addSchema(JSON.parse(raw));
@@ -189,6 +206,7 @@ async function main() {
   await loadSchemaFiles(ajv);
 
   const levelsRec = await readYaml("levels.yaml");
+  const intensityRec = await readYaml("intensity.yaml");
   const byType = {};
   for (const [type, meta] of Object.entries(TYPED)) {
     byType[type] = await readDirYaml(meta.dir, { recursive: Boolean(meta.recursive) });
@@ -228,6 +246,31 @@ async function main() {
     add("parse", "levels.yaml", "file is empty");
   }
 
+  if (intensityRec?.data) {
+    const validate = ajv.getSchema(INTENSITY_SCHEMA);
+    if (!validate(intensityRec.data)) {
+      for (const err of validate.errors ?? []) {
+        add("schema", intensityRec.file, `${err.instancePath || "/"} ${err.message}`);
+      }
+    } else {
+      const ids = (intensityRec.data.dials ?? []).map((dial) => dial.id);
+      if (new Set(ids).size !== ids.length) {
+        add("constraints", intensityRec.file, "dial ids must be unique");
+      }
+      if (ids.join(",") !== DIAL_IDS.join(",")) {
+        add(
+          "constraints",
+          intensityRec.file,
+          `dials must be exactly ${DIAL_IDS.join(", ")} in that order`,
+        );
+      }
+    }
+  } else if (intensityRec === null) {
+    // parse error already recorded
+  } else {
+    add("parse", "intensity.yaml", "file is empty");
+  }
+
   for (const [type, meta] of Object.entries(TYPED)) {
     const validate = ajv.getSchema(meta.schemaId);
     for (const rec of byType[type]) {
@@ -248,6 +291,8 @@ async function main() {
   const capabilities = indexById(byType.capability, "capability");
   const skills = indexById(byType.skill, "skill");
   const roles = indexById(byType.role, "role");
+  const riskShapes = indexById(byType["risk-shape"], "risk-shape");
+  const seams = indexById(byType.seam, "seam");
 
   const skillRefs = new Set();
 
@@ -342,6 +387,64 @@ async function main() {
     }
   }
 
+  const readingOrders = new Map();
+  for (const rec of byType["risk-shape"]) {
+    const shape = rec.data;
+    if (!shape || typeof shape !== "object") continue;
+
+    const fires = shape.fires ?? [];
+    const capIds = fires.map((item) => item?.capability).filter(Boolean);
+    uniqueIds(capIds, rec.file, "fires");
+    for (const id of capIds) {
+      if (!capabilities.has(id)) {
+        add("refs", rec.file, `fired capability "${id}" does not exist`);
+      }
+    }
+    for (const item of fires) {
+      if (item?.dial === "dormant") {
+        add(
+          "constraints",
+          rec.file,
+          `capability "${item.capability}" cannot be fired at dormant — a shape that fires a capability turns it up`,
+        );
+      }
+    }
+
+    const order = shape.reading_order;
+    if (typeof order === "number") {
+      if (readingOrders.has(order)) {
+        add(
+          "duplicates",
+          rec.file,
+          `reading_order ${order} already used by ${readingOrders.get(order)}`,
+        );
+      } else {
+        readingOrders.set(order, rec.file);
+      }
+    }
+  }
+
+  for (const rec of byType.seam) {
+    const seam = rec.data;
+    if (!seam || typeof seam !== "object") continue;
+
+    for (const side of ["from", "to"]) {
+      const ref = seam[side];
+      if (!ref || typeof ref !== "object") continue;
+      if (ref.domain && !domains.has(ref.domain)) {
+        add("refs", rec.file, `${side} domain "${ref.domain}" does not exist`);
+      }
+      if (ref.capability && !capabilities.has(ref.capability)) {
+        add("refs", rec.file, `${side} capability "${ref.capability}" does not exist`);
+      }
+    }
+
+    const from = JSON.stringify(seam.from ?? null);
+    if (from !== "null" && from === JSON.stringify(seam.to ?? null)) {
+      add("constraints", rec.file, "a seam must join two different endpoints");
+    }
+  }
+
   for (const [id, rec] of skills) {
     if (!skillRefs.has(id)) {
       add("orphans", rec.file, `skill "${id}" is not referenced by any capability`);
@@ -386,6 +489,8 @@ async function main() {
     `${capabilities.size} capabilities`,
     `${skills.size} skills`,
     `${roles.size} roles`,
+    `${riskShapes.size} risk shapes`,
+    `${seams.size} seams`,
   ].join(", ");
   console.log(`OK — ${summary}`);
 }

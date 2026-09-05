@@ -1,0 +1,18 @@
+id: seam-interface-systems
+from:
+  capability: product-interface-building
+to:
+  capability: core-systems-engineering
+direction: two-way
+what_crosses: >
+  A runnable artifact — built in real components against the token system,
+  extended in place.
+not: >
+  A static mock, a screenshot, or a written description of a screen.
+violated_by: >
+  A screenshot in a ticket, or engineering rebuilding behavior from a
+  description.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-05

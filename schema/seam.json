@@ -1,0 +1,32 @@
+{
+  "$id": "https://capability-model.local/schema/seam.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Seam",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "from",
+    "to",
+    "direction",
+    "what_crosses",
+    "not",
+    "violated_by",
+    "owner",
+    "source",
+    "last_updated"
+  ],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "from": { "$ref": "common.json#/$defs/modelRef" },
+    "to": { "$ref": "common.json#/$defs/modelRef" },
+    "direction": { "type": "string", "enum": ["one-way", "two-way"] },
+    "what_crosses": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "not": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "violated_by": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "status": { "$ref": "common.json#/$defs/status" },
+    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "source": { "$ref": "common.json#/$defs/source" },
+    "last_updated": { "$ref": "common.json#/$defs/isoDate" }
+  }
+}

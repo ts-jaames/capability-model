@@ -50,6 +50,26 @@ How a **capability** is executed: L1 Guided Execution, L2 Practitioner, L3 Advan
 
 Levels are not a property of domains, skills, titles, or people. Do not invent L4. Do not put the execution scale on a domain or a skill.
 
+### Risk shape
+
+A recurring kind of **riskiest unknown**. It names an unknown, fires a set of capabilities at a dial, and produces an output.
+
+Pass only if it is a question the engagement cannot answer yet. Fail — and reclassify — if it is a phase (“discovery”), a deliverable, a capability restated, or a client complaint.
+
+A risk shape fires capabilities it does not contain. Never move a capability into a risk shape. Shapes co-occur, recur, and persist; `reading_order` is page order, not firing order.
+
+### Intensity dial
+
+How hot a capability is running **right now**: Dormant, Low, Active, Peak. The four steps are **closed**.
+
+Dials are not levels. A level is how deeply a capability is executed and is a property of the capability; a dial is how hard it is running on this engagement and is a property of the moment. Never put a dial on a capability file, and never put a level on a risk shape. A shape may not fire a capability at `dormant` — firing means turning it up.
+
+### Seam
+
+The **load-bearing handoff** between two capabilities or two domains: what must cross, in what form. It is the floor for a valid handoff, not a process step.
+
+Pass only if you can state what crosses, what it is not, and how it is violated. Fail if it is a meeting, a ceremony, a document template, or a phase gate. A seam joins two different endpoints; its name is derived from those endpoints, never authored separately.
+
 ### Title
 
 A market or HR label (Design Strategist, AI Engineer, Context Engineer, Forward Deployed Engineer, AI Evals Engineer). **Not in this model yet.** Do not add titles as capabilities. Do not add titles as roles.
@@ -89,6 +109,9 @@ These are shape rules. Passing them does not mean the entity should exist.
 - L1-floor capabilities include `levels.L1`, `l1_guardrails`, and `l1_l2_boundary`, and omit `not_at_l1`. L2-floor capabilities include a one-sentence `not_at_l1` reason (never `TBD`, never blank), and omit `levels.L1`, `l1_guardrails`, and `l1_l2_boundary`.
 - Execution scale is exactly L1, L2, L3, plus ownership designation `Owner`.
 - Every capability sets `levels_mode`: `standard-ladder` (inherits the firm ladder) or `specific` (carries authored L1/L2/L3 copy). Default is `standard-ladder`.
+- Risk shape → `fires[].capability` must resolve; no duplicate capability inside one shape; no `dial: dormant`; `reading_order` unique across shapes.
+- Seam → `from` and `to` each resolve to exactly one domain **or** one capability, and must differ.
+- Intensity dials are exactly `dormant`, `low`, `active`, `peak`, in that order.
 
 ## Field notes
 
