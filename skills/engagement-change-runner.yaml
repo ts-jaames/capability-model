@@ -1,17 +1,19 @@
 id: engagement-change-runner
 name: Engagement Change Runner
 description: >
-  An executable pass over the source-of-truth YAML that answers "a big scope
+  An executable pass over the source-of-truth model that answers "a big scope
   shift just landed mid-delivery — now what?". Given the current engagement
   state and a change event, it re-reads the risk mix and the intensity dials,
   tests whether the change crosses the product-vision line (re-opening
   Direction qualification: proceed / redirect / stop), re-staffs against the
   bench, and produces a confidence-tiered re-estimate and the next slice to
-  attack — every claim traced to a named element of the model. It proposes;
-  owners decide. It never silently re-scopes, re-prices, or proceeds across a
-  product-vision change.
+  attack — every claim traced to a named element of the model. It reads the
+  model through the capability-model MCP server rather than carrying a copy,
+  so it cannot go stale; if the server is unavailable it stops rather than
+  reconstructing the model from memory. It proposes; owners decide. It never
+  silently re-scopes, re-prices, or proceeds across a product-vision change.
 status: draft
 owner: Operating Model
 source: original
-last_updated: 2026-09-03
+last_updated: 2026-09-05
 type: core_technique
