@@ -27,6 +27,7 @@
       "items": { "$ref": "common.json#/$defs/kebabId" }
     },
     "status": { "$ref": "common.json#/$defs/status" },
+    "visibility": { "$ref": "common.json#/$defs/visibility" },
     "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
     "source": { "$ref": "common.json#/$defs/source" },
     "last_updated": { "$ref": "common.json#/$defs/isoDate" }

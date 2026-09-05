@@ -2,7 +2,14 @@
 import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, join, resolve } from "node:path";
-import { DOMAIN_ORDER, REPO_ROOT, loadModel, modelView } from "./model.mjs";
+import {
+  DOMAIN_ORDER,
+  PUBLIC_SCOPE,
+  REPO_ROOT,
+  loadModel,
+  modelView,
+  scopeView,
+} from "./model.mjs";
 
 const ROOT = REPO_ROOT;
 const PORT = Number(process.env.PORT) || 4173;
@@ -1170,8 +1177,10 @@ function render(model, pageId = "how-it-all-relates") {
 }
 
 async function build() {
+  // site/ is published to the open web, so it only ever renders the public
+  // tier. An overlay of non-public entries can be loaded without leaking here.
   const loaded = await loadModel();
-  const model = modelView(loaded);
+  const model = scopeView(modelView(loaded), PUBLIC_SCOPE);
   model.domains = sortKnown(model.domains);
   const outDir = join(ROOT, "site");
   await mkdir(outDir, { recursive: true });

@@ -125,6 +125,7 @@ These are shape rules. Passing them does not mean the entity should exist.
 - Seam → `from` and `to` each resolve to exactly one domain **or** one capability, and must differ.
 - Intensity dials are exactly `dormant`, `low`, `active`, `peak`, in that order.
 - Definition → every `see_also` id resolves to another definition, and never to itself.
+- Every entity may set `visibility`: `public` (default), `internal`, or `confidential`. Readers filter by tier, never by caller. Leave it unset unless a human asked for a non-public entry.
 
 ## Field notes
 

@@ -22,6 +22,7 @@
     "output": { "$ref": "common.json#/$defs/nonEmptyString" },
     "reading_order": { "type": "integer", "minimum": 1 },
     "status": { "$ref": "common.json#/$defs/status" },
+    "visibility": { "$ref": "common.json#/$defs/visibility" },
     "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
     "source": { "$ref": "common.json#/$defs/source" },
     "last_updated": { "$ref": "common.json#/$defs/isoDate" },

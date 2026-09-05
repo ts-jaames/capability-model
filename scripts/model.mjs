@@ -189,3 +189,57 @@ export function modelView(loaded) {
     definitions: plain("definition"),
   };
 }
+
+export const VISIBILITY_TIERS = ["public", "internal", "confidential"];
+export const PUBLIC_SCOPE = ["public"];
+
+export function visibilityOf(entity) {
+  return entity?.visibility ?? "public";
+}
+
+// Filtering is by tier, never by who is asking. A transport that knows an
+// identity maps it to a scope and passes the scope in; nothing downstream of
+// here learns anything about the caller.
+//
+// References are filtered too, so an in-scope entity can never name an
+// out-of-scope one: a risk shape drops fires it may not show, a seam drops out
+// entirely if either end is out of scope, and see_also drops unreachable terms.
+export function scopeView(view, scope = PUBLIC_SCOPE) {
+  const allowed = new Set(scope);
+  const visible = (entity) => allowed.has(visibilityOf(entity));
+
+  const domains = view.domains.filter(visible);
+  const capabilities = view.capabilities.filter(visible);
+  const skills = view.skills.filter(visible);
+  const definitions = view.definitions.filter(visible);
+
+  const capIds = new Set(capabilities.map((cap) => cap.id));
+  const domainIds = new Set(domains.map((domain) => domain.id));
+  const skillIds = new Set(skills.map((skill) => skill.id));
+  const definitionIds = new Set(definitions.map((item) => item.id));
+
+  const refVisible = (ref) =>
+    ref?.capability ? capIds.has(ref.capability) : domainIds.has(ref?.domain);
+
+  return {
+    ...view,
+    domains,
+    capabilities: capabilities.map((cap) => ({
+      ...cap,
+      agent_skills: (cap.agent_skills ?? []).filter((item) => skillIds.has(item?.name)),
+    })),
+    skills,
+    roles: view.roles.filter(visible),
+    riskShapes: view.riskShapes.filter(visible).map((shape) => ({
+      ...shape,
+      fires: (shape.fires ?? []).filter((item) => capIds.has(item?.capability)),
+    })),
+    seams: view.seams
+      .filter(visible)
+      .filter((seam) => refVisible(seam.from) && refVisible(seam.to)),
+    definitions: definitions.map((item) => ({
+      ...item,
+      see_also: (item.see_also ?? []).filter((id) => definitionIds.has(id)),
+    })),
+  };
+}
