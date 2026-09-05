@@ -128,7 +128,7 @@ async function main() {
   check("get_intensity returns the four dials", dials.size === 4, [...dials].join(", "));
 
   for (const id of shapeIds) {
-    const shape = await client.call("get_risk_shape", { risk_shape: id });
+    const shape = await client.call("capabilities_for_risk_shape", { risk_shape: id });
     check(`risk shape ${id} resolves`, !shape.isError);
     for (const fired of shape.payload?.fires ?? []) {
       check(`${id} fires a real capability (${fired.id})`, capIds.has(fired.id));

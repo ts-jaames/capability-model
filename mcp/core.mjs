@@ -215,11 +215,9 @@ export function listRiskShapes(index) {
   };
 }
 
-export function getRiskShape(index, { risk_shape } = {}) {
-  return capabilitiesForRiskShape(index, { risk_shape });
-}
-
-// The headline query: which capabilities does this risk shape fire, at what dial.
+// The headline query: which capabilities does this risk shape fire, at what
+// dial. This is also the full record for a shape — there is deliberately no
+// second tool returning the same answer under another name.
 export function capabilitiesForRiskShape(index, { risk_shape } = {}) {
   const shape = must(index.shapeById, "risk shape", risk_shape);
   const reviewed = shape.dials_reviewed === true;
