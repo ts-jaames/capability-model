@@ -52,6 +52,24 @@ export const DOMAIN_NAME_TO_SLUG = {
 export const LEVEL_IDS = ["L1", "L2", "L3"];
 export const DIAL_IDS = ["dormant", "low", "active", "peak"];
 
+// Where a domain sits in reading order. Unknown domains sort last rather than
+// first, which is what `indexOf` would otherwise do with -1.
+export function domainRank(slug) {
+  const index = DOMAIN_ORDER.indexOf(slug);
+  return index === -1 ? DOMAIN_ORDER.length : index;
+}
+
+// YAML is authored across many lines for readability; every reader wants it
+// back as one line. Lives here so the site and the server can never render the
+// same field differently.
+export function oneLine(value) {
+  return String(value ?? "").trim().replace(/\s+/g, " ");
+}
+
+export function fileStem(file) {
+  return basename(file).replace(/\.(yaml|yml)$/, "");
+}
+
 export function overlayRoots(env = process.env) {
   return String(env.CAPABILITY_MODEL_OVERLAY ?? "")
     .split(":")
@@ -62,10 +80,6 @@ export function overlayRoots(env = process.env) {
 
 export function modelRoots(env = process.env) {
   return [REPO_ROOT, ...overlayRoots(env)];
-}
-
-function fileStem(file) {
-  return basename(file).replace(/\.(yaml|yml)$/, "");
 }
 
 function isYaml(name) {

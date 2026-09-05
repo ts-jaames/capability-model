@@ -8,6 +8,7 @@ import {
   ENTITY_TYPES,
   LEVEL_IDS,
   REPO_ROOT,
+  fileStem,
   loadModel,
 } from "./model.mjs";
 
@@ -43,10 +44,6 @@ async function loadSchemaFiles(ajv) {
     const raw = await readFile(join(REPO_ROOT, "schema", `${name}.json`), "utf8");
     ajv.addSchema(JSON.parse(raw));
   }
-}
-
-function fileStem(file) {
-  return basename(file).replace(/\.(yaml|yml)$/, "");
 }
 
 function statusOf(entity) {
