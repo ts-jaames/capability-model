@@ -59,3 +59,5 @@ CAPABILITY_MODEL_OVERLAY=/path/to/private npm run validate
 ```
 
 Nothing uses this yet. It exists so entries that cannot be published can later layer on top of this public base without either side knowing about the other. Two files claiming the same id inside one root is still an error; the same id in a later root is a deliberate override.
+
+Every entity may carry `visibility: public | internal | confidential`, defaulting to `public`. Readers filter by tier, never by who is asking. `npm run build` renders the public tier only, so an overlay of non-public entries can be loaded without anything reaching `site/` — including references: a risk shape drops fires it may not show, and a seam disappears if either end is out of scope.
