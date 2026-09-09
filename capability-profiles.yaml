@@ -1,0 +1,32 @@
+id: capability-profiles
+name: Capability profiles
+description: >
+  Who is certified to execute which capability, at which level. The firm-level
+  record behind seat staffing: each capability's Owner certifies the pool, and
+  resourcing assigns from it.
+visibility: internal
+note: >
+  STUB — no certifications recorded. Real per-person entries do not belong in
+  this repository, which is public and publishes to the open web. They belong in
+  a private overlay loaded through CAPABILITY_MODEL_OVERLAY, where this file is
+  replaced wholesale. What lives here is the shape and the rule, not the data.
+
+  The capability list is deliberately not restated below. Each `capability` is a
+  reference the validator resolves against capabilities/, so this file cannot
+  drift when a capability is added or renamed. Levels are L1, L2, or L3, from
+  the same enum every other file uses.
+
+  Shape of an entry, for whoever fills this in:
+
+    people:
+      - person: Name or stable identifier
+        certifications:
+          - capability: risk-framing
+            certified_level: L3
+            owner: true
+
+people: []
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-09
