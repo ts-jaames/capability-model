@@ -5,6 +5,7 @@ import Ajv2020 from "ajv/dist/2020.js";
 import {
   DIAL_IDS,
   DOMAIN_NAME_TO_SLUG,
+  DOMAIN_ORDER,
   ENTITY_TYPES,
   LEVEL_IDS,
   REPO_ROOT,
@@ -27,6 +28,7 @@ const SCHEMA_NAMES = [
   "title",
   "doctrine",
   "capability-profiles",
+  "capacity-model",
 ];
 
 const groups = {
@@ -132,6 +134,25 @@ function enforceCapabilityFloor(rec) {
       add("constraints", rec.file, "L1-floor requires levels.L1, L2, and L3");
     }
   }
+}
+
+// Every marker in the capacity model, with the path it sits on. The walk is
+// generic so a marker added to a new part of the file is checked without the
+// validator being taught where it lives.
+function collectMarkers(node, path = "", found = []) {
+  if (Array.isArray(node)) {
+    node.forEach((item, index) => collectMarkers(item, `${path}[${index}]`, found));
+    return found;
+  }
+  if (!node || typeof node !== "object") return found;
+  for (const [key, value] of Object.entries(node)) {
+    if (key === "confidence" && typeof value === "string") {
+      found.push({ path: path || "/", marker: value });
+      continue;
+    }
+    collectMarkers(value, `${path}/${key}`, found);
+  }
+  return found;
 }
 
 function checkLegend(ajv, legend, name, schemaName, check) {
@@ -515,6 +536,120 @@ async function main() {
         for (const id of ids) {
           if (!capabilities.has(id)) {
             add("refs", legend.file, `certified capability "${id}" does not exist`);
+          }
+        }
+      }
+    },
+  );
+
+  // The capacity model divides load by capacity, so its two scales have to be
+  // the model's own scales rather than lookalikes: the domains it counts in
+  // must be the six that exist, and the level axis must point at the firm
+  // execution scale instead of restating L1-L3. The marker rule is the honesty
+  // check — while the file is unreviewed, nothing in it may claim to be
+  // measured.
+  checkLegend(
+    ajv,
+    loaded.legends.capacityModel,
+    "capacity-model",
+    "capacity-model",
+    (legend) => {
+      const model = legend.data;
+
+      const unitDomains = (model.surface_area?.units_by_domain ?? []).map(
+        (item) => item?.domain,
+      );
+      for (const slug of unitDomains) {
+        if (slug && !domains.has(slug)) {
+          add("refs", legend.file, `units_by_domain domain "${slug}" does not exist`);
+        }
+      }
+      uniqueIds(unitDomains.filter(Boolean), legend.file, "units_by_domain");
+      if (unitDomains.join(",") !== DOMAIN_ORDER.join(",")) {
+        add(
+          "constraints",
+          legend.file,
+          `units_by_domain must cover every domain in reading order: ${DOMAIN_ORDER.join(", ")}`,
+        );
+      }
+
+      const scaleId = loaded.legends.levels?.data?.id;
+      for (const axis of ["demanded_level", "operator_caliber"]) {
+        const ref = model.axes?.[axis]?.scale_ref;
+        if (ref && scaleId && ref !== scaleId) {
+          add(
+            "refs",
+            legend.file,
+            `axes.${axis}.scale_ref "${ref}" is not the execution scale "${scaleId}" in levels.yaml`,
+          );
+        }
+      }
+
+      const capacityLevels = (model.nominal_capacity?.by_demanded_level ?? []).map(
+        (row) => row?.demanded_level,
+      );
+      if (capacityLevels.join(",") !== LEVEL_IDS.join(",")) {
+        add(
+          "constraints",
+          legend.file,
+          `nominal_capacity must cover exactly ${LEVEL_IDS.join(", ")} in that order`,
+        );
+      }
+
+      const ceiling = model.nominal_capacity?.hard_ceiling?.units;
+      const peakNominal = Math.max(
+        0,
+        ...(model.nominal_capacity?.by_demanded_level ?? []).map((row) =>
+          typeof row?.units === "number" ? row.units : 0,
+        ),
+      );
+      if (typeof ceiling === "number" && ceiling < peakNominal) {
+        add(
+          "constraints",
+          legend.file,
+          `hard_ceiling ${ceiling} is below nominal capacity ${peakNominal}, so the cap would bite a matched operator`,
+        );
+      }
+
+      const table = model.caliber_gap_rule?.multiplier_by_gap ?? [];
+      table.forEach((row, index) => {
+        if (row?.gap !== index) {
+          add(
+            "constraints",
+            legend.file,
+            `multiplier_by_gap must run from gap 0 upward with no holes; found gap ${row?.gap} at position ${index}`,
+          );
+        }
+        const previous = table[index - 1]?.multiplier;
+        if (typeof previous === "number" && row?.multiplier < previous) {
+          add(
+            "constraints",
+            legend.file,
+            `multiplier_by_gap gap ${row?.gap} multiplier ${row?.multiplier} is below gap ${index - 1}`,
+          );
+        }
+      });
+      if (table.length && table[0]?.multiplier !== 1) {
+        add(
+          "constraints",
+          legend.file,
+          "multiplier_by_gap gap 0 must be 1 — a matched operator holds nominal capacity, unmodified",
+        );
+      }
+
+      const doctrineId = model.count_derivation?.change_event_doctrine;
+      if (doctrineId && !loaded.byId.doctrine.has(doctrineId)) {
+        add("refs", legend.file, `change_event_doctrine "${doctrineId}" does not exist`);
+      }
+
+      if (model.values_reviewed !== true) {
+        for (const { path, marker } of collectMarkers(model)) {
+          if (marker === "[VALIDATED]") {
+            add(
+              "constraints",
+              legend.file,
+              `${path} is marked [VALIDATED] while values_reviewed is false — no human has reviewed these figures`,
+            );
           }
         }
       }

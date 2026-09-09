@@ -1,0 +1,232 @@
+{
+  "$id": "https://capability-model.local/schema/capacity-model.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Capacity model",
+  "description": "How demanded load converts into a seat count. The stable layer only: no engagement surface-area counts and no roster. Every numeric value carries its own confidence marker, so a placeholder cannot be read as a measurement.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "description",
+    "owner",
+    "source",
+    "last_updated",
+    "values_reviewed",
+    "note",
+    "pairing_note",
+    "surface_area",
+    "axes",
+    "nominal_capacity",
+    "caliber_gap_rule",
+    "count_derivation",
+    "economics_note"
+  ],
+  "$defs": {
+    "confidence": {
+      "description": "Per-value confidence marker. [ASSUMED] is a number written down to make the model runnable, [UNTESTED] is an unchecked claim about shape or behaviour, [VALIDATED] is reserved for a figure recovered from real delivery.",
+      "type": "string",
+      "enum": ["[ASSUMED]", "[UNTESTED]", "[VALIDATED]"]
+    },
+    "markedClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim", "confidence", "reason"],
+      "properties": {
+        "claim": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "reason": { "$ref": "common.json#/$defs/nonEmptyString" }
+      }
+    }
+  },
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "description": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "status": { "$ref": "common.json#/$defs/status" },
+    "visibility": { "$ref": "common.json#/$defs/visibility" },
+    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "source": { "$ref": "common.json#/$defs/source" },
+    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
+    "values_reviewed": { "type": "boolean", "default": false },
+    "note": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "pairing_note": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "surface_area": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "definition",
+        "measure",
+        "set_by",
+        "measure_note",
+        "cross_domain_countability",
+        "asymmetry_note",
+        "units_by_domain"
+      ],
+      "properties": {
+        "definition": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "measure": { "type": "string", "const": "concurrency" },
+        "set_by": { "type": "string", "const": "timeline" },
+        "measure_note": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "cross_domain_countability": { "$ref": "#/$defs/markedClaim" },
+        "asymmetry_note": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "units_by_domain": {
+          "description": "One entry per domain. `unresolved` is the honest value where no countable unit has been shown to exist.",
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["domain", "unit"],
+            "properties": {
+              "domain": { "$ref": "common.json#/$defs/kebabId" },
+              "unit": { "$ref": "common.json#/$defs/nonEmptyString" }
+            }
+          }
+        }
+      }
+    },
+    "axes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["demanded_level", "operator_caliber", "orthogonality_note"],
+      "properties": {
+        "demanded_level": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["property_of", "set_by", "scale_ref", "description"],
+          "properties": {
+            "property_of": { "type": "string", "const": "work" },
+            "set_by": { "$ref": "common.json#/$defs/nonEmptyString" },
+            "scale_ref": { "$ref": "common.json#/$defs/kebabId" },
+            "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+          }
+        },
+        "operator_caliber": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["property_of", "scale_ref", "description"],
+          "properties": {
+            "property_of": { "type": "string", "const": "person" },
+            "scale_ref": { "$ref": "common.json#/$defs/kebabId" },
+            "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+          }
+        },
+        "orthogonality_note": { "$ref": "common.json#/$defs/nonEmptyString" }
+      }
+    },
+    "nominal_capacity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "definition",
+        "shape_hypothesis",
+        "first_evidence_note",
+        "by_demanded_level",
+        "hard_ceiling"
+      ],
+      "properties": {
+        "definition": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "shape_hypothesis": { "$ref": "#/$defs/markedClaim" },
+        "first_evidence_note": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "by_demanded_level": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["demanded_level", "units", "confidence"],
+            "properties": {
+              "demanded_level": { "$ref": "common.json#/$defs/levelId" },
+              "units": { "type": "number", "exclusiveMinimum": 0 },
+              "confidence": { "$ref": "#/$defs/confidence" }
+            }
+          }
+        },
+        "hard_ceiling": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["units", "confidence", "reason"],
+          "properties": {
+            "units": { "type": "number", "exclusiveMinimum": 0 },
+            "confidence": { "$ref": "#/$defs/confidence" },
+            "reason": { "$ref": "common.json#/$defs/nonEmptyString" }
+          }
+        }
+      }
+    },
+    "caliber_gap_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gap_definition",
+        "below_bar",
+        "at_bar",
+        "above_bar",
+        "multiplier_by_gap",
+        "table_note"
+      ],
+      "properties": {
+        "gap_definition": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "below_bar": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "at_bar": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "above_bar": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "multiplier_by_gap": {
+          "description": "An editable lookup table, not a derived curve. A negative gap is absent on purpose: below the bar there is no seat, not a smaller one.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["gap", "multiplier", "confidence"],
+            "properties": {
+              "gap": { "type": "integer", "minimum": 0 },
+              "multiplier": { "type": "number", "minimum": 1 },
+              "confidence": { "$ref": "#/$defs/confidence" }
+            }
+          }
+        },
+        "table_note": { "$ref": "common.json#/$defs/nonEmptyString" }
+      }
+    },
+    "count_derivation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "formula",
+        "effective_capacity",
+        "outputs",
+        "promotion_note",
+        "change_event_doctrine",
+        "change_event_note"
+      ],
+      "properties": {
+        "formula": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "effective_capacity": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "outputs": {
+          "description": "Two outputs, never one: a person-agnostic ceiling and a confidence-gated floor.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "reads_as", "derived_from", "confidence_rule"],
+            "properties": {
+              "id": { "type": "string", "enum": ["demanded_count", "committed_count"] },
+              "reads_as": { "type": "string", "enum": ["ceiling", "floor"] },
+              "derived_from": { "$ref": "common.json#/$defs/nonEmptyString" },
+              "confidence_rule": { "$ref": "common.json#/$defs/nonEmptyString" }
+            }
+          }
+        },
+        "promotion_note": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "change_event_doctrine": { "$ref": "common.json#/$defs/kebabId" },
+        "change_event_note": { "$ref": "common.json#/$defs/nonEmptyString" }
+      }
+    },
+    "economics_note": { "$ref": "common.json#/$defs/nonEmptyString" }
+  }
+}

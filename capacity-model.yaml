@@ -1,0 +1,213 @@
+id: capacity-model
+name: Capacity model
+description: >
+  How demanded work-load converts into a seat count. Surface area is the unit of
+  load, nominal capacity is how much of it one matched-caliber operator holds,
+  the caliber gap adjusts that, and the count is the division. This is the
+  stable layer: the conversion only.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-09
+values_reviewed: false
+note: >
+  Every number here is a placeholder, and each one carries its own marker so a
+  reader can never mistake a guess for a measurement: `[ASSUMED]` is a number
+  someone wrote down to make the model runnable, `[UNTESTED]` is a claim about
+  shape or behaviour that nothing has checked, and `[VALIDATED]` is reserved for
+  a number recovered from real delivery. Nothing in this file is `[VALIDATED]`,
+  and while `values_reviewed` is false the validator will not let anything claim
+  to be. This mirrors `dials_reviewed` on a risk shape: the dial is a judgment
+  call, and so is every figure below.
+
+  No engagement data lives here — no real surface-area counts, no roster, no
+  seat assignments. Those are per-engagement facts and belong to the scope app
+  that reads this model, not to the model.
+pairing_note: >
+  This file is one half of a pair. It says how load converts into a count; a
+  still-missing operating-view YAML says what is being counted on a given
+  engagement and who is available to hold it. Until that file exists, every
+  count derived from this model is a shape with no inputs. Do not smuggle the
+  missing half in here as example data.
+
+surface_area:
+  definition: >
+    One independently attention-demanding unit of work at a given capability and
+    demanded level that cannot share a single operator's attention without one
+    of them degrading.
+  measure: concurrency
+  set_by: timeline
+  measure_note: >
+    Surface area counts what runs at once, not how much work there is in total.
+    Two units that never overlap are one unit of surface area; the same two
+    compressed onto one timeline are two. Shortening the timeline raises surface
+    area without adding a line of scope.
+  cross_domain_countability:
+    claim: >
+      The same unit of surface area is countable in every domain.
+    confidence: "[UNTESTED]"
+    reason: >
+      Nothing has tried it outside Building. The claim is carried here because
+      the model needs one unit to divide by, not because it has held.
+  asymmetry_note: >
+    The asymmetry is the point and must not be papered over. In Building,
+    surface area counts cleanly: a service or a critical-path stream is a
+    countable thing with an owner and a boundary. In the five judgment-heavy
+    domains, nobody has shown that the same unit survives — a framing
+    conversation and a stakeholder alignment do not obviously divide into units
+    that one operator holds one of. Those five read `unresolved` rather than a
+    borrowed number, because a plausible unit there would be the most expensive
+    kind of wrong: countable-looking and untrue.
+  units_by_domain:
+    - domain: commercial
+      unit: unresolved
+    - domain: framing
+      unit: unresolved
+    - domain: building
+      unit: services / critical-path streams
+    - domain: proof
+      unit: unresolved
+    - domain: enablement
+      unit: unresolved
+    - domain: continuity
+      unit: unresolved
+
+axes:
+  demanded_level:
+    property_of: work
+    set_by: collapse risk
+    scale_ref: execution-scale
+    description: >
+      What the work demands, expressed on the firm execution scale. L1, L2 and
+      L3 are defined once in `levels.yaml` and are deliberately not restated
+      here. What sets the demanded level is collapse risk: what breaks, and how
+      badly, if this is executed at the floor.
+  operator_caliber:
+    property_of: person
+    scale_ref: execution-scale
+    description: >
+      The ceiling of the person, on the same scale. It says what they can hold,
+      not what this work needs. Certification against a capability lives in
+      `capability-profiles.yaml`; caliber is the level that record certifies.
+  orthogonality_note: >
+    These are two axes, not one. Demanded level is a property of the work and
+    does not move when the roster changes; operator caliber is a property of the
+    person and does not move when the work gets riskier. Both are orthogonal to
+    count: knowing the work is L3 and the operator is L3 says nothing about how
+    many seats there are until surface area is known.
+
+nominal_capacity:
+  definition: >
+    How many surface-area units one matched-caliber operator holds — an operator
+    whose caliber equals the demanded level exactly. It is the denominator
+    everything else adjusts.
+  shape_hypothesis:
+    claim: >
+      Capacity declines as demanded level rises.
+    confidence: "[UNTESTED]"
+    reason: >
+      The direction is intuition and the curve is invention. Nothing has
+      measured either. The numbers below were chosen to be obviously
+      placeholder, so that a reader reaches for real data rather than trusting
+      the table.
+  first_evidence_note: >
+    Imagine is the first place to pull real numbers from, if seat-hours are
+    recoverable at capability-and-level granularity. Replacing one row with a
+    recovered number is worth more than re-guessing all three.
+  by_demanded_level:
+    - demanded_level: L1
+      units: 5
+      confidence: "[ASSUMED]"
+    - demanded_level: L2
+      units: 3
+      confidence: "[ASSUMED]"
+    - demanded_level: L3
+      units: 2
+      confidence: "[ASSUMED]"
+  hard_ceiling:
+    units: 6
+    confidence: "[ASSUMED]"
+    reason: >
+      The most surface area any single operator holds, however overqualified.
+      Attention is finite, so being three levels above the bar buys throughput
+      up to a point and then stops buying anything. The ceiling is what stops a
+      multiplier from turning one senior person into a whole team on paper.
+
+caliber_gap_rule:
+  gap_definition: operator_caliber - demanded_level
+  below_bar: >
+    A negative gap is ineligible, not reduced. Someone below the bar does not
+    hold a smaller share of the seat; there is no seat. Modelling it as reduced
+    capacity is how understaffing gets to look like arithmetic.
+  at_bar: >
+    A zero gap holds nominal capacity for that demanded level, unmodified. This
+    is the case the nominal table is written for.
+  above_bar: >
+    A positive gap multiplies capacity upward, and the result is capped by
+    `hard_ceiling` regardless of how far above the bar the operator sits.
+  multiplier_by_gap:
+    - gap: 0
+      multiplier: 1
+      confidence: "[ASSUMED]"
+    - gap: 1
+      multiplier: 1.5
+      confidence: "[ASSUMED]"
+    - gap: 2
+      multiplier: 2
+      confidence: "[ASSUMED]"
+  table_note: >
+    A lookup table on purpose, not a formula. Every row is editable and every
+    row is a guess. A derived curve would read as a finding — it would carry an
+    exponent someone could cite — when what is actually here is three numbers
+    chosen to be replaced. Add a row when a real gap of three or more turns up.
+
+count_derivation:
+  formula: count = surface_area / effective_capacity
+  effective_capacity: >
+    The nominal capacity for the demanded level, multiplied by the caliber-gap
+    multiplier for that operator, capped at `hard_ceiling`. A negative gap has
+    no effective capacity at all.
+  outputs:
+    - id: demanded_count
+      reads_as: ceiling
+      derived_from: >
+        Surface area divided by nominal capacity, with no operator in the
+        picture.
+      confidence_rule: >
+        Person-agnostic, and assumed whenever the surface area it divides is
+        assumed. It answers what the work demands, not who is available, so it
+        is a ceiling to argue with and never a number to staff against.
+    - id: committed_count
+      reads_as: floor
+      derived_from: >
+        Validated surface area only. Load that has not been validated cannot
+        raise it.
+      confidence_rule: >
+        Confidence-gated by construction. Two outputs exist rather than one
+        because a single number would have to lie in one direction or the
+        other: a ceiling reported as a commitment overstaffs, and a floor
+        reported as a demand hides the work.
+  promotion_note: >
+    Volume promotes through Concept, Validation and Commitment exactly as the
+    level axis does. Surface area starts as a concept-grade guess, gets
+    validated, and only then reaches commitment — and only the committed part
+    reaches `committed_count`.
+  change_event_doctrine: change-response
+  change_event_note: >
+    A surface-area confidence update is a staffing change event, not a
+    correction. When volume promotes, the seat count moves, and that runs
+    through the `change-response` doctrine like any other change: re-read the
+    risk, re-set the dials, re-staff, re-price, name the next slice. The
+    engagement-change-runner skill reads that doctrine rather than restating it,
+    and it proposes while owners decide.
+
+economics_note: >
+  A comment on the model, not behaviour encoded in it. Capacity permits
+  overqualified absorption: an L3 operator can hold L1 surface area up to the
+  hard ceiling, and the arithmetic above will happily say so. Permitted is not
+  default. Whether to spend an L3 on low-stakes volume is an economics and
+  opportunity-cost call that belongs to the people who can see what else that
+  operator could be doing, and it stays outside this file on purpose. Nothing
+  here may auto-assign high-caliber operators onto low-stakes volume, and any
+  reader that turns "capacity allows it" into "the model chose it" has broken
+  the rule this note exists to state.
