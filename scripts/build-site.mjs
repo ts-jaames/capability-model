@@ -424,7 +424,6 @@ function renderRolesMain(model) {
       </section>
       <section id="commercial-stack">
         <h2 class="mono uppercase eyebrow">${esc(stack.name)}</h2>
-        <p class="lede">Three layers. Only the top is sold. This is why nothing below is a title.</p>
         <div class="stack">
         ${renderDoctrine(stack, capsById)}
         </div>
@@ -444,7 +443,6 @@ function renderRolesMain(model) {
       </section>
       <section id="seat-fulfilment">
         <h2 class="mono uppercase eyebrow">${esc(fulfilment.name)}</h2>
-        <p class="lede">The owner qualifies, resourcing assigns. Kept apart so logistics can never lower a seat's level to make the staffing work.</p>
         <div class="stack">
         ${renderDoctrine(fulfilment, capsById)}
         </div>
@@ -550,17 +548,20 @@ function renderOperatingMain(model) {
       </section>
       <section id="change-response">
         <h2 class="mono uppercase eyebrow">${esc(change.name)}</h2>
-        <p class="lede">Scope shifts mid-delivery. Run it through the model in this order and the answer comes out as an instruction, not an argument.</p>
         <div class="stack">
         ${renderDoctrine(change, capsById)}
         </div>
       </section>`;
 }
 
-function figure(file, caption) {
+// `stale` marks an illustration that has not caught up with a decision. Saying
+// so under the drawing follows the same convention as the unreviewed-dials
+// note: a reader is told what is not yet true rather than shown it as fact.
+function figure(file, caption, stale) {
   const src = sitePath(`${ILLUSTRATIONS}/${file}`);
   return `<figure class="figure">
         <img src="${esc(src)}" alt="${esc(caption)}" width="1536" height="1024">
+        ${stale ? `<figcaption class="line-note">${esc(stale)}</figcaption>` : ""}
       </figure>`;
 }
 
@@ -595,7 +596,11 @@ function renderHowItRelatesMain(model) {
         <h2 class="mono uppercase eyebrow">Three verbs</h2>
         <p class="lede">Title, ownership, and seat are not three more lists. They are three verbs on the same capability: grouped under, keeps fit, executes.</p>
         <p class="lede">Title is grouped under — a bundle of owned capabilities, internal shorthand for coverage. Ownership is keeps fit — the capability you author guardrails for, internal and permanent. Seat is executes — one capability at one level, this squad, internal and dynamic. All three are internal; none of them is what the client buys.</p>
-        ${figure("03-three-verbs.png", "Three verbs on one capability")}
+        ${figure(
+          "03-three-verbs.png",
+          "Three verbs on one capability",
+          "This illustration predates the decision above: it labels Title \u201csold as\u201d. Titles are internal. Awaiting a redraw.",
+        )}
         ${to("roles-titles.html#title-ownership-seat", "Roles & Titles")}
       </section>
       <section id="seats">
@@ -607,13 +612,17 @@ function renderHowItRelatesMain(model) {
       </section>
       <section id="the-sow">
         <h2 class="mono uppercase eyebrow">What the SOW shows</h2>
-        <p class="lede">Three layers, and only the top is sold. The client buys the outcome; the capabilities at levels are how the number was reached, shown if they ask; the seats are ours to solve.</p>
+        <p class="lede">Three layers, and only the top is sold.</p>
         <ul class="bullets sow">
           ${layers}
         </ul>
         <p class="lede">${esc(oneLine(stack.rule))}</p>
-        <p class="lede">Rule of thumb: the client buys an outcome. The firm fulfils with people in seats. Neither the title nor the seat reaches the contract.</p>
-        ${figure("05-sow-window.png", "SOW shows the outcome, priced from capabilities at levels; seats stay internal")}
+        <p class="lede">Rule of thumb: the client buys an outcome, the firm fulfils it with people in seats, and the shorthand we use between the two stays on our side of the table.</p>
+        ${figure(
+          "05-sow-window.png",
+          "SOW shows the outcome, priced from capabilities at levels; seats stay internal",
+          "This illustration predates the decision above: it still shows title-lines inside the SOW as optional. They never appear. Awaiting a redraw.",
+        )}
         ${to("roles-titles.html#commercial-stack", "Roles & Titles")}
       </section>`;
 }
@@ -960,6 +969,12 @@ function render(model, pageId = "how-it-all-relates") {
       height: auto;
       background: #fff;
     }
+    .figure figcaption {
+      border-top: 1px solid var(--line);
+      margin: 0;
+      padding: 10px 12px;
+    }
+    .figure figcaption.line-note { margin: 0; }
     .to {
       margin: 0 0 8px;
     }
