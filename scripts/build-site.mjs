@@ -301,7 +301,7 @@ function renderDoctrine(doctrine, capsById) {
         ? `<p class="dim">Never: ${esc(oneLine(step.never))}</p>`
         : "";
       const caps = (step.capabilities ?? []).length
-        ? `<p class="dim">${step.capabilities.map((id) => capLink(id, capsById)).join(", ")}</p>`
+        ? `<p class="dim">Invokes: ${step.capabilities.map((id) => capLink(id, capsById)).join(", ")}</p>`
         : "";
       return kv(
         `${index + 1} · ${oneLine(step.name)}`,
@@ -430,7 +430,7 @@ function renderRolesMain(model) {
       </section>
       <section id="titles">
         <h2 class="mono uppercase eyebrow">Titles</h2>
-        <p class="lede">Each groups a bundle of owned capabilities one person can be accountable for. Peer categories, not a ladder — seniority is carried on the band and the level.</p>
+        <p class="lede">Each groups a bundle of owned capabilities that one person can be accountable for. Peer categories, not a ladder — seniority is carried on the band and the level.</p>
         <div class="stack">
         ${lines}
         </div>
