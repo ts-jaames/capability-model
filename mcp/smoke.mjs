@@ -165,6 +165,58 @@ async function main() {
     }
   }
 
+  // Titles are only useful to a caller if ownership resolves and covers the
+  // model, so the coverage invariant is asserted over the wire too.
+  const titles = await client.call("list_titles");
+  const titleList = titles.payload?.titles ?? [];
+  check("list_titles returns titles", titleList.length > 0);
+  const ownedOnce = new Map();
+  for (const title of titleList) {
+    check(`title ${title.id} owns something`, (title.owned_capabilities ?? []).length > 0);
+    check(`title ${title.id} says what it executes`, Boolean(title.executes));
+    for (const id of title.owned_capabilities ?? []) {
+      check(`title ${title.id} owns a real capability (${id})`, capIds.has(id));
+      ownedOnce.set(id, (ownedOnce.get(id) ?? 0) + 1);
+    }
+  }
+  for (const id of capIds) {
+    check(`capability ${id} is owned by exactly one title`, ownedOnce.get(id) === 1, String(ownedOnce.get(id) ?? 0));
+  }
+
+  const doctrines = await client.call("list_doctrine");
+  const doctrineIds = (doctrines.payload?.doctrine ?? []).map((item) => item.id);
+  check("list_doctrine returns doctrine", doctrineIds.length > 0);
+  for (const id of doctrineIds) {
+    const found = await client.call("get_doctrine", { doctrine: id });
+    if (!check(`doctrine ${id} resolves`, !found.isError)) continue;
+    const steps = found.payload?.steps ?? [];
+    check(`doctrine ${id} has ordered steps`, steps.length > 1);
+    steps.forEach((step, position) => {
+      check(`doctrine ${id} step ${position + 1} is in order`, step.position === position + 1);
+      check(`doctrine ${id} step "${step.name}" describes itself`, Boolean(step.description));
+      for (const cap of step.capabilities ?? []) {
+        check(`doctrine ${id} step ${step.position} cites a real capability (${cap.id})`, capIds.has(cap.id));
+      }
+    });
+  }
+
+  // The skill reads its procedure from here, so the shape it depends on is a
+  // contract: six moves, in this order, ending on the next slice.
+  const change = await client.call("get_doctrine", { doctrine: "change-response" });
+  const moves = (change.payload?.steps ?? []).map((step) => step.name);
+  check("change-response has six moves", moves.length === 6, String(moves.length));
+  check("change-response starts by re-reading the risk", moves[0] === "Re-read the risk", moves[0]);
+  check("change-response merges re-price and re-time", moves[4] === "Re-price and re-time", moves[4]);
+  check("change-response ends on the next slice", moves[5] === "Name the next slice", moves[5]);
+  check("change-response says who decides", /owners decide/i.test(change.payload?.rule ?? ""));
+
+  // Person data must never be reachable, whatever the scope this ran at.
+  const profileHit = await client.call("search", { query: "certified" });
+  check(
+    "no tool exposes capability profiles",
+    !JSON.stringify(profileHit.payload ?? {}).includes("certifications"),
+  );
+
   // Every capability answers, and the levels block stays honest either way.
   for (const id of capIds) {
     const cap = await client.call("get_capability", { capability: id });

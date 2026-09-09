@@ -49,7 +49,7 @@ Point a client at it:
 }
 ```
 
-Twelve tools, all read-only: `list_domains`, `list_capabilities`, `get_capability`, `get_levels`, `get_intensity`, `list_risk_shapes`, `capabilities_for_risk_shape`, `list_seams`, `get_seam`, `list_definitions`, `get_definition`, `search`. The headline query is `capabilities_for_risk_shape` — which capabilities does this risk shape fire, and at what dial.
+Fifteen tools, all read-only: `list_domains`, `list_capabilities`, `get_capability`, `get_levels`, `get_intensity`, `list_risk_shapes`, `capabilities_for_risk_shape`, `list_seams`, `get_seam`, `list_definitions`, `get_definition`, `list_titles`, `list_doctrine`, `get_doctrine`, `search`. The headline query is `capabilities_for_risk_shape` — which capabilities does this risk shape fire, and at what dial. `get_doctrine` is how a skill reads a procedure instead of restating it.
 
 Three files, each with one job. `mcp/core.mjs` answers questions about the model and knows nothing about transports or callers. `mcp/tools.mjs` is the tool surface: names, descriptions, argument schemas. `mcp/stdio.mjs` is the local transport and is only JSON-RPC framing. It speaks the protocol directly rather than depending on the MCP SDK, which pulls 91 packages including two HTTP frameworks and an OAuth stack that a local process reading YAML cannot use. A hosted transport would replace `stdio.mjs` alone, importing the same tools and the same core — that is when the SDK earns its place.
 
@@ -74,7 +74,10 @@ You do not need to edit YAML.
 - `skills/*.yaml` — methods used inside capabilities (`agent_skills`)
 - `risk-shapes/*.yaml` — recurring riskiest unknowns, and the capabilities each fires at a dial
 - `seams/*.yaml` — load-bearing handoffs between capabilities or domains
-- `definitions/*.yaml` — canonical terms and the confusions each one rules out (not rendered on the site)
+- `definitions/*.yaml` — canonical terms and the confusions each one rules out (rendered as the Title · Ownership · Seat layers)
+- `titles/*.yaml` — internal groupings of owned capabilities; every capability is owned by exactly one
+- `doctrine/*.yaml` — named, ordered procedures: the commercial stack, how seats get filled, what happens when the work changes
+- `capability-profiles.yaml` — who is certified to execute what, at which level. Stub, `visibility: internal`; real entries belong in a private overlay
 - `roles/interface-lead.yaml` — staffing bound example (not rendered on the site yet)
 - `schema/*.json` — the shape rules CI enforces
 - `scripts/model.mjs` — the single loader the validator, the site build, and the MCP server share
