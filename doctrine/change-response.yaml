@@ -1,0 +1,65 @@
+id: change-response
+name: When the work changes
+summary: >
+  A change lands mid-delivery. This is what it does to the shape of the work —
+  six moves, in order, ending on the first thing to attack.
+rule: >
+  It proposes. Owners decide. It never silently absorbs a vision change.
+steps:
+  - name: Re-read the risk
+    description: >
+      Which risk shapes re-fire, which newly appear, which subside. Name the new
+      riskiest unknown.
+    capabilities:
+      - risk-framing
+  - name: Re-set the dials
+    description: >
+      Per capability, the intensity shift and why. Flag dormant to active, where
+      a capability surfaces that nobody was staffing, and peak to low, where work
+      in flight may now be throwaway.
+  - name: Test the decision gate
+    description: >
+      Does the change cross the product-vision line? If it changes what the thing
+      is, it re-opens go / redirect / stop — not a change order.
+    capabilities:
+      - direction-qualification
+    never: >
+      Processing a vision change as a change order because the paperwork is
+      easier.
+  - name: Re-staff
+    description: >
+      Which seats the new dials require, at what level. Where the needed level is
+      unavailable, name the bench gap as a delivery risk rather than staffing
+      under it.
+  - name: Re-price and re-time
+    description: >
+      One question, in two currencies: what does this cost, in money and in time.
+      Emergence allowance or a new envelope — the test is whether it changes what
+      it takes to clear a gate. Tier by confidence: fixed on proven, ranged on
+      directional, gated spike on collapse risk. Name any new gate inserted. Then
+      the timeline consequence, derived not negotiated — the date holds and scope
+      flexes, the date moves by the validation spike, or the date holds and
+      confidence drops.
+    capabilities:
+      - pricing-under-uncertainty
+      - confidence-based-estimation
+      - commercial-scoping-envelope-shaping
+    never: >
+      Letting the date hold on lower confidence without saying so out loud. That
+      is the one outcome that must never be the default.
+  - name: Name the next slice
+    description: >
+      One slice, testing one assumption, with the signal defined before it is
+      built. The pass ends here because this is the point of running it — the
+      first thing to attack, not a revised estimate.
+    capabilities:
+      - slice-building
+      - signal-design
+closing_note: >
+  Seams are checked throughout rather than as a move: a change that moves work
+  across a seam without changing what crosses it is a smaller change than it
+  looks.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-09
