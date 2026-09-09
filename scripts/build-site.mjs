@@ -103,14 +103,17 @@ const PAGE_TOC = {
   ],
   "roles-titles": [
     ["#overview", "Overview"],
-    ["#external-lines", "External lines"],
+    ["#commercial-stack", "The SOW"],
+    ["#titles", "Titles"],
     ["#title-ownership-seat", "Title · Ownership · Seat"],
+    ["#seat-fulfilment", "Filling seats"],
   ],
   "operating-view": [
     ["#overview", "Overview"],
     ["#intensity", "Intensity"],
     ["#risk-shapes", "Risk shapes"],
     ["#seams", "Seams"],
+    ["#change-response", "When work changes"],
   ],
 };
 
@@ -240,29 +243,92 @@ function renderCap(cap, domains, legend) {
     </article>`;
 }
 
-function renderLine(id, name, intro, fields, note) {
-  const kvs = fields
-    .map(([label, body]) => kv(label, `<p>${esc(body)}</p>`))
-    .join("");
+function capLink(id, capsById) {
+  const cap = capsById.get(id);
+  const label = esc(cap?.name ?? id);
+  return cap ? `<a href="capability-model.html#capability-${esc(id)}">${label}</a>` : label;
+}
+
+function ownsLink(ref, capsById, domainsById) {
+  if (!ref?.domain) return capLink(ref?.capability, capsById);
+  const domain = domainsById.get(ref.domain);
+  const label = esc(domain?.name ?? ref.domain);
+  const link = domain
+    ? `<a href="capability-model.html#domain-${esc(ref.domain)}">${label}</a>`
+    : label;
+  return `${link} <span class="dim">(whole domain)</span>`;
+}
+
+function renderTitle(title, capsById, domainsById) {
+  const owns = (title.owns ?? [])
+    .map((ref) => ownsLink(ref, capsById, domainsById))
+    .join(", ");
   return `
-    <article class="row" id="${esc(id)}">
+    <article class="row" id="title-${esc(title.id)}">
       <header class="row-head">
-        <h3 class="domain-name">${esc(name)}</h3>
+        <h3 class="domain-name">${esc(title.name)}</h3>
       </header>
-      <div class="prose"><p>${esc(intro)}</p></div>
-      <div class="kvs">${kvs}</div>
-      ${note ? `<p class="line-note">${esc(note)}</p>` : ""}
+      <div class="prose"><p>${esc(oneLine(title.description))}</p></div>
+      <div class="kvs">
+        ${kv("Owns", `<p>${owns}</p>`)}
+        ${kv("Executes", `<p>${esc(oneLine(title.executes))}</p>`)}
+        ${kv("Shape", `<p>${esc(oneLine(title.shape))}</p>`)}
+      </div>
+      ${title.note ? `<p class="line-note">${esc(oneLine(title.note))}</p>` : ""}
     </article>`;
 }
 
-function renderNote(id, name, body) {
+// The Title · Ownership · Seat layers are the definition store rendered, not a
+// second copy of it, so the page cannot drift from `definitions/`.
+function renderLayer(definition) {
+  const nots = (definition.not ?? [])
+    .map((item) => `<li>${esc(oneLine(item))}</li>`)
+    .join("");
   return `
-    <article class="row" id="${esc(id)}">
+    <article class="row" id="layer-${esc(definition.id)}">
       <header class="row-head">
-        <h3 class="domain-name">${esc(name)}</h3>
+        <h3 class="domain-name">${esc(definition.term)}</h3>
       </header>
-      ${paragraphs(body)}
+      <div class="prose"><p>${esc(oneLine(definition.definition))}</p></div>
+      ${nots ? `<div class="kvs">${kv("Not", `<ul class="bullets">${nots}</ul>`)}</div>` : ""}
     </article>`;
+}
+
+function renderDoctrine(doctrine, capsById) {
+  const steps = (doctrine.steps ?? [])
+    .map((step, index) => {
+      const never = step.never
+        ? `<p class="dim">Never: ${esc(oneLine(step.never))}</p>`
+        : "";
+      const caps = (step.capabilities ?? []).length
+        ? `<p class="dim">${step.capabilities.map((id) => capLink(id, capsById)).join(", ")}</p>`
+        : "";
+      return kv(
+        `${index + 1} · ${oneLine(step.name)}`,
+        `<p>${esc(oneLine(step.description))}</p>${never}${caps}`,
+      );
+    })
+    .join("");
+  const notes = [doctrine.rule, doctrine.closing_note]
+    .filter(Boolean)
+    .map((note) => `<p class="line-note">${esc(oneLine(note))}</p>`)
+    .join("");
+  return `
+    <article class="row" id="doctrine-${esc(doctrine.id)}">
+      <div class="prose"><p>${esc(oneLine(doctrine.summary))}</p></div>
+      <div class="kvs">${steps}</div>
+      ${notes}
+    </article>`;
+}
+
+function byId(items, key = "id") {
+  return new Map(items.map((item) => [item[key], item]));
+}
+
+function requireDoctrine(model, id) {
+  const found = model.doctrine.find((item) => item.id === id);
+  if (!found) throw new Error(`Missing doctrine: ${id}`);
+  return found;
 }
 
 function dialChip(dialId, dials) {
@@ -323,103 +389,49 @@ function renderSeam(seam, capsById, domainsById) {
     </article>`;
 }
 
-function renderRolesMain() {
-  const lines = [
-    renderLine(
-      "line-product-architect",
-      "Product Architect",
-      "Owns whether it's the right thing: framed, priced, and directed honestly. Leads presales, because shaping a deal is the same judgment as delivering one.",
-      [
-        ["Owns", "Commercial, Framing."],
-        [
-          "Executes",
-          "Frames the ask to one lever; names the hard constraints and collapse risks; makes the go / redirect / stop call; shapes and prices the envelope; aligns the people who can block the work.",
-        ],
-        [
-          "Shape",
-          "Deep-T to barbell: the judgment core of an engagement, framing and commercial in one lane.",
-        ],
-      ],
-    ),
-    renderLine(
-      "line-experience-architect",
-      "Experience Architect",
-      "Owns whether the thing users touch is real and usable: a working product, not a prototype.",
-      [
-        ["Owns", "Product & interface building."],
-        [
-          "Executes",
-          "Assembles from design tokens and a component library; ships increments to live preview; owns state and edge-case behaviour; sets tokens, component contracts, and motion at depth.",
-        ],
-        ["Shape", "Deep-T: the experience layer."],
-      ],
-      "Held separate from Product Architect deliberately — a fold is possible in principle, blocked in practice by bench (we don't have strategists who also carry a designer's craft).",
-    ),
-    renderLine(
-      "line-ai-architect",
-      "AI Architect",
-      "Owns whether a probabilistic system is trustworthy: working on real data, proven before ship, safe once the client runs it.",
-      [
-        ["Owns", "AI systems engineering; autonomous-system governance."],
-        [
-          "Executes",
-          "Evaluation before architecture; models grounded in the client's corpus; deploy gated on eval evidence, not a demo; controls and stop-rules for post-handoff autonomy.",
-        ],
-        [
-          "Shape",
-          "Deep-T: the specialist consultant, narrow coverage, full judgment in the lane.",
-        ],
-      ],
-    ),
-    renderLine(
-      "line-forward-deployed-engineer",
-      "Forward Deployed Engineer",
-      "Owns whether a deterministic system is built and proven: durable, ownable, and visibly true.",
-      [
-        [
-          "Owns",
-          "Core systems, production hardening, durable delivery, slice building; all of Proof.",
-        ],
-        [
-          "Executes",
-          "Instrumented slices to test assumptions early; core systems fit to the client's stack; hardened against real load; a clean codebase the client can extend; proven against criteria set up front.",
-        ],
-        [
-          "Shape",
-          "Deep-T to barbell (build + proof, or build + AI). Highest-volume line.",
-        ],
-      ],
-    ),
-    renderLine(
-      "line-adoption-architect",
-      "Adoption Architect",
-      "Owns whether the client's people and organization can actually run and own what was built.",
-      [
-        [
-          "Owns",
-          "Capability transfer, org change & adoption, talent development; client operating-model design, transition & warranty design.",
-        ],
-        [
-          "Executes",
-          "Puts client people in the hard calls so they inherit the judgment, not just the repo; designs the adoption path against the org's real incentives and fears; leaves an operating model the team can run and a handoff with explicit dates and boundaries.",
-        ],
-        ["Shape", "Deep-T: judgment-heavy, senior."],
-      ],
-      "Proposed — weak as a standalone market line, under discussion. Held as its own line so Enablement and client-side Continuity have a home instead of hiding inside another title.",
-    ),
-  ].join("");
+function renderRolesMain(model) {
+  const { titles, capabilities, domains, definitions } = model;
+  const capsById = byId(capabilities);
+  const domainsById = byId(domains);
+  const definitionsById = byId(definitions);
+
+  const lines = [...titles]
+    .sort((a, b) => (a.reading_order ?? 99) - (b.reading_order ?? 99))
+    .map((title) => renderTitle(title, capsById, domainsById))
+    .join("");
+
+  // The five layers, in the order they read: what you group under, what you are
+  // accountable for, how deep, what you are doing now, who you are at the firm.
+  const layers = ["title", "capability-ownership", "level", "seat", "consultant-band"]
+    .map((id) => {
+      const definition = definitionsById.get(id);
+      if (!definition) throw new Error(`Missing definition: ${id}`);
+      return renderLayer(definition);
+    })
+    .join("");
+
+  const stack = requireDoctrine(model, "commercial-stack");
+  const fulfilment = requireDoctrine(model, "seat-fulfilment");
 
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
-        <p class="lede">Capabilities are the contract. Roles are the fulfillment. Title tracks coverage.</p>
-        <p class="lede">The SOW promises capabilities-at-levels (outcome-priced), never headcount. A role is internal shorthand for a person's capability-and-level profile.</p>
-        <p class="lede">An Owner is the atomic internal unit (accountable for one capability cluster's maturity). Owners compose into the external lines below; the external lines are just the common compositions with market-legible names.</p>
-        <p class="lede">A pair of single-spike Owners and one M-shaped person can fulfil the same SOW line. The contract doesn't care which.</p>
-        <p class="lede">Five external lines cover every capability, so each has a coherent home and none is a grab-bag.</p>
+        <p class="lede">Capabilities are the contract. Titles are how we group coverage internally. Seats are how we fulfil it.</p>
+        <p class="lede">The SOW promises an outcome, priced from capabilities at levels. It never promises headcount, and it never carries a title.</p>
+        <p class="lede">An Owner is the atomic internal unit, accountable for one capability staying fit for use. Titles are the common compositions of that ownership — internal shorthand, not names the market sees.</p>
+        <p class="lede">A pair of single-spike Owners and one M-shaped person can fulfil the same line. The contract doesn't care which.</p>
+        <p class="lede">Five titles cover every capability, each owned exactly once, so every capability has a coherent home and none is a grab-bag.</p>
       </section>
-      <section id="external-lines">
-        <h2 class="mono uppercase eyebrow">External lines</h2>
+      <section id="commercial-stack">
+        <h2 class="mono uppercase eyebrow">${esc(stack.name)}</h2>
+        <p class="lede">Three layers. Only the top is sold. This is why nothing below is a title.</p>
+        <div class="stack">
+        ${renderDoctrine(stack, capsById)}
+        </div>
+      </section>
+      <section id="titles">
+        <h2 class="mono uppercase eyebrow">Titles</h2>
+        <p class="lede">Each groups a bundle of owned capabilities one person can be accountable for. Peer categories, not a ladder — seniority is carried on the band and the level.</p>
         <div class="stack">
         ${lines}
         </div>
@@ -427,31 +439,14 @@ function renderRolesMain() {
       <section id="title-ownership-seat">
         <h2 class="mono uppercase eyebrow">Title · Ownership · Seat</h2>
         <div class="stack">
-        ${renderNote(
-          "layer-title",
-          "Title",
-          "How clients buy.\n\nThe market-facing line on the rate card and SOW (Product Architect, Experience Architect, AI Architect, FDE, Adoption Architect). Coarse by design: clients buy a capability line at a level, not a list of niche roles. Titles are peer categories, not a ladder — seniority is carried on the band and the level, not here.",
-        )}
-        ${renderNote(
-          "layer-ownership",
-          "Capability ownership",
-          "What you're accountable for.\n\nThe atomic, permanent unit. An Owner keeps a capability cluster fit: authors the guardrails, prompt packs, and templates, and sets the standard others execute against. This is a person's durable identity, and where progression lives. You advance by deepening ownership and building the assets the firm runs on, not by billing more hours.",
-        )}
-        ${renderNote(
-          "layer-level",
-          "Level",
-          "How deeply, per capability.\n\nL1 guided, L2 solo, L3 sets the standard. Per-capability, not per-person — the same person can be L3 in one capability and L1 in another they're growing into. The level on the external line is what a client buys and what sets the price (\"Product Architect, L3\").",
-        )}
-        ${renderNote(
-          "layer-seat",
-          "Project seat",
-          "What you're doing now.\n\nThe role you occupy on a specific squad for a specific slice of work. Seats shift within an engagement as the work changes; the same person may sit Slice Builder one sprint and Governance Lead the next. Because seats are activated by what the work needs, their catalog lives in the operating view, not here.",
-        )}
-        ${renderNote(
-          "layer-band",
-          "Consultant band",
-          "Who you are at the firm.\n\nThe whole-person HR identity — Senior Consultant, Principal Consultant. This is where career seniority lives: comp, progression band, the title on an offer letter. It correlates with level (a Principal is typically L3 in their owned capabilities) but never collapses into it — the band is per-person, the level is per-capability. Seniority didn't disappear from the model; it moved here, out of the market-facing title, so what a client buys and how senior you are can be stated separately.",
-        )}
+        ${layers}
+        </div>
+      </section>
+      <section id="seat-fulfilment">
+        <h2 class="mono uppercase eyebrow">${esc(fulfilment.name)}</h2>
+        <p class="lede">The owner qualifies, resourcing assigns. Kept apart so logistics can never lower a seat's level to make the staffing work.</p>
+        <div class="stack">
+        ${renderDoctrine(fulfilment, capsById)}
         </div>
       </section>`;
 }
@@ -489,6 +484,19 @@ function renderOperatingMain(model) {
 
   const dialsDraft = riskShapes.some((shape) => shape.dials_reviewed !== true);
 
+  const questionRows = (intensity?.risk_questions ?? [])
+    .map(
+      (item) =>
+        `<tr>
+              <td><strong>${esc(oneLine(item.question))}</strong></td>
+              <td>${esc(item.answers_to === "level" ? "Level" : "Intensity")}</td>
+              <td>${esc(oneLine(item.behaviour))}</td>
+            </tr>`,
+    )
+    .join("");
+
+  const change = requireDoctrine(model, "change-response");
+
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Operating View</h1>
@@ -498,6 +506,20 @@ function renderOperatingMain(model) {
       <section id="intensity">
         <h2 class="mono uppercase eyebrow">Intensity</h2>
         <p class="lede">Every capability sits on a four-step dial at all times. The live risk mix moves the dials.</p>
+        <p class="lede">A risk is two questions, and they answer to different scales. Conflating them is what makes a risk register unreadable.</p>
+        <table class="hairline-table">
+          <thead>
+            <tr>
+              <th>Question</th>
+              <th>Answers to</th>
+              <th>Behaviour</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${questionRows}
+          </tbody>
+        </table>
+        <p class="lede">${esc(oneLine(intensity?.dial_placement))}</p>
         <table class="hairline-table">
           <thead>
             <tr>
@@ -525,6 +547,13 @@ function renderOperatingMain(model) {
         <div class="stack">
         ${seams}
         </div>
+      </section>
+      <section id="change-response">
+        <h2 class="mono uppercase eyebrow">${esc(change.name)}</h2>
+        <p class="lede">Scope shifts mid-delivery. Run it through the model in this order and the answer comes out as an instruction, not an argument.</p>
+        <div class="stack">
+        ${renderDoctrine(change, capsById)}
+        </div>
       </section>`;
 }
 
@@ -539,7 +568,15 @@ function to(href, label) {
   return `<p class="to"><a href="${esc(href)}">${esc(label)} →</a></p>`;
 }
 
-function renderHowItRelatesMain() {
+function renderHowItRelatesMain(model) {
+  const stack = requireDoctrine(model, "commercial-stack");
+  const layers = (stack.steps ?? [])
+    .map(
+      (step) =>
+        `<li><strong>${esc(oneLine(step.name))}.</strong> ${esc(oneLine(step.description))}</li>`,
+    )
+    .join("");
+
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">How it all relates</h1>
@@ -556,8 +593,8 @@ function renderHowItRelatesMain() {
       </section>
       <section id="three-verbs">
         <h2 class="mono uppercase eyebrow">Three verbs</h2>
-        <p class="lede">Title, ownership, and seat are not three more lists. They are three verbs on the same capability: sold as, keeps fit, executes.</p>
-        <p class="lede">Title is sold as — a bundle of capabilities, external and coarse. Ownership is keeps fit — the capabilities you author guardrails for, internal and permanent. Seat is executes — one capability at one level, this squad, internal and dynamic.</p>
+        <p class="lede">Title, ownership, and seat are not three more lists. They are three verbs on the same capability: grouped under, keeps fit, executes.</p>
+        <p class="lede">Title is grouped under — a bundle of owned capabilities, internal shorthand for coverage. Ownership is keeps fit — the capability you author guardrails for, internal and permanent. Seat is executes — one capability at one level, this squad, internal and dynamic. All three are internal; none of them is what the client buys.</p>
         ${figure("03-three-verbs.png", "Three verbs on one capability")}
         ${to("roles-titles.html#title-ownership-seat", "Roles & Titles")}
       </section>
@@ -570,14 +607,14 @@ function renderHowItRelatesMain() {
       </section>
       <section id="the-sow">
         <h2 class="mono uppercase eyebrow">What the SOW shows</h2>
-        <p class="lede">The contract buys the spine: capabilities at levels. That is the outcome-priced deliverable (Framing L3, Interface L2). Title-lines may appear as optional packaging on the rate card, because clients want a familiar unit to buy — shorthand for the capabilities underneath. Seats never appear. They are internal assembly: how we staff the runtime.</p>
+        <p class="lede">Three layers, and only the top is sold. The client buys the outcome; the capabilities at levels are how the number was reached, shown if they ask; the seats are ours to solve.</p>
         <ul class="bullets sow">
-          <li><strong>Yes — capabilities at levels.</strong> Contracted. This is what the SOW guarantees.</li>
-          <li><strong>Sometimes — title-lines.</strong> Optional packaging, not a second deliverable.</li>
-          <li><strong>Never — seats.</strong> Pure internal squad assembly. Not on the contract.</li>
+          ${layers}
         </ul>
-        <p class="lede">Rule of thumb: the client buys capabilities. The firm fulfils with people in seats. Title is the shorthand between them.</p>
-        ${figure("05-sow-window.png", "SOW shows capabilities at levels, optional titles, never seats")}
+        <p class="lede">${esc(oneLine(stack.rule))}</p>
+        <p class="lede">Rule of thumb: the client buys an outcome. The firm fulfils with people in seats. Neither the title nor the seat reaches the contract.</p>
+        ${figure("05-sow-window.png", "SOW shows the outcome, priced from capabilities at levels; seats stay internal")}
+        ${to("roles-titles.html#commercial-stack", "Roles & Titles")}
       </section>`;
 }
 
