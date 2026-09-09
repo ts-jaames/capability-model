@@ -1,0 +1,20 @@
+id: product-architect
+name: Product Architect
+description: >
+  Owns whether it's the right thing: framed, priced, and directed honestly.
+  Leads presales, because shaping a deal is the same judgment as delivering one.
+reading_order: 1
+owns:
+  - domain: commercial
+  - domain: framing
+executes: >
+  Frames the ask to one lever; names the hard constraints and collapse risks;
+  makes the go / redirect / stop call; shapes and prices the envelope; aligns
+  the people who can block the work.
+shape: >
+  Deep-T to barbell: the judgment core of an engagement, framing and commercial
+  in one lane.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-09

@@ -1,0 +1,18 @@
+id: ai-architect
+name: AI Architect
+description: >
+  Owns whether a probabilistic system is trustworthy: working on real data,
+  proven before ship, safe once the client runs it.
+reading_order: 3
+owns:
+  - capability: ai-systems-engineering
+  - capability: autonomous-system-governance
+executes: >
+  Evaluation before architecture; models grounded in the client's corpus; deploy
+  gated on eval evidence, not a demo; controls and stop-rules for post-handoff
+  autonomy.
+shape: "Deep-T: the specialist consultant, narrow coverage, full judgment in the lane."
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-09
