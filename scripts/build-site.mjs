@@ -94,6 +94,8 @@ const PAGE_TOC = {
   "how-it-all-relates": [
     ["#overview", "One list"],
     ["#the-spine", "The spine"],
+    ["#two-questions", "Two questions"],
+    ["#surface-area", "Surface area"],
     ["#three-verbs", "Three verbs"],
     ["#seats", "Seats"],
     ["#the-sow", "The SOW"],
@@ -570,6 +572,20 @@ function to(href, label) {
   return `<p class="to"><a href="${esc(href)}">${esc(label)} →</a></p>`;
 }
 
+// A page may never claim more confidence than the model records, so the bracket
+// marker is read from capacity-model.yaml rather than written into the prose.
+function confidenceMarker(value, qualifier) {
+  const token = String(value ?? "")
+    .replace(/^\[|\]$/g, "")
+    .trim();
+  if (!token) {
+    throw new Error(
+      "Missing confidence marker in capacity-model.yaml. Run npm run validate.",
+    );
+  }
+  return qualifier ? `[${token}; ${qualifier}]` : `[${token}]`;
+}
+
 function renderHowItRelatesMain(model) {
   const stack = requireDoctrine(model, "commercial-stack");
   const layers = (stack.steps ?? [])
@@ -579,11 +595,21 @@ function renderHowItRelatesMain(model) {
     )
     .join("");
 
+  const capacity = model.capacityModel;
+  const capacityShape = confidenceMarker(
+    capacity?.nominal_capacity?.shape_hypothesis?.confidence,
+    "to be calibrated from a real engagement",
+  );
+  const countability = confidenceMarker(
+    capacity?.surface_area?.cross_domain_countability?.confidence,
+  );
+
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">How it all relates</h1>
         <p class="lede">Domains, capabilities, levels, roles, titles, seats. That looks like six lists. It is one list. Everything else is a way of pointing at it.</p>
         <p class="lede">The convolution comes from treating those six words as six things to keep. Domains and capabilities are the list. Levels are how a capability is executed. Roles, titles, and seats are people pointing at it — not parallel inventories.</p>
+        <p class="lede">The count we now attach to a seat is not a seventh list. It's a quantity on one entry, not a new inventory to keep.</p>
         ${figure("01-one-list.png", "One list, not several lists")}
       </section>
       <section id="the-spine">
@@ -593,6 +619,19 @@ function renderHowItRelatesMain(model) {
         ${figure("02-the-spine.png", "Capability assembled at a level")}
         ${to("capability-model.html", "Capability Model")}
       </section>
+      <section id="two-questions">
+        <h2 class="mono uppercase eyebrow">Two questions, not one</h2>
+        <p class="lede">A seat is set by two questions that do different jobs. How much rides on this sets the level. How much of it there is sets the count. Neither answers the other.</p>
+        <p class="lede">Level is depth of judgment, fixed by collapse risk. Count is volume, fixed by how much of the work there is. A bigger project does not raise the level — it raises the count at whatever level the risk already fixed. This is the answer to whether scale changes the level: it doesn't. Scale is a count question; level is a risk question. They're orthogonal.</p>
+        <p class="lede">L3×1, L1×5, and L2×3 are all coherent seats — one deep expert on the thing that can't fail, many hands on routine surface, or moderate stakes with more of it than one seat can carry.</p>
+      </section>
+      <section id="surface-area">
+        <h2 class="mono uppercase eyebrow">Surface area</h2>
+        <p class="lede">Count comes from surface area — how much of a capability-at-level the work demands, divided by how much one seat can hold.</p>
+        <p class="lede">Surface area is the number of independently attention-demanding units at a capability×level — units that can't share one operator's attention without one of them degrading. It's a concurrency measure, set by the timeline: two things on separate critical paths are two units; the same work done serially is fewer.</p>
+        <p class="lede">What one seat holds depends on the level and on who's in it. Nominal capacity falls as the level rises — higher stakes tax attention per unit ${esc(capacityShape)}. And an overqualified operator covers more, up to a hard ceiling, because the work is easy for them.</p>
+        <p class="lede">One flag stays open: surface area counts cleanly in engineering (services, streams), but whether the same unit survives in the judgment-heavy domains — Framing, Proof, Commercial, Enablement, Continuity — is ${esc(countability)}. Named and unresolved, not assumed closed.</p>
+      </section>
       <section id="three-verbs">
         <h2 class="mono uppercase eyebrow">Three verbs</h2>
         <p class="lede">Title, ownership, and seat are not three more lists. They are three verbs on the same capability: grouped under, keeps fit, executes.</p>
@@ -601,8 +640,9 @@ function renderHowItRelatesMain(model) {
       </section>
       <section id="seats">
         <h2 class="mono uppercase eyebrow">A seat is runtime</h2>
-        <p class="lede">A seat is a capability-at-level with a person in it, on this engagement. That is a runtime instance, not a second list. We sell the capability at a level, not a headcount.</p>
-        <p class="lede">One person can staff it, or several people together can make up that capability at the level needed, depending on resources. Seat names can churn. The capability underneath does not.</p>
+        <p class="lede">A seat is a capability at a level, with a count, filled by a person or people, on this engagement. That's a runtime instance — and the count isn't a new list, it's how many times we instantiate one entry.</p>
+        <p class="lede">The count is confidence-gated, same as everything else. Before the work can prove the load, the count is assumed — a demanded ceiling estimated at intake, the least-validated moment we have, when we don't yet know what we don't know. As surface area validates during the work, a committed floor emerges.</p>
+        <p class="lede">We stand behind the floor and watch the ceiling; a surface-area update re-derives the count mid-engagement. One person can hold the seat, or several people who each clear the bar can make up the count together. Seat names churn. The capability underneath does not.</p>
         ${figure("04-seat-is-runtime.png", "One capability, staffed one or several ways")}
         ${to("operating-view.html", "Operating View")}
       </section>
@@ -612,7 +652,10 @@ function renderHowItRelatesMain(model) {
         <ul class="bullets sow">
           ${layers}
         </ul>
-        <p class="lede">${esc(oneLine(stack.rule))}</p>
+        ${[stack.rule, stack.closing_note]
+          .filter(Boolean)
+          .map((note) => `<p class="lede">${esc(oneLine(note))}</p>`)
+          .join("\n        ")}
         <p class="lede">Rule of thumb: the client buys an outcome, the firm fulfils it with people in seats, and the shorthand we use between the two stays on our side of the table.</p>
         ${to("roles-titles.html#commercial-stack", "Roles & Titles")}
       </section>`;
