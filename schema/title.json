@@ -1,0 +1,37 @@
+{
+  "$id": "https://capability-model.local/schema/title.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Title",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "description",
+    "owns",
+    "executes",
+    "shape",
+    "owner",
+    "source",
+    "last_updated"
+  ],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "description": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "status": { "$ref": "common.json#/$defs/status" },
+    "visibility": { "$ref": "common.json#/$defs/visibility" },
+    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "source": { "$ref": "common.json#/$defs/source" },
+    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
+    "reading_order": { "type": "integer", "minimum": 1 },
+    "owns": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "common.json#/$defs/modelRef" }
+    },
+    "executes": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "shape": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "note": { "$ref": "common.json#/$defs/nonEmptyString" }
+  }
+}

@@ -22,6 +22,22 @@
     "source": { "$ref": "common.json#/$defs/source" },
     "last_updated": { "$ref": "common.json#/$defs/isoDate" },
     "floor_note": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "dial_placement": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "risk_questions": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["question", "answers_to", "behaviour"],
+        "properties": {
+          "question": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "answers_to": { "type": "string", "enum": ["level", "intensity"] },
+          "behaviour": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    },
     "dials": {
       "type": "array",
       "minItems": 4,
