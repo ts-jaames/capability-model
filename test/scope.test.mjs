@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { PUBLIC_SCOPE, scopeView } from "../scripts/model.mjs";
 
-function view({ domainVisibility, capVisibility } = {}) {
+function view({ domainVisibility, capVisibility, capacityVisibility } = {}) {
   return {
     levels: null,
     intensity: null,
@@ -73,6 +73,11 @@ function view({ domainVisibility, capVisibility } = {}) {
         ],
       },
     ],
+    capacityModel: {
+      id: "capacity-model",
+      values_reviewed: false,
+      visibility: capacityVisibility,
+    },
     profiles: {
       id: "capability-profiles",
       visibility: "internal",
@@ -172,6 +177,16 @@ test("an internal legend is absent at public scope and present when widened", ()
     wide.profiles.people[0].certifications.map((item) => item.capability),
     ["slice-building", "capability-transfer"],
   );
+});
+
+// The capacity model is public today, so the check that matters is that it
+// obeys the tier it is given rather than the tier it happens to have.
+test("the capacity model is scoped like any other legend", () => {
+  assert.equal(scopeView(view(), PUBLIC_SCOPE).capacityModel.id, "capacity-model");
+  const hidden = scopeView(view({ capacityVisibility: "internal" }), PUBLIC_SCOPE);
+  assert.equal(hidden.capacityModel, null);
+  const wide = scopeView(view({ capacityVisibility: "internal" }), ["public", "internal"]);
+  assert.equal(wide.capacityModel.id, "capacity-model");
 });
 
 test("a visible profile still drops certifications for hidden capabilities", () => {

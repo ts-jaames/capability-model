@@ -110,10 +110,12 @@ Which capabilities a seat **owns** (max 2, Owner accountability) vs can **execut
 - Read this file, `levels.yaml`, and existing YAML before adding files.
 - Filename stem must equal `id` (kebab-case). Capabilities omit `id`; the stem **is** the id.
 - Capability files live at `capabilities/<domain-slug>/<kebab-id>.yaml`. `domain` in YAML is the display name (`Building`, not `building`).
-- Risk shapes live at `risk-shapes/<kebab-id>.yaml`, seams at `seams/<kebab-id>.yaml`, definitions at `definitions/<kebab-id>.yaml`, titles at `titles/<kebab-id>.yaml`, doctrine at `doctrine/<kebab-id>.yaml`. `intensity.yaml` is the dial legend, beside `levels.yaml`.
+- Risk shapes live at `risk-shapes/<kebab-id>.yaml`, seams at `seams/<kebab-id>.yaml`, definitions at `definitions/<kebab-id>.yaml`, titles at `titles/<kebab-id>.yaml`, doctrine at `doctrine/<kebab-id>.yaml`. `intensity.yaml` is the dial legend and `capacity-model.yaml` is the load-to-count conversion, both beside `levels.yaml`.
 - Set `status: draft` on skills, domains, roles, risk shapes, seams, definitions, titles, and doctrine. Capabilities omit `status`; tooling treats missing status as `draft`. Never write `reviewed` or `ratified` unless a human explicitly asked to promote that file.
 - `capability-profiles.yaml` records who is certified to execute what, at which level. It is `visibility: internal` and never reaches the site. Real per-person entries belong in a private overlay, not here — this repo is public. Do not invent anyone's certification.
 - Leave `dials_reviewed: false` on a risk shape unless a human has explicitly reviewed that shape's dial values. The dial is a judgment call, and pretending otherwise is the failure this model exists to prevent.
+- `capacity-model.yaml` records how demanded load converts into a seat count, and nothing else. It is the stable layer: no engagement surface-area counts, no roster, no seat assignments — those are per-engagement facts for the scope app that reads the model. Do not add example data to make it look populated.
+- Every number in `capacity-model.yaml` carries its own `confidence` marker: `[ASSUMED]` for a figure written down to make the model runnable, `[UNTESTED]` for an unchecked claim about shape or behaviour, `[VALIDATED]` only for a figure recovered from real delivery. Leave `values_reviewed: false` and never write `[VALIDATED]` unless a human has reviewed that figure — the same rule as `dials_reviewed`, applied one value at a time.
 - Keep YAML readable for non-engineers. Prefer short sentences and lists.
 - Run `npm run validate` after edits. Fix every error before finishing. If you touched `scripts/model.mjs` or `mcp/`, run `npm test` and `npm run mcp:smoke` too.
 
@@ -147,6 +149,8 @@ These are shape rules. Passing them does not mean the entity should exist.
 - **Every capability is owned by exactly one title**, counting domain ownership. An unowned capability and a doubly-owned one are both errors. This is what makes "the five titles cover everything, and none is a grab-bag" a checked claim rather than a stated one — so adding a title means moving ownership, not appending.
 - Doctrine → step names unique within a file, and every `steps[].capabilities` id resolves.
 - Capability profiles → every certified `capability` resolves and is listed once per person.
+- Capacity model → `units_by_domain` covers the six domains exactly once in reading order and each resolves; both axes' `scale_ref` is the execution scale in `levels.yaml`; `nominal_capacity` covers exactly L1, L2, L3 in that order; `hard_ceiling` is not below nominal capacity; `multiplier_by_gap` runs from gap 0 upward with no holes, never decreasing, and gap 0 is exactly 1; `change_event_doctrine` resolves to a doctrine.
+- While `capacity-model.yaml` has `values_reviewed: false`, no value in it may be marked `[VALIDATED]`. This is the one check that makes "nothing here is measured" enforced rather than claimed.
 - Every entity may set `visibility`: `public` (default), `internal`, or `confidential`. Readers filter by tier, never by caller. Leave it unset unless a human asked for a non-public entry. Containment cascades: hiding a domain hides every capability inside it.
 
 ## Field notes
@@ -157,6 +161,7 @@ These are shape rules. Passing them does not mean the entity should exist.
 - Per-capability `levels` is how that capability is executed. `levels_mode: standard-ladder` means it inherits the firm ladder (defined once in `levels.yaml`); `levels_mode: specific` means the authored L1/L2/L3 copy is the real thing. `l1_l2_boundary` is required on L1-floor capabilities. `levels.yaml` remains the agency-wide legend. Still no L1–L3 on domains or skill files.
 - `agent_skills[].name` is a skill file stem. Do not invent SKILL.md names. Map only skills that already exist in `skills/`.
 - Role `owned_capabilities` are kebab ids (Owner accountability). `executable_capabilities` are `{ id, required_level }` with `required_level` L1–L3.
+- Capacity model `demanded_level` is a property of the work, set by collapse risk; `operator_caliber` is a property of the person, their ceiling. Two axes, orthogonal to each other and both orthogonal to count. A caliber gap below zero is ineligible — no seat, not a smaller one. `demanded_count` is a person-agnostic ceiling; `committed_count` is a floor derived only from validated surface area. Both are emitted; neither replaces the other.
 
 ## Contribution path
 
