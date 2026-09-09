@@ -83,7 +83,7 @@ async function main() {
   // Read once at boot. The model is a git artifact, so edits arrive by restart.
   const index = await loadIndex({ scope });
   console.error(
-    `capability-model MCP: ${index.capabilities.length} capabilities, ${index.riskShapes.length} risk shapes, ${index.seams.length} seams, ${index.definitions.length} definitions`,
+    `capability-model MCP: ${index.capabilities.length} capabilities, ${index.riskShapes.length} risk shapes, ${index.seams.length} seams, ${index.definitions.length} definitions, ${index.titles.length} titles, ${index.doctrine.length} doctrine`,
   );
   console.error(`  roots: ${index.roots.join(", ")}`);
   console.error(`  scope: ${scope.join(", ")}`);

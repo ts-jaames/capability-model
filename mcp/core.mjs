@@ -72,6 +72,10 @@ export function indexModel(view, roots = []) {
     skills: view.skills,
     seams: view.seams,
     definitions: [...view.definitions].sort((a, b) => a.id.localeCompare(b.id)),
+    titles: [...view.titles].sort(
+      (a, b) => (a.reading_order ?? 99) - (b.reading_order ?? 99) || a.id.localeCompare(b.id),
+    ),
+    doctrine: [...view.doctrine].sort((a, b) => a.id.localeCompare(b.id)),
     levels: view.levels,
     intensity: view.intensity,
     domainById: byId(view.domains),
@@ -80,6 +84,8 @@ export function indexModel(view, roots = []) {
     shapeById: byId(view.riskShapes),
     seamById: byId(view.seams),
     definitionById: byId(view.definitions),
+    titleById: byId(view.titles),
+    doctrineById: byId(view.doctrine),
     dialById: byId(view.intensity?.dials ?? []),
     ladderById: byId(view.levels?.execution_levels ?? []),
   };
@@ -319,12 +325,78 @@ export function getDefinition(index, { term } = {}) {
   };
 }
 
+// Ownership is expanded here rather than left as refs: a caller asking which
+// title owns a capability should not have to resolve domains itself.
+function ownedCapabilityIds(title, index) {
+  const ids = [];
+  for (const ref of title.owns ?? []) {
+    if (ref?.capability) ids.push(ref.capability);
+    else if (ref?.domain) ids.push(...(index.capabilityIdsByDomain.get(ref.domain) ?? []));
+  }
+  return ids;
+}
+
+export function listTitles(index) {
+  return {
+    count: index.titles.length,
+    titles: index.titles.map((title) => ({
+      id: title.id,
+      name: title.name,
+      description: oneLine(title.description),
+      owns: title.owns ?? [],
+      owned_capabilities: ownedCapabilityIds(title, index),
+      executes: oneLine(title.executes),
+      shape: oneLine(title.shape),
+      note: title.note ? oneLine(title.note) : undefined,
+    })),
+  };
+}
+
+export function listDoctrine(index) {
+  return {
+    count: index.doctrine.length,
+    doctrine: index.doctrine.map((item) => ({
+      id: item.id,
+      name: item.name,
+      summary: oneLine(item.summary),
+      steps: (item.steps ?? []).length,
+    })),
+  };
+}
+
+export function getDoctrine(index, { doctrine } = {}) {
+  const item = must(index.doctrineById, "doctrine", doctrine);
+  return {
+    id: item.id,
+    name: item.name,
+    summary: oneLine(item.summary),
+    rule: item.rule ? oneLine(item.rule) : undefined,
+    steps: (item.steps ?? []).map((step, position) => ({
+      position: position + 1,
+      name: step.name,
+      description: oneLine(step.description),
+      never: step.never ? oneLine(step.never) : undefined,
+      capabilities: (step.capabilities ?? []).map((id) => ({
+        id,
+        name: index.capabilityById.get(id)?.name,
+      })),
+    })),
+    closing_note: item.closing_note ? oneLine(item.closing_note) : undefined,
+  };
+}
+
 const SEARCHABLE = [
   ["capability", "capabilities", (cap) => [cap.name, cap.promise, cap.client_experience, cap.sparq_how]],
   ["risk-shape", "riskShapes", (shape) => [shape.name, shape.question, shape.output]],
   ["seam", "seams", (seam) => [seam.what_crosses, seam.not, seam.violated_by]],
   ["definition", "definitions", (item) => [item.term, item.definition, ...(item.not ?? [])]],
   ["skill", "skills", (skill) => [skill.name, skill.description]],
+  ["title", "titles", (title) => [title.name, title.description, title.executes]],
+  [
+    "doctrine",
+    "doctrine",
+    (item) => [item.name, item.summary, ...(item.steps ?? []).map((step) => step.name)],
+  ],
 ];
 
 // Stops at the first field that matches rather than normalising every field of

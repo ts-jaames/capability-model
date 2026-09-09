@@ -11,14 +11,17 @@ import {
   capabilitiesForRiskShape,
   getCapability,
   getDefinition,
+  getDoctrine,
   getIntensity,
   getLevels,
   getSeam,
   listCapabilities,
   listDefinitions,
+  listDoctrine,
   listDomains,
   listRiskShapes,
   listSeams,
+  listTitles,
   search,
 } from "./core.mjs";
 
@@ -118,9 +121,33 @@ export const TOOLS = [
     run: (index, args) => getDefinition(index, args),
   },
   {
+    name: "list_titles",
+    description:
+      "The five titles: internal groupings of owned capabilities, with the capabilities each owns expanded. A title is not a commercial artefact — it never appears on a SOW or a rate card.",
+    inputSchema: noArgs,
+    run: (index) => listTitles(index),
+  },
+  {
+    name: "list_doctrine",
+    description:
+      "List the named procedures the firm follows — the commercial stack, how seats get filled, what happens when the work changes.",
+    inputSchema: noArgs,
+    run: (index) => listDoctrine(index),
+  },
+  {
+    name: "get_doctrine",
+    description:
+      "One doctrine in full: its ordered steps, the capabilities each step invokes, and the rule that governs it. Read the procedure from here rather than restating it, so a skill and this model cannot drift apart.",
+    inputSchema: oneArg(
+      "doctrine",
+      "Doctrine id: commercial-stack, seat-fulfilment, change-response.",
+    ),
+    run: (index, args) => getDoctrine(index, args),
+  },
+  {
     name: "search",
     description:
-      "Free-text search across capabilities, risk shapes, seams, definitions, and skills.",
+      "Free-text search across capabilities, risk shapes, seams, definitions, skills, titles, and doctrine.",
     inputSchema: {
       type: "object",
       properties: {
@@ -129,7 +156,15 @@ export const TOOLS = [
           type: "array",
           items: {
             type: "string",
-            enum: ["capability", "risk-shape", "seam", "definition", "skill"],
+            enum: [
+              "capability",
+              "risk-shape",
+              "seam",
+              "definition",
+              "skill",
+              "title",
+              "doctrine",
+            ],
           },
         },
         limit: { type: "integer", minimum: 1, maximum: 100 },
