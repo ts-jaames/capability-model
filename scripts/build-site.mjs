@@ -608,7 +608,7 @@ function renderHowItRelatesMain(model) {
       </section>
       <section id="the-sow">
         <h2 class="mono uppercase eyebrow">What the SOW shows</h2>
-        <p class="lede">Three layers, and only the top is sold.</p>
+        <p class="lede">${esc(oneLine(stack.summary))}</p>
         <ul class="bullets sow">
           ${layers}
         </ul>
