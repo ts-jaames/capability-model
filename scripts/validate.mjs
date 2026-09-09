@@ -392,7 +392,136 @@ async function main() {
     }
   }
 
-  const titles = {
+  // A title owns capabilities directly or by owning a whole domain. Coverage is
+  // the point of the type: exactly one owner per capability, so no title
+  // becomes a grab-bag and no capability becomes an orphan.
+  const capabilityIdsByDomain = new Map();
+  for (const [id, rec] of capabilities) {
+    const slug = DOMAIN_NAME_TO_SLUG[rec.data?.domain];
+    if (!slug) continue;
+    if (!capabilityIdsByDomain.has(slug)) capabilityIdsByDomain.set(slug, []);
+    capabilityIdsByDomain.get(slug).push(id);
+  }
+
+  const ownedBy = new Map();
+  const titleOrders = new Map();
+  for (const rec of loaded.records.title) {
+    const title = rec.data;
+    if (!title || typeof title !== "object") continue;
+
+    const owns = title.owns ?? [];
+    const ownedDomains = new Set();
+    const seen = new Set();
+
+    for (const ref of owns) {
+      const key = ref?.domain ? `domain "${ref.domain}"` : `capability "${ref?.capability}"`;
+      if (seen.has(key)) add("constraints", rec.file, `owns lists ${key} twice`);
+      seen.add(key);
+
+      let claimed = [];
+      if (ref?.domain) {
+        if (!domains.has(ref.domain)) {
+          add("refs", rec.file, `owned domain "${ref.domain}" does not exist`);
+          continue;
+        }
+        ownedDomains.add(ref.domain);
+        claimed = capabilityIdsByDomain.get(ref.domain) ?? [];
+      } else if (ref?.capability) {
+        if (!capabilities.has(ref.capability)) {
+          add("refs", rec.file, `owned capability "${ref.capability}" does not exist`);
+          continue;
+        }
+        claimed = [ref.capability];
+      }
+      for (const id of claimed) {
+        if (!ownedBy.has(id)) ownedBy.set(id, []);
+        ownedBy.get(id).push(title.id ?? rec.file);
+      }
+    }
+
+    // Naming a capability and its whole domain says the same thing twice, and
+    // hides which one was meant.
+    for (const ref of owns) {
+      if (!ref?.capability) continue;
+      const slug = DOMAIN_NAME_TO_SLUG[capabilities.get(ref.capability)?.data?.domain];
+      if (slug && ownedDomains.has(slug)) {
+        add(
+          "constraints",
+          rec.file,
+          `owns capability "${ref.capability}" and its whole domain "${slug}"`,
+        );
+      }
+    }
+
+    const order = title.reading_order;
+    if (typeof order === "number") {
+      if (titleOrders.has(order)) {
+        add(
+          "duplicates",
+          rec.file,
+          `reading_order ${order} already used by ${titleOrders.get(order)}`,
+        );
+      } else {
+        titleOrders.set(order, rec.file);
+      }
+    }
+  }
+
+  if (loaded.records.title.length) {
+    for (const [id, rec] of capabilities) {
+      const owners = ownedBy.get(id) ?? [];
+      if (!owners.length) {
+        add("orphans", rec.file, `capability "${id}" is not owned by any title`);
+      } else if (owners.length > 1) {
+        add(
+          "constraints",
+          rec.file,
+          `capability "${id}" is owned by more than one title: ${owners.join(", ")}`,
+        );
+      }
+    }
+  }
+
+  for (const rec of loaded.records.doctrine) {
+    const doctrine = rec.data;
+    if (!doctrine || typeof doctrine !== "object") continue;
+
+    const steps = doctrine.steps ?? [];
+    uniqueIds(steps.map((step) => step?.name).filter(Boolean), rec.file, "steps");
+    for (const step of steps) {
+      for (const id of step?.capabilities ?? []) {
+        if (!capabilities.has(id)) {
+          add(
+            "refs",
+            rec.file,
+            `step "${step.name}" cites capability "${id}" which does not exist`,
+          );
+        }
+      }
+    }
+  }
+
+  checkLegend(
+    ajv,
+    loaded.legends.profiles,
+    "capability-profiles",
+    "capability-profiles",
+    (legend) => {
+      for (const person of legend.data.people ?? []) {
+        const ids = (person.certifications ?? [])
+          .map((item) => item?.capability)
+          .filter(Boolean);
+        uniqueIds(ids, legend.file, `certifications for "${person.person}"`);
+        for (const id of ids) {
+          if (!capabilities.has(id)) {
+            add("refs", legend.file, `certified capability "${id}" does not exist`);
+          }
+        }
+      }
+    },
+  );
+
+  const sections = {
     parse: "Parse errors",
     schema: "Schema errors",
     duplicates: "Duplicate IDs",
@@ -402,7 +531,7 @@ async function main() {
   };
 
   let count = 0;
-  for (const [key, title] of Object.entries(titles)) {
+  for (const [key, title] of Object.entries(sections)) {
     const items = groups[key];
     if (!items.length) continue;
     console.error(`\n${title}`);
@@ -433,6 +562,8 @@ async function main() {
     `${riskShapes.size} risk shapes`,
     `${seams.size} seams`,
     `${definitions.size} definitions`,
+    `${loaded.byId.title.size} titles`,
+    `${loaded.byId.doctrine.size} doctrine`,
   ].join(", ");
   const overlays = loaded.roots.slice(1);
   const from = overlays.length

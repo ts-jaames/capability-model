@@ -143,6 +143,10 @@ These are shape rules. Passing them does not mean the entity should exist.
 - Seam → `from` and `to` each resolve to exactly one domain **or** one capability, and must differ.
 - Intensity dials are exactly `dormant`, `low`, `active`, `peak`, in that order.
 - Definition → every `see_also` id resolves to another definition, and never to itself.
+- Title → every `owns` ref resolves to one domain or one capability; a title may not own both a domain and a capability inside it; `reading_order` unique across titles.
+- **Every capability is owned by exactly one title**, counting domain ownership. An unowned capability and a doubly-owned one are both errors. This is what makes "the five titles cover everything, and none is a grab-bag" a checked claim rather than a stated one — so adding a title means moving ownership, not appending.
+- Doctrine → step names unique within a file, and every `steps[].capabilities` id resolves.
+- Capability profiles → every certified `capability` resolves and is listed once per person.
 - Every entity may set `visibility`: `public` (default), `internal`, or `confidential`. Readers filter by tier, never by caller. Leave it unset unless a human asked for a non-public entry. Containment cascades: hiding a domain hides every capability inside it.
 
 ## Field notes
