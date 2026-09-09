@@ -1,0 +1,21 @@
+id: experience-architect
+name: Experience Architect
+description: >
+  Owns whether the thing users touch is real and usable: a working product, not
+  a prototype.
+reading_order: 2
+owns:
+  - capability: product-interface-building
+executes: >
+  Assembles from design tokens and a component library; ships increments to live
+  preview; owns state and edge-case behaviour; sets tokens, component contracts,
+  and motion at depth.
+shape: "Deep-T: the experience layer."
+note: >
+  Held separate from Product Architect deliberately — a fold is possible in
+  principle, blocked in practice by bench (we don't have strategists who also
+  carry a designer's craft).
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-09

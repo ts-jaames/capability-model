@@ -24,6 +24,9 @@ const SCHEMA_NAMES = [
   "risk-shape",
   "seam",
   "definition",
+  "title",
+  "doctrine",
+  "capability-profiles",
 ];
 
 const groups = {

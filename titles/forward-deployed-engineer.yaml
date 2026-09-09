@@ -1,0 +1,21 @@
+id: forward-deployed-engineer
+name: Forward Deployed Engineer
+description: >
+  Owns whether a deterministic system is built and proven: durable, ownable, and
+  visibly true.
+reading_order: 4
+owns:
+  - capability: core-systems-engineering
+  - capability: production-hardening
+  - capability: durable-delivery
+  - capability: slice-building
+  - domain: proof
+executes: >
+  Instrumented slices to test assumptions early; core systems fit to the
+  client's stack; hardened against real load; a clean codebase the client can
+  extend; proven against criteria set up front.
+shape: "Deep-T to barbell (build + proof, or build + AI). Highest-volume line."
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-09

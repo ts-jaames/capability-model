@@ -1,0 +1,24 @@
+id: adoption-architect
+name: Adoption Architect
+description: >
+  Owns whether the client's people and organization can actually run and own
+  what was built.
+reading_order: 5
+owns:
+  - domain: enablement
+  - capability: client-operating-model-design
+  - capability: transition-warranty-design
+executes: >
+  Puts client people in the hard calls so they inherit the judgment, not just
+  the repo; designs the adoption path against the org's real incentives and
+  fears; leaves an operating model the team can run and a handoff with explicit
+  dates and boundaries.
+shape: "Deep-T: judgment-heavy, senior."
+note: >
+  Proposed — the thinnest of the five as a standalone grouping, and under
+  discussion. Held separate so Enablement and client-side Continuity have an
+  owner instead of hiding inside another title.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-09
