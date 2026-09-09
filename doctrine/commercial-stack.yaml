@@ -4,18 +4,26 @@ summary: Three layers, one of them hidden.
 rule: >
   The title never appears on the SOW. The level carries the seniority a title
   used to imply — and carries it precisely.
+closing_note: >
+  "Capabilities at levels, with counts" is the same person-agnostic shape we can
+  put in front of a client; the moment it resolves to named people, it drops
+  below the line.
 steps:
   - name: Outcome
-    description: What's sold, and priced. "We'll build the integration hub."
-  - name: Capabilities at levels
+    description: What's sold and priced. "We'll build the integration hub."
+  - name: Capabilities at levels, with counts
     description: >
-      The price justification. Surfaced if the client asks how the number was
-      reached.
+      The price justification, surfaced if the client asks how the number was
+      reached — "core systems engineering at L2, ×3." The count lives here
+      because load drives price. But it's the demanded shape, a capability at a
+      level with a quantity, not named bodies.
     capabilities:
       - commercial-scoping-envelope-shaping
       - pricing-under-uncertainty
   - name: Seats
-    description: How we assemble it. Internal. Never on the SOW.
+    description: >
+      How we assemble the count — three L2s, or one L3 absorbing it. Internal.
+      Never on the SOW.
 status: draft
 owner: Operating Model
 source: original
