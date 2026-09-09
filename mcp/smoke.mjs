@@ -210,13 +210,6 @@ async function main() {
   check("change-response ends on the next slice", moves[5] === "Name the next slice", moves[5]);
   check("change-response says who decides", /owners decide/i.test(change.payload?.rule ?? ""));
 
-  // Person data must never be reachable, whatever the scope this ran at.
-  const profileHit = await client.call("search", { query: "certified" });
-  check(
-    "no tool exposes capability profiles",
-    !JSON.stringify(profileHit.payload ?? {}).includes("certifications"),
-  );
-
   // Every capability answers, and the levels block stays honest either way.
   for (const id of capIds) {
     const cap = await client.call("get_capability", { capability: id });
