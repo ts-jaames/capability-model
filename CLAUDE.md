@@ -16,6 +16,7 @@ When someone asks to add X, classify it before creating a file:
 6. Staffing bound (today stored as `roles/`)?
 7. Risk shape, intensity dial, or seam?
 8. Definition?
+9. Doctrine?
 
 If it is not a capability, say so. Do not create a capability file to be helpful.
 
@@ -80,21 +81,38 @@ Pass only if the term is already load-bearing in this repo **and** gets conflate
 
 Fail — and reclassify — if the thing is really a capability, a title, a skill, or a tool. Writing a definition file is not a way around the admission test for those. A definition never carries a level or a dial, and defining a term does not make the thing it names exist.
 
-### Title
+### Title (`titles/`)
 
-A market or HR label (Design Strategist, AI Engineer, Context Engineer, Forward Deployed Engineer, AI Evals Engineer). **Not in this model yet.** Do not add titles as capabilities. Do not add titles as roles.
+An **internal grouping of owned capabilities** — shorthand for a coherent bundle one person can be accountable for. Product Architect, Experience Architect, AI Architect, Forward Deployed Engineer, Adoption Architect.
+
+A title is **not a commercial artefact**. It never appears on a SOW or a rate card. The client buys the outcome, priced from the capabilities-at-levels underneath. Titles are peer categories, not a ladder; seniority lives on the consultant band and the level.
+
+Pass only if it names a bundle of capabilities that already exist and that someone can own together. Fail — and reclassify — if it is a seat name, a market label with no ownership behind it, or a seniority grade.
+
+`owns` is a list of `{domain}` or `{capability}` refs, the same shape a seam endpoint uses. Owning a domain owns every capability in it. **Every capability must be owned by exactly one title** — that is what stops a title becoming a grab-bag and stops a capability becoming an orphan. Do not add a sixth title without moving ownership to make room for it.
+
+Distinct from a staffing bound: a title is who owns what, agency-wide and durable; a bound is what one seat may execute on one engagement.
+
+### Doctrine (`doctrine/`)
+
+A **named, ordered procedure or structure the firm follows** that is not a capability, a skill, or a definition: the commercial stack, how seats get filled, what happens when the work changes.
+
+Pass only if it has an order that carries meaning and a reader could act on it. Fail — and reclassify — if it is a single claim (that is a definition), a client outcome (a capability), or a method used inside delivery (a skill).
+
+`steps[]` are ordered and named. A step may cite `capabilities[]`, and those refs must resolve — a doctrine that names capability work without pointing at the capability is prose. Where a doctrine is also an agent procedure, the YAML is the source and the `SKILL.md` follows it; never author the same steps twice.
 
 ### Staffing bound (`roles/`)
 
-Which capabilities a seat **owns** (max 2, Owner accountability) vs can **execute** (max 7, L1–L3). Not a title. `Interface Lead` is an example of a bound — owns Product & interface building, executes Problem framing and Stakeholder alignment — not a job name. The executive site does not render roles until titles and bounds are designed on purpose.
+Which capabilities a seat **owns** (max 2, Owner accountability) vs can **execute** (max 7, L1–L3). Not a title. `Interface Lead` is an example of a bound — owns Product & interface building, executes Problem framing and Stakeholder alignment — not a job name. Titles have now been designed on purpose and are rendered; bounds have not, so the executive site still does not render `roles/`.
 
 ## Do
 
 - Read this file, `levels.yaml`, and existing YAML before adding files.
 - Filename stem must equal `id` (kebab-case). Capabilities omit `id`; the stem **is** the id.
 - Capability files live at `capabilities/<domain-slug>/<kebab-id>.yaml`. `domain` in YAML is the display name (`Building`, not `building`).
-- Risk shapes live at `risk-shapes/<kebab-id>.yaml`, seams at `seams/<kebab-id>.yaml`, definitions at `definitions/<kebab-id>.yaml`. `intensity.yaml` is the dial legend, beside `levels.yaml`.
-- Set `status: draft` on skills, domains, roles, risk shapes, seams, and definitions. Capabilities omit `status`; tooling treats missing status as `draft`. Never write `reviewed` or `ratified` unless a human explicitly asked to promote that file.
+- Risk shapes live at `risk-shapes/<kebab-id>.yaml`, seams at `seams/<kebab-id>.yaml`, definitions at `definitions/<kebab-id>.yaml`, titles at `titles/<kebab-id>.yaml`, doctrine at `doctrine/<kebab-id>.yaml`. `intensity.yaml` is the dial legend, beside `levels.yaml`.
+- Set `status: draft` on skills, domains, roles, risk shapes, seams, definitions, titles, and doctrine. Capabilities omit `status`; tooling treats missing status as `draft`. Never write `reviewed` or `ratified` unless a human explicitly asked to promote that file.
+- `capability-profiles.yaml` records who is certified to execute what, at which level. It is `visibility: internal` and never reaches the site. Real per-person entries belong in a private overlay, not here — this repo is public. Do not invent anyone's certification.
 - Leave `dials_reviewed: false` on a risk shape unless a human has explicitly reviewed that shape's dial values. The dial is a judgment call, and pretending otherwise is the failure this model exists to prevent.
 - Keep YAML readable for non-engineers. Prefer short sentences and lists.
 - Run `npm run validate` after edits. Fix every error before finishing. If you touched `scripts/model.mjs` or `mcp/`, run `npm test` and `npm run mcp:smoke` too.

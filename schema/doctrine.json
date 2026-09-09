@@ -1,0 +1,47 @@
+{
+  "$id": "https://capability-model.local/schema/doctrine.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Doctrine",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "summary",
+    "steps",
+    "owner",
+    "source",
+    "last_updated"
+  ],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "summary": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "status": { "$ref": "common.json#/$defs/status" },
+    "visibility": { "$ref": "common.json#/$defs/visibility" },
+    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "source": { "$ref": "common.json#/$defs/source" },
+    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
+    "rule": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "steps": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "description"],
+        "properties": {
+          "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "description": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "never": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "capabilities": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "$ref": "common.json#/$defs/kebabId" }
+          }
+        }
+      }
+    },
+    "closing_note": { "$ref": "common.json#/$defs/nonEmptyString" }
+  }
+}

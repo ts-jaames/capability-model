@@ -1,0 +1,44 @@
+{
+  "$id": "https://capability-model.local/schema/capability-profiles.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Capability profiles",
+  "description": "Who is certified to execute which capability, at which level. The capability list is not restated here; each ref resolves against capabilities/ so this file cannot drift from the model.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "description", "owner", "source", "last_updated", "people"],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "description": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "status": { "$ref": "common.json#/$defs/status" },
+    "visibility": { "$ref": "common.json#/$defs/visibility" },
+    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "source": { "$ref": "common.json#/$defs/source" },
+    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
+    "note": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "people": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["person", "certifications"],
+        "properties": {
+          "person": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "certifications": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["capability", "certified_level"],
+              "properties": {
+                "capability": { "$ref": "common.json#/$defs/kebabId" },
+                "certified_level": { "$ref": "common.json#/$defs/levelId" },
+                "owner": { "type": "boolean", "default": false }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
