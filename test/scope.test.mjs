@@ -52,6 +52,40 @@ function view({ domainVisibility, capVisibility } = {}) {
       { id: "seat", see_also: ["level"] },
       { id: "level", visibility: "internal" },
     ],
+    titles: [
+      {
+        id: "forward-deployed-engineer",
+        name: "Forward Deployed Engineer",
+        owns: [{ capability: "slice-building" }, { domain: "enablement" }],
+      },
+    ],
+    doctrine: [
+      {
+        id: "change-response",
+        name: "When the work changes",
+        steps: [
+          { name: "Re-read the risk", description: "..." },
+          {
+            name: "Name the next slice",
+            description: "...",
+            capabilities: ["slice-building", "capability-transfer"],
+          },
+        ],
+      },
+    ],
+    profiles: {
+      id: "capability-profiles",
+      visibility: "internal",
+      people: [
+        {
+          person: "TODO",
+          certifications: [
+            { capability: "slice-building", certified_level: "L3" },
+            { capability: "capability-transfer", certified_level: "L2" },
+          ],
+        },
+      ],
+    },
   };
 }
 
@@ -116,4 +150,37 @@ test("widening the scope brings the hidden entries back", () => {
 test("the default scope is public only", () => {
   const scoped = scopeView(view({ domainVisibility: "internal" }));
   assert.deepEqual(ids(scoped.domains), ["building"]);
+});
+
+test("a title stops owning what the caller cannot see", () => {
+  const scoped = scopeView(view({ domainVisibility: "confidential" }), PUBLIC_SCOPE);
+  assert.deepEqual(scoped.titles[0].owns, [{ capability: "slice-building" }]);
+});
+
+test("a doctrine step stops citing capabilities the caller cannot see", () => {
+  const scoped = scopeView(view({ domainVisibility: "confidential" }), PUBLIC_SCOPE);
+  assert.deepEqual(scoped.doctrine[0].steps[1].capabilities, ["slice-building"]);
+});
+
+// capability-profiles is the one file that will hold person data, so its
+// absence at public scope is the check that matters most here.
+test("an internal legend is absent at public scope and present when widened", () => {
+  assert.equal(scopeView(view(), PUBLIC_SCOPE).profiles, null);
+  const wide = scopeView(view(), ["public", "internal"]);
+  assert.equal(wide.profiles.id, "capability-profiles");
+  assert.deepEqual(
+    wide.profiles.people[0].certifications.map((item) => item.capability),
+    ["slice-building", "capability-transfer"],
+  );
+});
+
+test("a visible profile still drops certifications for hidden capabilities", () => {
+  const wide = scopeView(view({ domainVisibility: "confidential" }), [
+    "public",
+    "internal",
+  ]);
+  assert.deepEqual(
+    wide.profiles.people[0].certifications.map((item) => item.capability),
+    ["slice-building"],
+  );
 });
