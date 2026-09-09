@@ -24,11 +24,14 @@ export const ENTITY_TYPES = {
   "risk-shape": { dir: "risk-shapes" },
   seam: { dir: "seams" },
   definition: { dir: "definitions" },
+  title: { dir: "titles" },
+  doctrine: { dir: "doctrine" },
 };
 
 export const LEGEND_FILES = {
   levels: "levels.yaml",
   intensity: "intensity.yaml",
+  profiles: "capability-profiles.yaml",
 };
 
 export const DOMAIN_ORDER = [
@@ -194,6 +197,7 @@ export function modelView(loaded) {
   return {
     levels: loaded.legends.levels?.data ?? null,
     intensity: loaded.legends.intensity?.data ?? null,
+    profiles: loaded.legends.profiles?.data ?? null,
     domains: plain("domain"),
     capabilities: loaded.records.capability.map(capabilityView),
     skills: plain("skill"),
@@ -201,6 +205,8 @@ export function modelView(loaded) {
     riskShapes: plain("risk-shape"),
     seams: plain("seam"),
     definitions: plain("definition"),
+    titles: plain("title"),
+    doctrine: plain("doctrine"),
   };
 }
 
@@ -241,8 +247,36 @@ export function scopeView(view, scope = PUBLIC_SCOPE) {
   const refVisible = (ref) =>
     ref?.capability ? capIds.has(ref.capability) : domainIds.has(ref?.domain);
 
+  // A legend is a single record, so it is present or it is not. Filtering them
+  // matters for capability-profiles, which is internal and must never reach a
+  // public reader.
+  const legend = (entity) => (entity && visible(entity) ? entity : null);
+  const profiles = legend(view.profiles);
+
   return {
     ...view,
+    levels: legend(view.levels),
+    intensity: legend(view.intensity),
+    profiles: profiles && {
+      ...profiles,
+      people: (profiles.people ?? []).map((person) => ({
+        ...person,
+        certifications: (person.certifications ?? []).filter((item) =>
+          capIds.has(item?.capability),
+        ),
+      })),
+    },
+    titles: view.titles.filter(visible).map((title) => ({
+      ...title,
+      owns: (title.owns ?? []).filter(refVisible),
+    })),
+    doctrine: view.doctrine.filter(visible).map((item) => ({
+      ...item,
+      steps: (item.steps ?? []).map((step) => ({
+        ...step,
+        capabilities: (step.capabilities ?? []).filter((id) => capIds.has(id)),
+      })),
+    })),
     domains,
     capabilities: capabilities.map((cap) => ({
       ...cap,
