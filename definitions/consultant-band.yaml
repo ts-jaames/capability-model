@@ -1,9 +1,15 @@
 id: consultant-band
 term: Consultant band
 definition: >
-  The whole-person HR identity at the firm — Senior Consultant, Principal
-  Consultant. This is where career seniority lives: compensation, progression,
-  the title on an offer letter.
+  Who you are at the firm.
+
+  The whole-person HR identity — Senior Consultant, Principal Consultant. This
+  is where career seniority lives: comp, progression band, the title on an
+  offer letter. It correlates with level (a Principal is typically L3 in their
+  owned capabilities) but never collapses into it — the band is per-person, the
+  level is per-capability. Seniority didn't disappear from the model; it moved
+  here, out of the client-facing layer, so what a client buys and how senior you
+  are can be stated separately.
 not:
   - A level. The band is per person; the level is per capability.
   - A title. A title groups owned capabilities; neither is what a client buys,

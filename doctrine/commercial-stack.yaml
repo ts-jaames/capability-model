@@ -1,31 +1,21 @@
 id: commercial-stack
 name: What the SOW shows
-summary: >
-  The client-facing SOW is three layers. Only the top is sold; the middle
-  justifies the number when asked; the bottom never appears.
+summary: Three layers, one of them hidden.
 rule: >
-  The client buys the outcome. Titles are internal and never reach the
-  contract or the rate card.
+  The title never appears on the SOW. The level carries the seniority a title
+  used to imply — and carries it precisely.
 steps:
   - name: Outcome
-    description: >
-      What is sold and priced — "we'll build the integration hub". This is the
-      promise the contract makes.
+    description: What's sold, and priced. "We'll build the integration hub."
   - name: Capabilities at levels
     description: >
-      The price justification, surfaced if the client asks how the number was
-      reached. A capability at a level is what sets the price, and the level is
-      the seniority signal the SOW carries.
+      The price justification. Surfaced if the client asks how the number was
+      reached.
     capabilities:
       - commercial-scoping-envelope-shaping
       - pricing-under-uncertainty
   - name: Seats
-    description: >
-      How we assemble it. Hidden. Never on the SOW, because staffing is our
-      problem to solve and re-solve as the work moves.
-closing_note: >
-  A pair of single-spike owners and one M-shaped person can fulfil the same
-  line. The contract doesn't care which.
+    description: How we assemble it. Internal. Never on the SOW.
 status: draft
 owner: Operating Model
 source: original

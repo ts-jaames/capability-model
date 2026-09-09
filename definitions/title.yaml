@@ -1,10 +1,15 @@
 id: title
 term: Title
 definition: >
-  How we group coverage internally. A title is shorthand for a coherent bundle
-  of owned capabilities. It never appears on the SOW — the client buys the
-  outcome, priced from the capabilities-at-levels underneath. Titles are peer
-  categories, not a ladder; seniority lives on the band and the level.
+  How we group coverage internally.
+
+  Internal shorthand for a coherent bundle of owned capabilities — Product
+  Architect, Experience Architect, AI Architect, FDE, Adoption Architect. A
+  title never appears on the SOW; the client buys the outcome, priced from the
+  capabilities-at-levels underneath. Titles are peer categories, not a ladder —
+  and not people. Seniority is carried on the band and the level, not here.
+  They exist to guarantee every capability has exactly one home — which is why
+  a title can't be dropped without rehoming its capabilities first.
 not:
   - A commercial artefact. It is not on the SOW and not on the rate card.
   - A capability. A title groups capabilities; it never replaces one.

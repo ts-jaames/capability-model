@@ -1,36 +1,25 @@
 id: seat-fulfilment
 name: How seats get filled
 summary: >
-  Seats are read off the contract, not designed. The SOW's capabilities-at-levels
-  are the seat list.
+  Once the SOW is signed, its capabilities-at-levels are the seat list — seats
+  are read off the contract, not designed.
 rule: >
-  The owner qualifies; resourcing assigns. Kept separate so logistics can never
-  lower a seat's level to make the staffing work.
+  Owner qualifies; resourcing assigns — kept apart so logistics can't quietly
+  lower a seat's level.
 steps:
-  - name: Read the seats
+  - name: Qualification
     description: >
-      The capabilities-at-levels the SOW already promises are the seats. Nobody
-      invents a seat list; if a seat is not implied by the contract, it is not a
-      seat.
-  - name: Qualify the pool
+      Who can fill it. Each capability's Owner certifies who can execute it at
+      each level. The qualified pool is the Owner, plus anyone they've certified
+      to that level.
+  - name: Assignment
     description: >
-      Each capability's Owner certifies who can execute it at each level. The
-      qualified pool for a seat is the Owner plus anyone certified to that
-      level.
-  - name: Assign from the pool
-    description: >
-      A resourcing and delivery function assigns from the qualified pool on
-      availability, continuity, development, and fit. It chooses among qualified
-      people; it does not decide who is qualified.
-    never: >
-      Assigning someone who is not certified to the seat's level, or quietly
-      dropping the level so the available person fits.
-  - name: Record it in two places
-    description: >
-      Capability profiles are firm-level and durable — person, capability,
-      certified level. Engagement staffing is per-engagement, internal, and
-      changeable. Conflating them is how a staffing convenience becomes a
-      permanent claim about what someone can do.
+      Who does. A resourcing function assigns from the qualified pool by
+      availability, continuity, development, and fit.
+closing_note: >
+  Recorded in two places, neither on the SOW: capability profiles (firm-level —
+  person, capability, certified level) and engagement staffing (per-engagement,
+  internal, changeable).
 status: draft
 owner: Operating Model
 source: original
