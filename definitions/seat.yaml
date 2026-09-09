@@ -1,9 +1,12 @@
 id: seat
-term: Seat
+term: Project seat
 definition: >
-  The runtime instance of a capability: one capability, at one level, with a
-  person in it, on this squad. Seat vocabulary can churn — Context Engineer,
-  Red Teamer — without touching the capability underneath.
+  What you're doing now.
+
+  The role you occupy on a specific squad for a specific slice of work. Seats
+  shift within an engagement as the work changes; the same person may sit Slice
+  Builder one sprint and Governance Lead the next. Because seats are activated
+  by what the work needs, their catalog lives in the operating view, not here.
 not:
   - A second list to maintain alongside capabilities.
   - A title. A title is durable ownership of a capability bundle; a seat is one

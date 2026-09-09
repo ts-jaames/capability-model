@@ -1,12 +1,13 @@
 id: level
 term: Level
 definition: >
-  How deeply a capability is executed: L1 guided execution, L2 practitioner,
-  L3 advanced lead. Per capability, not per person — the same person can be L3
-  in one capability and L1 in another. A capability at a level is what sets the
-  price, and the level is the seniority signal the SOW carries — what a title
-  used to imply, stated precisely. It also answers how much rides on the work,
-  which is why it does not move as the work progresses.
+  How deeply, per capability.
+
+  L1 guided, L2 solo, L3 sets the standard. Per-capability, not per-person —
+  the same person can be L3 in one capability and L1 in another they're growing
+  into. A capability at a level is what sets the price (e.g. "Framing · L3").
+  The level is the seniority signal the SOW carries — what a title used to
+  imply, stated precisely.
 not:
   - Seniority. That is the consultant band.
   - A dial. A level is depth of judgment; a dial is how hot the capability is
