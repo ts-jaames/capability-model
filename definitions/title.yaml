@@ -1,20 +1,24 @@
 id: title
 term: Title
 definition: >
-  How clients buy: a market-facing label for a bundle of capabilities, coarse
-  and stable, appearing on the rate card and optionally on a SOW. Titles are
-  peer categories, not a ladder.
+  How we group coverage internally. A title is shorthand for a coherent bundle
+  of owned capabilities. It never appears on the SOW — the client buys the
+  outcome, priced from the capabilities-at-levels underneath. Titles are peer
+  categories, not a ladder; seniority lives on the band and the level.
 not:
-  - A capability. A title packages capabilities; it never replaces one.
+  - A commercial artefact. It is not on the SOW and not on the rate card.
+  - A capability. A title groups capabilities; it never replaces one.
   - A level. "Product Architect" is the bundle; "L3" is the depth.
   - Seniority. That is the consultant band.
-  - An entity in this model yet. Titles are named in prose, not stored as YAML.
+  - A seat. A title is durable ownership; a seat is one capability at one level
+    on one engagement.
 see_also:
   - capability
-  - seat
-  - consultant-band
   - capability-ownership
+  - seat
+  - level
+  - consultant-band
 status: draft
 owner: Operating Model
 source: original
-last_updated: 2026-09-05
+last_updated: 2026-09-09

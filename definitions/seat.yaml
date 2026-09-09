@@ -6,8 +6,10 @@ definition: >
   Red Teamer — without touching the capability underneath.
 not:
   - A second list to maintain alongside capabilities.
-  - A title. Titles face the market; seats are internal squad assembly.
-  - A line on a SOW. The contract buys capabilities at levels, never seats.
+  - A title. A title is durable ownership of a capability bundle; a seat is one
+    capability at one level on one engagement. Both are internal.
+  - A line on a SOW. The contract buys the outcome, priced from
+    capabilities-at-levels. Seats never appear.
   - A person. One person can staff a seat, or several people together can make
     up the capability at the level needed.
 see_also:
@@ -18,4 +20,4 @@ see_also:
 status: draft
 owner: Operating Model
 source: original
-last_updated: 2026-09-05
+last_updated: 2026-09-09

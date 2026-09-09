@@ -6,7 +6,8 @@ definition: >
   the title on an offer letter.
 not:
   - A level. The band is per person; the level is per capability.
-  - A market-facing title. Seniority moved here and out of what a client buys.
+  - A title. A title groups owned capabilities; neither is what a client buys,
+    and seniority lives here rather than on either.
   - A capability. Nothing is promised to a client by a band.
 see_also:
   - level
@@ -14,4 +15,4 @@ see_also:
 status: draft
 owner: Operating Model
 source: original
-last_updated: 2026-09-05
+last_updated: 2026-09-09
