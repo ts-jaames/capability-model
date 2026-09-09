@@ -23,12 +23,15 @@ function esc(value) {
     .replaceAll('"', "&quot;");
 }
 
+// A blank line in a YAML folded scalar arrives here as a single newline, so
+// splitting on one is what lets an author get a paragraph break by leaving a
+// blank line — the thing they would expect to work.
 function paragraphs(value) {
   const text = String(value ?? "").trim();
   if (!text) return "";
   return text
-    .split(/\n{2,}/)
-    .map((block) => `<p>${esc(block).replaceAll("\n", "<br>")}</p>`)
+    .split(/\n+/)
+    .map((block) => `<p>${esc(block)}</p>`)
     .join("");
 }
 
@@ -104,9 +107,9 @@ const PAGE_TOC = {
   "roles-titles": [
     ["#overview", "Overview"],
     ["#commercial-stack", "The SOW"],
-    ["#titles", "Titles"],
+    ["#lines", "Lines"],
     ["#title-ownership-seat", "Title · Ownership · Seat"],
-    ["#seat-fulfilment", "Filling seats"],
+    ["#doctrine-seat-fulfilment", "Filling seats"],
   ],
   "operating-view": [
     ["#overview", "Overview"],
@@ -289,12 +292,12 @@ function renderLayer(definition) {
       <header class="row-head">
         <h3 class="domain-name">${esc(definition.term)}</h3>
       </header>
-      <div class="prose"><p>${esc(oneLine(definition.definition))}</p></div>
+      <div class="prose">${paragraphs(definition.definition)}</div>
       ${nots ? `<div class="kvs">${kv("Not", `<ul class="bullets">${nots}</ul>`)}</div>` : ""}
     </article>`;
 }
 
-function renderDoctrine(doctrine, capsById) {
+function renderDoctrine(doctrine, capsById, { heading = false } = {}) {
   const steps = (doctrine.steps ?? [])
     .map((step, index) => {
       const never = step.never
@@ -315,6 +318,7 @@ function renderDoctrine(doctrine, capsById) {
     .join("");
   return `
     <article class="row" id="doctrine-${esc(doctrine.id)}">
+      ${heading ? `<header class="row-head"><h3 class="domain-name">${esc(doctrine.name)}</h3></header>` : ""}
       <div class="prose"><p>${esc(oneLine(doctrine.summary))}</p></div>
       <div class="kvs">${steps}</div>
       ${notes}
@@ -400,27 +404,35 @@ function renderRolesMain(model) {
     .map((title) => renderTitle(title, capsById, domainsById))
     .join("");
 
-  // The five layers, in the order they read: what you group under, what you are
-  // accountable for, how deep, what you are doing now, who you are at the firm.
-  const layers = ["title", "capability-ownership", "level", "seat", "consultant-band"]
-    .map((id) => {
-      const definition = definitionsById.get(id);
-      if (!definition) throw new Error(`Missing definition: ${id}`);
-      return renderLayer(definition);
-    })
-    .join("");
-
   const stack = requireDoctrine(model, "commercial-stack");
   const fulfilment = requireDoctrine(model, "seat-fulfilment");
+
+  const layer = (id) => {
+    const definition = definitionsById.get(id);
+    if (!definition) throw new Error(`Missing definition: ${id}`);
+    return renderLayer(definition);
+  };
+
+  // The layers in the order they read: what you group under, what you are
+  // accountable for, how deep, what you are doing now — then how that seat
+  // actually gets a person in it, before who you are at the firm.
+  const layers = [
+    layer("title"),
+    layer("capability-ownership"),
+    layer("level"),
+    layer("seat"),
+    renderDoctrine(fulfilment, capsById, { heading: true }),
+    layer("consultant-band"),
+  ].join("");
 
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
-        <p class="lede">Capabilities are the contract. Titles are how we group coverage internally. Seats are how we fulfil it.</p>
-        <p class="lede">The SOW promises an outcome, priced from capabilities at levels. It never promises headcount, and it never carries a title.</p>
-        <p class="lede">An Owner is the atomic internal unit, accountable for one capability staying fit for use. Titles are the common compositions of that ownership — internal shorthand, not names the market sees.</p>
-        <p class="lede">A pair of single-spike Owners and one M-shaped person can fulfil the same line. The contract doesn't care which.</p>
-        <p class="lede">Five titles cover every capability, each owned exactly once, so every capability has a coherent home and none is a grab-bag.</p>
+        <p class="lede">Capabilities are the contract. Roles are the fulfillment. Titles are internal coverage.</p>
+        <p class="lede">The SOW sells an outcome, priced from the capabilities-at-levels underneath it — never headcount, and never a title. A title is internal shorthand for a coherent bundle of owned capabilities; it groups coverage, it isn't a thing a client buys.</p>
+        <p class="lede">An Owner is the atomic internal unit — accountable for one capability cluster's maturity. Owners compose into the lines below: common compositions, named for internal coverage, not for the market.</p>
+        <p class="lede">A pair of single-spike Owners and one M-shaped person can fulfil the same commitment. The contract promises capabilities at levels; it doesn't care who covers them.</p>
+        <p class="lede">Five lines cover every capability, so each has a coherent home and none is a grab-bag — now an enforced invariant, not just a claim.</p>
       </section>
       <section id="commercial-stack">
         <h2 class="mono uppercase eyebrow">${esc(stack.name)}</h2>
@@ -428,9 +440,8 @@ function renderRolesMain(model) {
         ${renderDoctrine(stack, capsById)}
         </div>
       </section>
-      <section id="titles">
-        <h2 class="mono uppercase eyebrow">Titles</h2>
-        <p class="lede">Each groups a bundle of owned capabilities that one person can be accountable for. Peer categories, not a ladder — seniority is carried on the band and the level.</p>
+      <section id="lines">
+        <h2 class="mono uppercase eyebrow">Lines</h2>
         <div class="stack">
         ${lines}
         </div>
@@ -439,12 +450,6 @@ function renderRolesMain(model) {
         <h2 class="mono uppercase eyebrow">Title · Ownership · Seat</h2>
         <div class="stack">
         ${layers}
-        </div>
-      </section>
-      <section id="seat-fulfilment">
-        <h2 class="mono uppercase eyebrow">${esc(fulfilment.name)}</h2>
-        <div class="stack">
-        ${renderDoctrine(fulfilment, capsById)}
         </div>
       </section>`;
 }
@@ -554,14 +559,10 @@ function renderOperatingMain(model) {
       </section>`;
 }
 
-// `stale` marks an illustration that has not caught up with a decision. Saying
-// so under the drawing follows the same convention as the unreviewed-dials
-// note: a reader is told what is not yet true rather than shown it as fact.
-function figure(file, caption, stale) {
+function figure(file, caption) {
   const src = sitePath(`${ILLUSTRATIONS}/${file}`);
   return `<figure class="figure">
         <img src="${esc(src)}" alt="${esc(caption)}" width="1536" height="1024">
-        ${stale ? `<figcaption class="line-note">${esc(stale)}</figcaption>` : ""}
       </figure>`;
 }
 
@@ -596,11 +597,6 @@ function renderHowItRelatesMain(model) {
         <h2 class="mono uppercase eyebrow">Three verbs</h2>
         <p class="lede">Title, ownership, and seat are not three more lists. They are three verbs on the same capability: grouped under, keeps fit, executes.</p>
         <p class="lede">Title is grouped under — a bundle of owned capabilities, internal shorthand for coverage. Ownership is keeps fit — the capability you author guardrails for, internal and permanent. Seat is executes — one capability at one level, this squad, internal and dynamic. All three are internal; none of them is what the client buys.</p>
-        ${figure(
-          "03-three-verbs.png",
-          "Three verbs on one capability",
-          "This illustration predates the decision above: it labels Title \u201csold as\u201d. Titles are internal. Awaiting a redraw.",
-        )}
         ${to("roles-titles.html#title-ownership-seat", "Roles & Titles")}
       </section>
       <section id="seats">
@@ -618,11 +614,6 @@ function renderHowItRelatesMain(model) {
         </ul>
         <p class="lede">${esc(oneLine(stack.rule))}</p>
         <p class="lede">Rule of thumb: the client buys an outcome, the firm fulfils it with people in seats, and the shorthand we use between the two stays on our side of the table.</p>
-        ${figure(
-          "05-sow-window.png",
-          "SOW shows the outcome, priced from capabilities at levels; seats stay internal",
-          "This illustration predates the decision above: it still shows title-lines inside the SOW as optional. They never appear. Awaiting a redraw.",
-        )}
         ${to("roles-titles.html#commercial-stack", "Roles & Titles")}
       </section>`;
 }
@@ -969,12 +960,6 @@ function render(model, pageId = "how-it-all-relates") {
       height: auto;
       background: #fff;
     }
-    .figure figcaption {
-      border-top: 1px solid var(--line);
-      margin: 0;
-      padding: 10px 12px;
-    }
-    .figure figcaption.line-note { margin: 0; }
     .to {
       margin: 0 0 8px;
     }
