@@ -7,7 +7,22 @@ description: >
 status: draft
 owner: Operating Model
 source: original
-last_updated: 2026-09-05
+last_updated: 2026-09-09
+
+risk_questions:
+  - question: How much rides on it?
+    answers_to: level
+    behaviour: >
+      Stable. It does not move as the work progresses — what is at stake was
+      settled when the work was scoped.
+  - question: How sure are we?
+    answers_to: intensity
+    behaviour: >
+      Moves. Low confidence on something that matters drives its capability to
+      Peak; as we prove it out, it cools.
+
+dial_placement: >
+  The dial is a label on the capability, never on the risk or the product item.
 
 dials:
   - id: dormant
