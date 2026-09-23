@@ -3,14 +3,13 @@ term: Capability ownership
 definition: >
   What you're accountable for.
 
-  The atomic, permanent unit. An Owner keeps a capability cluster fit: authors
+  The atomic, permanent unit. An L4 keeps a capability cluster fit: authors
   the guardrails, prompt packs, and templates, and sets the standard others
   execute against. This is a person's durable identity, and where progression
   lives. You advance by deepening ownership and building the assets the firm
   runs on, not by billing more hours.
 not:
-  - A fourth execution grade. Owner sits beside L1–L3, not above L3.
-  - L3 execution. An L3 sets the standard on the work; an Owner is accountable
+  - L3 execution. An L3 sets the standard on the work; an L4 is accountable
     for the capability itself.
   - A management line or a headcount.
 see_also:

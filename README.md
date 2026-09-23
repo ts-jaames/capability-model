@@ -67,7 +67,7 @@ You do not need to edit YAML.
 ## Layout
 
 - `how-it-all-relates.md` — landing-page argument (published as `index.html`)
-- `levels.yaml` — agency-wide L1 / L2 / L3 / Owner legend
+- `levels.yaml` — agency-wide L1 / L2 / L3 / L4 legend
 - `intensity.yaml` — agency-wide Dormant / Low / Active / Peak dial legend
 - `capacity-model.yaml` — how demanded load converts into a seat count: surface area, the two level axes, nominal capacity, the caliber gap. Every number is a marked placeholder and `values_reviewed` is false. Carries no engagement data; pairs with a still-missing operating-view file that holds the per-engagement inputs
 - `domains/*.yaml` — six closed domains

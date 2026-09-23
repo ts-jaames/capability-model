@@ -432,8 +432,8 @@ function renderRolesMain(model) {
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
         <p class="lede">Capabilities are the contract. Roles are the fulfillment. Titles are internal coverage.</p>
         <p class="lede">The SOW sells an outcome, priced from the capabilities-at-levels underneath it — never headcount, and never a title. A title is internal shorthand for a coherent bundle of owned capabilities; it groups coverage, it isn't a thing a client buys.</p>
-        <p class="lede">An Owner is the atomic internal unit — accountable for one capability cluster's maturity. Owners compose into the lines below: common compositions, named for internal coverage, not for the market.</p>
-        <p class="lede">A pair of single-spike Owners and one M-shaped person can fulfil the same commitment. The contract promises capabilities at levels; it doesn't care who covers them.</p>
+        <p class="lede">An L4 is the atomic internal unit — accountable for one capability cluster's maturity. L4s compose into the lines below: common compositions, named for internal coverage, not for the market.</p>
+        <p class="lede">A pair of single-spike L4s and one M-shaped person can fulfil the same commitment. The contract promises capabilities at levels; it doesn't care who covers them.</p>
         <p class="lede">Five lines cover every capability, so each has a coherent home and none is a grab-bag — now an enforced invariant, not just a claim.</p>
       </section>
       <section id="commercial-stack">
@@ -635,7 +635,7 @@ function renderHowItRelatesMain(model) {
       <section id="three-verbs">
         <h2 class="mono uppercase eyebrow">Three verbs</h2>
         <p class="lede">Title, ownership, and seat are not three more lists. They are three verbs on the same capability: grouped under, keeps fit, executes.</p>
-        <p class="lede">Title is grouped under — a bundle of owned capabilities, internal shorthand for coverage. Ownership is keeps fit — the capability you author guardrails for, internal and permanent. Seat is executes — one capability at one level, this squad, internal and dynamic. All three are internal; none of them is what the client buys.</p>
+        <p class="lede">Title is grouped under — a bundle of owned capabilities, internal shorthand for coverage. L4 ownership is keeps fit — the capability you author guardrails for, internal and permanent. Seat is executes — one capability at one level, this squad, internal and dynamic. All three are internal; none of them is what the client buys.</p>
         ${to("roles-titles.html#title-ownership-seat", "Roles & Titles")}
       </section>
       <section id="seats">
@@ -731,10 +731,7 @@ function renderCapabilityModelMain(model) {
   const levelRows = [...(levels?.execution_levels ?? []), levels?.ownership]
     .filter(Boolean)
     .map((level) => {
-      const isOwner = level.id === "Owner";
-      const label = isOwner
-        ? esc(level.name)
-        : `<span class="mono">${esc(level.id)}</span> ${esc(level.name)}`;
+      const label = `<span class="mono">${esc(level.id)}</span> ${esc(level.name)}`;
       const desc = esc(oneLine(level.description));
       return `
             <tr>
@@ -748,7 +745,7 @@ function renderCapabilityModelMain(model) {
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
         <p class="lede">Domains are types of work. They do not change and they do not have levels. Capabilities are the named outcomes we promise inside a domain.</p>
-        <p class="lede">How a capability is executed is a separate scale — L1 guided work against guardrails, L2 independent practice, L3 setting the standard, and Owner as agency-wide accountability for that capability's maturity. That scale lives with capabilities, not with domains.</p>
+        <p class="lede">How a capability is executed is a separate scale — L1 guided work against guardrails, L2 independent practice, L3 setting the standard, and L4 as agency-wide accountability for that capability's maturity. That scale lives with capabilities, not with domains.</p>
       </section>
       <section id="domains">
         <h2 class="mono uppercase eyebrow">Domains</h2>

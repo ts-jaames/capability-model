@@ -2,7 +2,7 @@ id: staffing-bound
 term: Staffing bound
 definition: >
   Which capabilities a seat owns and which it can execute — at most two owned
-  with Owner accountability, at most seven executable at L1–L3, and the two
+  with L4 accountability, at most seven executable at L1–L3, and the two
   lists never overlap. Stored today under `roles/`.
 not:
   - A job name. "Interface Lead" is a bound, not a role anyone is hired into.

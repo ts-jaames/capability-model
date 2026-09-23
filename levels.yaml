@@ -1,9 +1,9 @@
 id: execution-scale
 name: Execution scale
 description: >
-  A strict three-level execution scale plus capability ownership. L1–L3 describe
-  how work is done. Owner is agency-wide accountability for a capability, not a
-  fourth execution grade.
+  A four-level execution scale. L1–L3 describe how work is done. L4 is
+  agency-wide accountability for a capability — the person who keeps it fit,
+  not just someone who executes it well.
 status: draft
 owner: Operating Model
 source: original
@@ -27,9 +27,9 @@ execution_levels:
       others execute against.
 
 ownership:
-  id: Owner
+  id: L4
   name: Capability Ownership
   description: >
     Agency-wide accountability for capability maturity, L1 guardrail creation,
-    and quality. Distinct from L3 execution. An Owner is responsible for the
+    and quality. Distinct from L3 execution. An L4 is responsible for the
     capability existing and remaining fit for use.

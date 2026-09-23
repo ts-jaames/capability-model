@@ -68,7 +68,7 @@ export const TOOLS = [
   {
     name: "get_levels",
     description:
-      "The agency-wide execution ladder: L1, L2, L3, plus Owner. How deeply a capability is executed. Not seniority, and not an intensity dial.",
+      "The agency-wide execution ladder: L1, L2, L3, L4. How deeply a capability is executed. Not seniority, and not an intensity dial.",
     inputSchema: noArgs,
     run: (index) => getLevels(index),
   },

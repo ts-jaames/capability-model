@@ -2,7 +2,7 @@ id: capability-profiles
 name: Capability profiles
 description: >
   Who is certified to execute which capability, at which level. The firm-level
-  record behind seat staffing: each capability's Owner certifies the pool, and
+  record behind seat staffing: each capability's L4 certifies the pool, and
   resourcing assigns from it.
 visibility: internal
 note: >

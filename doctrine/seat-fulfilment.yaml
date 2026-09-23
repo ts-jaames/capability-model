@@ -4,13 +4,13 @@ summary: >
   Once the SOW is signed, its capabilities-at-levels are the seat list — seats
   are read off the contract, not designed.
 rule: >
-  Owner qualifies; resourcing assigns — kept apart so logistics can't quietly
+  L4 qualifies; resourcing assigns — kept apart so logistics can't quietly
   lower a seat's level.
 steps:
   - name: Qualification
     description: >
-      Who can fill it. Each capability's Owner certifies who can execute it at
-      each level. The qualified pool is the Owner, plus anyone they've certified
+      Who can fill it. Each capability's L4 certifies who can execute it at
+      each level. The qualified pool is the L4, plus anyone they've certified
       to that level.
   - name: Assignment
     description: >

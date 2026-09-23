@@ -208,7 +208,7 @@ async function main() {
   check("change-response starts by re-reading the risk", moves[0] === "Re-read the risk", moves[0]);
   check("change-response merges re-price and re-time", moves[4] === "Re-price and re-time", moves[4]);
   check("change-response ends on the next slice", moves[5] === "Name the next slice", moves[5]);
-  check("change-response says who decides", /owners decide/i.test(change.payload?.rule ?? ""));
+  check("change-response says who decides", /L4s decide/i.test(change.payload?.rule ?? ""));
 
   // Every capability answers, and the levels block stays honest either way.
   for (const id of capIds) {
@@ -231,7 +231,7 @@ async function main() {
     "get_levels returns exactly L1, L2, L3",
     (levels.payload?.execution_levels ?? []).map((l) => l.id).join(",") === "L1,L2,L3",
   );
-  check("get_levels returns Owner", levels.payload?.ownership?.id === "Owner");
+  check("get_levels returns L4", levels.payload?.ownership?.id === "L4");
 
   const found = await client.call("search", { query: "seam", limit: 5 });
   check("search returns results", (found.payload?.results ?? []).length > 0);

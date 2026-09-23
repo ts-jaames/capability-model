@@ -7,7 +7,7 @@ description: Re-runs an engagement against the operating model after a scope shi
 
 A big change just landed mid-delivery. This skill says what it does to the shape of the work.
 
-It **proposes**. Owners decide. It never silently re-scopes, re-prices, or proceeds across a product-vision change.
+It **proposes**. L4s decide. It never silently re-scopes, re-prices, or proceeds across a product-vision change.
 
 ## The rule that makes this work
 

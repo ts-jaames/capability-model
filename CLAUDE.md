@@ -49,9 +49,9 @@ An atomic method (`core_technique`) or specific tool (`transient_tool`) used **i
 
 ### Level
 
-How a **capability** is executed: L1 Guided Execution, L2 Practitioner, L3 Advanced Lead, plus Owner (agency-wide accountability for that capability — not a fourth execution grade).
+How a **capability** is executed: L1 Guided Execution, L2 Practitioner, L3 Advanced Lead, L4 Capability Ownership (agency-wide accountability for that capability — the person who keeps it fit, not just someone who executes it well).
 
-Levels are not a property of domains, skills, titles, or people. Do not invent L4. Do not put the execution scale on a domain or a skill.
+Levels are not a property of domains, skills, titles, or people. Do not invent L5. Do not put the execution scale on a domain or a skill.
 
 ### Risk shape
 
@@ -103,7 +103,7 @@ Pass only if it has an order that carries meaning and a reader could act on it. 
 
 ### Staffing bound (`roles/`)
 
-Which capabilities a seat **owns** (max 2, Owner accountability) vs can **execute** (max 7, L1–L3). Not a title. `Interface Lead` is an example of a bound — owns Product & interface building, executes Problem framing and Stakeholder alignment — not a job name. Titles have now been designed on purpose and are rendered; bounds have not, so the executive site still does not render `roles/`.
+Which capabilities a seat **owns** (max 2, L4 accountability) vs can **execute** (max 7, L1–L3). Not a title. `Interface Lead` is an example of a bound — owns Product & interface building, executes Problem framing and Stakeholder alignment — not a job name. Titles have now been designed on purpose and are rendered; bounds have not, so the executive site still does not render `roles/`.
 
 ## Do
 
@@ -139,7 +139,7 @@ These are shape rules. Passing them does not mean the entity should exist.
 - A capability lists at most 10 `agent_skills`.
 - A role owns at most 2 capabilities and executes at most 7. Owned and executable lists are disjoint.
 - L1-floor capabilities include `levels.L1`, `l1_guardrails`, and `l1_l2_boundary`, and omit `not_at_l1`. L2-floor capabilities include a one-sentence `not_at_l1` reason (never `TBD`, never blank), and omit `levels.L1`, `l1_guardrails`, and `l1_l2_boundary`.
-- Execution scale is exactly L1, L2, L3, plus ownership designation `Owner`.
+- Execution scale is exactly L1, L2, L3, L4 (ownership).
 - Every capability sets `levels_mode`: `standard-ladder` (inherits the firm ladder) or `specific` (carries authored L1/L2/L3 copy). Default is `standard-ladder`.
 - Risk shape → `fires[].capability` must resolve; no duplicate capability inside one shape; no `dial: dormant`; `reading_order` unique across shapes.
 - Seam → `from` and `to` each resolve to exactly one domain **or** one capability, and must differ.
@@ -160,7 +160,7 @@ These are shape rules. Passing them does not mean the entity should exist.
 - Capability `promise` is the named client outcome. `client_experience` is what they walk away with. `sparq_how` is internal methodology.
 - Per-capability `levels` is how that capability is executed. `levels_mode: standard-ladder` means it inherits the firm ladder (defined once in `levels.yaml`); `levels_mode: specific` means the authored L1/L2/L3 copy is the real thing. `l1_l2_boundary` is required on L1-floor capabilities. `levels.yaml` remains the agency-wide legend. Still no L1–L3 on domains or skill files.
 - `agent_skills[].name` is a skill file stem. Do not invent SKILL.md names. Map only skills that already exist in `skills/`.
-- Role `owned_capabilities` are kebab ids (Owner accountability). `executable_capabilities` are `{ id, required_level }` with `required_level` L1–L3.
+- Role `owned_capabilities` are kebab ids (L4 accountability). `executable_capabilities` are `{ id, required_level }` with `required_level` L1–L3.
 - Capacity model `demanded_level` is a property of the work, set by collapse risk; `operator_caliber` is a property of the person, their ceiling. Two axes, orthogonal to each other and both orthogonal to count. A caliber gap below zero is ineligible — no seat, not a smaller one. `demanded_count` is a person-agnostic ceiling; `committed_count` is a floor derived only from validated surface area. Both are emitted; neither replaces the other.
 
 ## Contribution path
@@ -169,7 +169,7 @@ Non-engineers should use GitHub Issue forms or natural language. Translate those
 
 ## Levels block — render rule
 
-The capability detail page renders a **Levels** block: three rows (L1 · L2 · L3) plus a mode badge.
+The capability detail page renders a **Levels** block: four rows (L1 · L2 · L3 · L4) plus a mode badge.
 
 - **Badge:** `standard ladder` or `capability-specific`, from `levels_mode`.
 - **L1 row:**

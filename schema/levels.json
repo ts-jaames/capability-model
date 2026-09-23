@@ -42,7 +42,7 @@
       "additionalProperties": false,
       "required": ["id", "name", "description"],
       "properties": {
-        "id": { "type": "string", "const": "Owner" },
+        "id": { "type": "string", "const": "L4" },
         "name": { "$ref": "common.json#/$defs/nonEmptyString" },
         "description": { "$ref": "common.json#/$defs/nonEmptyString" }
       }
