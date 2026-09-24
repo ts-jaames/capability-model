@@ -70,7 +70,24 @@ const PAGES = [
     file: "operating-view.html",
     main: renderOperatingMain,
   },
+  {
+    id: "ai-sdlc",
+    title: "AI-Native SDLC",
+    file: "ai-sdlc.html",
+    main: renderAiSdlcMain,
+    children: [
+      {
+        id: "adlc",
+        title: "ADLC",
+        file: "adlc.html",
+        main: renderAdlcMain,
+      },
+    ],
+  },
 ];
+
+// Flat list of every page for build output and TOC lookup.
+const ALL_PAGES = PAGES.flatMap((page) => [page, ...(page.children ?? [])]);
 
 const ILLUSTRATIONS = "assets/how-it-all-relates-illustrations";
 
@@ -120,6 +137,12 @@ const PAGE_TOC = {
     ["#seams", "Seams"],
     ["#change-response", "When work changes"],
   ],
+  "ai-sdlc": [
+    ["#overview", "Overview"],
+  ],
+  "adlc": [
+    ["#overview", "Overview"],
+  ],
 };
 
 function pageToc(pageId) {
@@ -129,10 +152,35 @@ function pageToc(pageId) {
 
 function renderPageLinks(pageId) {
   return PAGES.map((item) => {
-    const active = item.id === pageId;
-    const href = active ? "#overview" : item.file;
-    const current = active ? ' aria-current="page"' : "";
-    return `<a class="page-link"${current} href="${esc(href)}">${esc(item.title)}</a>`;
+    const kids = item.children ?? [];
+    const selfActive = item.id === pageId;
+    const childActive = kids.some((kid) => kid.id === pageId);
+    const groupOpen = selfActive || childActive;
+
+    const href = selfActive ? "#overview" : item.file;
+    const current = selfActive ? ' aria-current="page"' : "";
+
+    if (!kids.length) {
+      return `<a class="page-link"${current} href="${esc(href)}">${esc(item.title)}</a>`;
+    }
+
+    const childLinks = kids
+      .map((kid) => {
+        const kidActive = kid.id === pageId;
+        const kidHref = kidActive ? "#overview" : kid.file;
+        const kidCurrent = kidActive ? ' aria-current="page"' : "";
+        return `<a class="page-link page-child"${kidCurrent} href="${esc(kidHref)}">${esc(kid.title)}</a>`;
+      })
+      .join("\n            ");
+
+    const caret = `<svg class="page-caret${groupOpen ? " open" : ""}" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+    return `<div class="page-group${groupOpen ? " open" : ""}">
+          <a class="page-link"${current} href="${esc(href)}">${caret}${esc(item.title)}</a>
+          <div class="page-children">
+            ${childLinks}
+          </div>
+        </div>`;
   }).join("\n        ");
 }
 
@@ -586,6 +634,25 @@ function confidenceMarker(value, qualifier) {
   return qualifier ? `[${token}; ${qualifier}]` : `[${token}]`;
 }
 
+function renderAiSdlcMain() {
+  return `
+      <section id="overview">
+        <h1 class="mono uppercase eyebrow">AI-Native SDLC</h1>
+        <p class="lede">How AI-native delivery works — the playbook that connects the capability model to how work actually gets done.</p>
+        <p class="lede">The operating view says which capabilities run and how hot. This section says how: the concrete lifecycle, the handoffs AI carries, and the judgment humans keep.</p>
+        <p class="lede">Placeholder — content is being authored.</p>
+      </section>`;
+}
+
+function renderAdlcMain() {
+  return `
+      <section id="overview">
+        <h1 class="mono uppercase eyebrow">ADLC</h1>
+        <p class="lede">The AI-native development lifecycle — how code, context, and judgment flow through a delivery slice.</p>
+        <p class="lede">Placeholder — content is being authored.</p>
+      </section>`;
+}
+
 function renderHowItRelatesMain(model) {
   const stack = requireDoctrine(model, "commercial-stack");
   const layers = (stack.steps ?? [])
@@ -783,7 +850,7 @@ function renderCapabilityModelMain(model) {
 }
 
 function render(model, pageId = "how-it-all-relates") {
-  const page = PAGES.find((item) => item.id === pageId);
+  const page = ALL_PAGES.find((item) => item.id === pageId);
   if (!page) throw new Error(`Unknown page: ${pageId}`);
   const main = page.main(model);
   const generated = new Date().toISOString().slice(0, 10);
@@ -948,6 +1015,21 @@ function render(model, pageId = "how-it-all-relates") {
       to { opacity: 1; transform: scale(1); }
     }
     .page-link[aria-current="page"]:hover { font-weight: 600; }
+    .page-group .page-children {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      padding-left: 18px;
+      margin-top: 6px;
+    }
+    .page-group.open .page-children { display: flex; }
+    .page-caret {
+      flex-shrink: 0;
+      transition: transform 180ms ease;
+      color: var(--dim);
+    }
+    .page-caret.open { transform: rotate(90deg); }
+    .page-child { font-size: 12.5px; }
     .side .toc {
       display: flex;
       flex-direction: column;
@@ -1276,10 +1358,10 @@ async function build() {
   if (!board?.length) {
     throw new Error(`Missing ${boardDrawing}. Drawings must copy into site/ on build.`);
   }
-  for (const page of PAGES) {
+  for (const page of ALL_PAGES) {
     await writeFile(join(outDir, page.file), render(model, page.id));
   }
-  console.log(`Wrote ${PAGES.map((page) => `site/${page.file}`).join(", ")}`);
+  console.log(`Wrote ${ALL_PAGES.map((page) => `site/${page.file}`).join(", ")}`);
 }
 
 function mime(pathname) {
