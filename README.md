@@ -1,6 +1,6 @@
 # Capability taxonomy
 
-This repository is the operating-model source of truth. Domains, capabilities, skills, proficiency levels, and roles live as YAML. CI validates them. A read-only site is generated for executives.
+This repository is the operating-model source of truth. Domains, capabilities, skills, levels, and roles live as YAML. CI validates them. A read-only site is generated for executives.
 
 Do not edit `site/`. It is build output.
 

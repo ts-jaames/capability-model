@@ -15,10 +15,10 @@ The count we now attach to a seat is not a seventh list. It's a quantity on one 
 ## The only real list (source of truth)
 
 ```
-DOMAIN  ──contains──▸  CAPABILITY  ──executed at──▸  LEVEL (L1–L3)
+DOMAIN  ──contains──▸  CAPABILITY  ──executed at──▸  LEVEL (L1–L4)
 ```
 
-This is the model. A capability is the named outcome we promise. It can be delivered at L1, L2, or L3 — same promise, different depth of judgment. The capability is the whole piece; the level is which piece you slot in to assemble it. Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.
+This is the model. A capability is the named outcome we promise. It can be executed at L1, L2, L3, or L4 — same promise, different depth of judgment and accountability. The capability is the whole piece; the level is which piece you slot in to assemble it. Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.
 
 ![The spine](assets/how-it-all-relates-illustrations/02-the-spine.png)
 
@@ -48,9 +48,9 @@ The markers above are read from `capacity-model.yaml`, which records the confide
 
 ---
 
-## Three ways a person binds to a capability
+## Three verbs
 
-Title, ownership, and seat are **not three more taxonomies** — they're three verbs on the same capabilities. Same noun, three relationships, all three internal:
+Title, ownership, and seat are **not three more lists** — they're three verbs on the same capabilities. Same noun, three relationships, all three internal:
 
 ```
                         CAPABILITY (@ level)

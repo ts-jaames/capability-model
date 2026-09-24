@@ -140,6 +140,7 @@ const PAGE_TOC = {
   "ai-sdlc": [
     ["#overview", "Overview"],
     ["#pipeline", "Pipeline"],
+    ["#how-stages-and-risk-work", "Stages vs risk shapes"],
     ["#stage-0", "0 · Intent Framing"],
     ["#stage-1", "1 · Evidence Gate"],
     ["#stage-2", "2 · Plan"],
@@ -490,7 +491,7 @@ function renderRolesMain(model) {
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
-        <p class="lede">Capabilities are the contract. Roles are the fulfillment. Titles are internal coverage.</p>
+        <p class="lede">Capabilities are the contract. Seats are the fulfillment. Titles are internal coverage.</p>
         <p class="lede">The SOW sells an outcome, priced from the capabilities-at-levels underneath it — never headcount, and never a title. A title is internal shorthand for a coherent bundle of owned capabilities; it groups coverage, it isn't a thing a client buys.</p>
         <p class="lede">An L4 is the atomic internal unit — accountable for one capability cluster's maturity. L4s compose into the lines below: common compositions, named for internal coverage, not for the market.</p>
         <p class="lede">A pair of single-spike L4s and one M-shaped person can fulfil the same commitment. The contract promises capabilities at levels; it doesn't care who covers them.</p>
@@ -650,13 +651,13 @@ function renderAiSdlcMain() {
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">AI-Native SDLC</h1>
-        <p class="lede">This playbook establishes the standard operating procedures for the Sparq AI-Native Software Development Life Cycle. Adapted from the Anthropic AI-Native SDLC pattern, this methodology integrates Evidence Work as a non-negotiable gate inside the pipeline rather than treating it as an external meta-process.</p>
-        <p class="lede">The base pipeline optimizes for speed and build correctness. However, it requires a mechanism to validate whether we are building the right thing before scaling execution. Therefore, Evidence Work explicitly gates the transition from Plan → Design. Feasibility and Operational risks are handled inside the Build → Test phases via Continuous Integration (CI) evaluation suites. The commit chain (Git-tracked artifacts at every stage) remains both the operational workflow and the audit trail.</p>
+        <p class="lede">This playbook establishes the standard operating procedures for the Sparq AI-Native Software Development Life Cycle. Adapted from the Anthropic AI-Native SDLC pattern, this methodology integrates the Evidence Gate as a non-negotiable gate inside the pipeline rather than treating it as an external meta-process.</p>
+        <p class="lede">The base pipeline optimizes for speed and build correctness. However, it requires a mechanism to validate whether we are building the right thing before scaling execution. Therefore, the Evidence Gate explicitly gates the transition from Plan → Design. Feasibility and Operational risks are handled inside the Build → Test phases via Continuous Integration (CI) evaluation suites. The commit chain (Git-tracked artifacts at every stage) remains both the operational workflow and the audit trail.</p>
       </section>
 
       <section id="pipeline">
         <h2 class="mono uppercase eyebrow">The pipeline</h2>
-        <p class="lede">Eight stages, each producing a Git-tracked artifact. Evidence Work sits between Intent Framing and Plan — a human-driven gate for the risks CI cannot catch.</p>
+        <p class="lede">Eight stages, each producing a Git-tracked artifact. The Evidence Gate sits between Intent Framing and Plan — a human-driven gate for the risks CI cannot catch.</p>
         <table class="hairline-table">
           <thead>
             <tr>
@@ -667,7 +668,7 @@ function renderAiSdlcMain() {
           </thead>
           <tbody>
             <tr><td><strong>0 · Intent Framing</strong></td><td>raw intent.md</td><td>—</td></tr>
-            <tr><td><strong>1 · Evidence Work</strong></td><td>decision on intent.md</td><td>Promote / Iterate / Pivot / Stop</td></tr>
+            <tr><td><strong>1 · Evidence Gate</strong></td><td>decision on intent.md</td><td>Promote / Iterate / Pivot / Stop</td></tr>
             <tr><td><strong>2 · Plan</strong></td><td>intent.md (cleared)</td><td>Product Owner merge</td></tr>
             <tr><td><strong>3 · Design</strong></td><td>spec.md</td><td>Skills validation</td></tr>
             <tr><td><strong>4 · Build</strong></td><td>plan.md + code diffs</td><td>CLAUDE.md + hooks</td></tr>
@@ -676,6 +677,14 @@ function renderAiSdlcMain() {
             <tr><td><strong>7 · Maintain</strong></td><td>bands.yaml + incident records</td><td>Metric-band triggers</td></tr>
           </tbody>
         </table>
+      </section>
+
+      <section id="how-stages-and-risk-work">
+        <h2 class="mono uppercase eyebrow">How stages and risk shapes work together</h2>
+        <p class="lede">Stages are artifact order. They describe the sequence of what you produce and which governance gate you pass through. Risk shapes are the real-time operating picture — they describe which capabilities run hot right now, regardless of which stage the work is in.</p>
+        <p class="lede">A risk shape fires wherever it fires. The Feasibility shape can spike during Intent Framing if an architecture constraint surfaces early. The Value shape can stay active deep into Build if a prior assumption gets challenged. Shapes co-occur, recur, and persist — they are not bound to a single stage.</p>
+        <p class="lede">The stage tells you what artifact you owe. The live risk mix tells you what to worry about while you produce it. You are always in a stage, and you are always responding to risk shapes.</p>
+        <p class="lede">Stages have a default gravity — 0 through 7 — but change events and failed gates send you back. The change-response doctrine runs at any stage: re-read the risk, re-set the dials, decision gate, re-staff, re-price and re-time, name the next slice.</p>
       </section>
 
       <section id="stage-0">
@@ -691,11 +700,11 @@ function renderAiSdlcMain() {
           ${kv("Domain Walkthrough", "<p>Force the identification of at least one risk per category: Value, Usability, Feasibility, Viability, and Operational. This prevents tunnel vision.</p>")}
           ${kv("Architecture Exposure", '<p>Ask: "What technical constraint could invalidate this?" Identify platform limitations, integration dependencies, performance ceilings, and security requirements.</p>')}
         </div>
-        <p class="line-note">Output: a raw intent.md (problem statement, proposed outcomes, affected systems, constraints) where every claim is explicitly tagged as an assumption. This file does not trigger CI compilation — it must proceed to the Evidence Work Gate.</p>
+        <p class="line-note">Output: a raw intent.md (problem statement, proposed outcomes, affected systems, constraints) where every claim is explicitly tagged as an assumption. This file does not trigger CI compilation — it must proceed to the Evidence Gate.</p>
       </section>
 
       <section id="stage-1">
-        <h2 class="mono uppercase eyebrow">Stage 1 · Evidence Work Gate</h2>
+        <h2 class="mono uppercase eyebrow">Stage 1 · Evidence Gate</h2>
         <p class="lede">Decide whether the raw intent.md is trustworthy enough to compile into spec.md. This is a human-driven evaluation gate to validate risk categories that cannot be caught by CI rubrics.</p>
         <table class="hairline-table">
           <thead>
@@ -708,9 +717,9 @@ function renderAiSdlcMain() {
           <tbody>
             <tr><td><strong>Feasibility</strong></td><td>Stage 5 (CI Eval Suite)</td><td>Deterministic — a rubric can check whether code fulfills a spec.</td></tr>
             <tr><td><strong>Operational</strong></td><td>Stage 5 (CI Eval Suite)</td><td>Testable against known patterns and thresholds.</td></tr>
-            <tr><td><strong>Value</strong></td><td>Evidence Work Gate</td><td>Requires external reaction. Cannot be skipped or auto-evaluated.</td></tr>
-            <tr><td><strong>Usability</strong></td><td>Evidence Work Gate</td><td>Requires human interaction/reaction. Cannot be skipped.</td></tr>
-            <tr><td><strong>Viability</strong></td><td>Evidence Work Gate (Light)</td><td>Business/commercial sense-check.</td></tr>
+            <tr><td><strong>Value</strong></td><td>Evidence Gate</td><td>Requires external reaction. Cannot be skipped or auto-evaluated.</td></tr>
+            <tr><td><strong>Usability</strong></td><td>Evidence Gate</td><td>Requires human interaction/reaction. Cannot be skipped.</td></tr>
+            <tr><td><strong>Viability</strong></td><td>Evidence Gate (Light)</td><td>Business/commercial sense-check.</td></tr>
           </tbody>
         </table>
         <div class="kvs">
@@ -738,7 +747,7 @@ function renderAiSdlcMain() {
         <div class="kvs">
           ${kv("Compressed synthesis", "<p>Execute a compressed, single-session requirements and architecture synthesis.</p>")}
           ${kv("Skill integration", "<p>Guide the synthesis utilizing organization-wide skills for security, compliance, and UX standards.</p>")}
-          ${kv("Domain focus", "<p>Prioritize Experience Shaping as the primary domain, while running Technical Feasibility checks as secondary constraint spikes surface.</p>")}
+          ${kv("Domain focus", "<p>Building is the primary domain — product-interface-building and core-systems-engineering drive the synthesis. Framing constraint-checks run as secondary, ensuring the architecture stays within the boundaries set at the Evidence Gate.</p>")}
         </div>
         <p class="line-note">Output: spec.md.</p>
       </section>
@@ -762,7 +771,7 @@ function renderAiSdlcMain() {
         <div class="kvs">
           ${kv("Self-verification loop", "<p>Agents must run builds, tests, and visual diffs, proving success in context before reporting a task complete.</p>")}
           ${kv("Continuous CI eval suite", "<p>Maintain 20–50 real-world task evaluations in .github/workflows/agent-evals.yml. These run non-interactively upon updates to code, skills, or hooks to establish baseline agent performance benchmarks.</p>")}
-          ${kv("Focused scope", "<p>CI evaluations assess Feasibility and Operational risks only. Value and Usability risks are resolved upstream at the Evidence Gate.</p>")}
+          ${kv("Focused scope", "<p>CI evaluations assess Feasibility and Operational risks only. Value and Usability risks are resolved upstream at the Evidence Gate (Stage 1).</p>")}
           ${kv("Test-file locking", "<p>Implement pre-tool hooks that block agents from modifying existing test files during bug-fix tasks. The agent must fix the code to pass the tests — it is explicitly denied the ability to alter assertions to force a passing status.</p>")}
         </div>
         <p class="line-note">Output: verification logs and evaluation results.</p>
@@ -793,28 +802,31 @@ function renderAiSdlcMain() {
       </section>
 
       <section id="domains-across">
-        <h2 class="mono uppercase eyebrow">Capability domains across the pipeline</h2>
-        <p class="lede">Uncertainty Framing tapers over time but does not hard-stop at Plan. Signal &amp; Measurement happens at the Gate, Test, and Maintain stages, handling distinct but related evaluation tasks.</p>
+        <h2 class="mono uppercase eyebrow">Domains and risk shapes across the pipeline</h2>
+        <p class="lede">Each stage has a primary domain driving the work and risk shapes that are typically hottest at that point. Framing tapers over time but does not hard-stop at Plan. Proof runs at the Evidence Gate, Test, and Maintain stages, handling distinct but related evaluation tasks.</p>
         <table class="hairline-table">
           <thead>
             <tr>
               <th>Stage</th>
               <th>Primary domain</th>
-              <th>Secondary domain</th>
-              <th>Accountability</th>
+              <th>Secondary</th>
+              <th>Risk shapes typically hot</th>
             </tr>
           </thead>
           <tbody>
-            <tr><td>Intent Framing</td><td>Uncertainty Framing</td><td>—</td><td>Product leadership</td></tr>
-            <tr><td>Evidence Work Gate</td><td>Uncertainty Framing</td><td>Signal &amp; Measurement</td><td>Product + Delivery</td></tr>
-            <tr><td>Plan</td><td>Uncertainty Framing (tapering)</td><td>Signal &amp; Measurement</td><td>Product leadership</td></tr>
-            <tr><td>Design</td><td>Experience Shaping</td><td>Technical Feasibility</td><td>Design leadership</td></tr>
-            <tr><td>Build</td><td>Technical Feasibility</td><td>Experience Shaping</td><td>Engineering leadership</td></tr>
-            <tr><td>Test</td><td>Signal &amp; Measurement</td><td>Technical Feasibility</td><td>Engineering + Delivery</td></tr>
-            <tr><td>Deploy</td><td>Scaling &amp; Reliability</td><td>Technical Feasibility</td><td>Engineering leadership</td></tr>
-            <tr><td>Maintain</td><td>Scaling &amp; Reliability</td><td>Signal &amp; Measurement</td><td>Engineering + Delivery</td></tr>
+            <tr><td>0 · Intent Framing</td><td>Framing</td><td>—</td><td>Problem clarity, Commercial</td></tr>
+            <tr><td>1 · Evidence Gate</td><td>Proof</td><td>Framing</td><td>Value, Problem clarity</td></tr>
+            <tr><td>2 · Plan</td><td>Framing (tapering)</td><td>Commercial</td><td>Commercial</td></tr>
+            <tr><td>3 · Design</td><td>Building</td><td>Framing</td><td>Feasibility</td></tr>
+            <tr><td>4 · Build</td><td>Building</td><td>Proof</td><td>Feasibility, AI reliability</td></tr>
+            <tr><td>5 · Test</td><td>Proof</td><td>Building</td><td>Proof/acceptance, Feasibility, AI reliability</td></tr>
+            <tr><td>6 · Deploy</td><td>Building</td><td>Continuity</td><td>Proof/acceptance, Adoption</td></tr>
+            <tr><td>7 · Maintain</td><td>Continuity</td><td>Enablement</td><td>Continuity, Adoption</td></tr>
           </tbody>
         </table>
+        <p class="lede">Risk shapes are listed where they are typically hottest, not where they only fire. Any shape can spike at any stage — a Feasibility constraint can surface during Intent Framing, and a Value question can re-open during Build.</p>
+        <p class="lede"><strong>Commercial</strong> frames the pipeline — it sets the envelope and price before Stage 0, and the proof → commercial seam updates it as evidence arrives. It is not absent from the pipeline; it operates across stages rather than owning one.</p>
+        <p class="lede"><strong>Enablement</strong> activates when the Adoption risk shape fires, typically hottest at Deploy and Maintain but possible at any stage where organizational change is needed to land the work.</p>
       </section>
 
       <section id="adaptation">
@@ -830,14 +842,14 @@ function renderAiSdlcMain() {
             </tr>
           </thead>
           <tbody>
-            <tr><td>Intent Framing</td><td>Structured elicitation producing tagged, unvalidated assumptions</td><td>raw intent.md</td><td>Facilitator ensures output stays assumption-tagged</td></tr>
-            <tr><td>Evidence Gate</td><td>Risk validation loop for Value/Usability/Viability only</td><td>Decision on intent.md</td><td>Product + Delivery sign-off; Promote/Iterate/Pivot/Stop</td></tr>
-            <tr><td>Plan</td><td>Brainstorming sessions generating concise proto-specs</td><td>intent.md (cleared)</td><td>Product Owner merge sign-off</td></tr>
-            <tr><td>Design</td><td>Compressed single-session requirements &amp; design synthesis</td><td>spec.md</td><td>Skills validation (Security, UX, Brand)</td></tr>
-            <tr><td>Build</td><td>Plan-mode drafting, worktree-isolated implementation</td><td>plan.md &amp; code diffs</td><td>CLAUDE.md + path-blocking hooks</td></tr>
-            <tr><td>Test</td><td>Continuous self-verification and CI-driven eval suites</td><td>Verification logs &amp; eval results</td><td>Test-locking hooks &amp; eval pass thresholds</td></tr>
-            <tr><td>Deploy</td><td>Multi-pass agentic PR review with human risk evaluation</td><td>REVIEW.md &amp; PR findings</td><td>Branch protection &amp; production deploy hooks</td></tr>
-            <tr><td>Maintain</td><td>Metric-band monitoring auto-generating new intent items</td><td>bands.yaml &amp; incident records</td><td>Tiered automated response &amp; on-call approval</td></tr>
+            <tr><td>0 · Intent Framing</td><td>Structured elicitation producing tagged, unvalidated assumptions</td><td>raw intent.md</td><td>Facilitator ensures output stays assumption-tagged</td></tr>
+            <tr><td>1 · Evidence Gate</td><td>Risk validation loop for Value/Usability/Viability only</td><td>Decision on intent.md</td><td>Product + Delivery sign-off; Promote/Iterate/Pivot/Stop</td></tr>
+            <tr><td>2 · Plan</td><td>Brainstorming sessions generating concise proto-specs</td><td>intent.md (cleared)</td><td>Product Owner merge sign-off</td></tr>
+            <tr><td>3 · Design</td><td>Compressed single-session requirements &amp; design synthesis</td><td>spec.md</td><td>Skills validation (Security, UX, Brand)</td></tr>
+            <tr><td>4 · Build</td><td>Plan-mode drafting, worktree-isolated implementation</td><td>plan.md &amp; code diffs</td><td>CLAUDE.md + path-blocking hooks</td></tr>
+            <tr><td>5 · Test</td><td>Continuous self-verification and CI-driven eval suites</td><td>Verification logs &amp; eval results</td><td>Test-locking hooks &amp; eval pass thresholds</td></tr>
+            <tr><td>6 · Deploy</td><td>Multi-pass agentic PR review with human risk evaluation</td><td>REVIEW.md &amp; PR findings</td><td>Branch protection &amp; production deploy hooks</td></tr>
+            <tr><td>7 · Maintain</td><td>Metric-band monitoring auto-generating new intent items</td><td>bands.yaml &amp; incident records</td><td>Tiered automated response &amp; on-call approval</td></tr>
           </tbody>
         </table>
       </section>
@@ -856,7 +868,7 @@ function renderAdlcMain() {
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">ADLC</h1>
-        <p class="lede">The AI-native development lifecycle — how code, context, and judgment flow through a delivery slice.</p>
+        <p class="lede">The AI-Native development lifecycle — how code, context, and judgment flow through a delivery slice.</p>
         <p class="lede">Placeholder — content is being authored.</p>
       </section>`;
 }
@@ -889,7 +901,7 @@ function renderHowItRelatesMain(model) {
       </section>
       <section id="the-spine">
         <h2 class="mono uppercase eyebrow">The spine</h2>
-        <p class="lede">Domain contains capability. A capability is the named outcome we promise. It can be delivered at L1, L2, or L3 — same promise, different depth of judgment.</p>
+        <p class="lede">Domain contains capability. A capability is the named outcome we promise. It can be executed at L1, L2, L3, or L4 — same promise, different depth of judgment and accountability.</p>
         <p class="lede">The capability is the whole piece. The level is which piece you slot in to assemble it. Same promise either way. Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.</p>
         ${figure("02-the-spine.png", "Capability assembled at a level")}
         ${to("capability-model.html", "Capability Model")}
@@ -910,7 +922,7 @@ function renderHowItRelatesMain(model) {
       <section id="three-verbs">
         <h2 class="mono uppercase eyebrow">Three verbs</h2>
         <p class="lede">Title, ownership, and seat are not three more lists. They are three verbs on the same capability: grouped under, keeps fit, executes.</p>
-        <p class="lede">Title is grouped under — a bundle of owned capabilities, internal shorthand for coverage. L4 ownership is keeps fit — the capability you author guardrails for, internal and permanent. Seat is executes — one capability at one level, this squad, internal and dynamic. All three are internal; none of them is what the client buys.</p>
+        <p class="lede">Title is grouped under — a bundle of owned capabilities, internal shorthand for coverage. L4 Capability Ownership is keeps fit — the capability you author guardrails for, internal and permanent. Seat is executes — one capability at one level, this squad, internal and dynamic. All three are internal; none of them is what the client buys.</p>
         ${to("roles-titles.html#title-ownership-seat", "Roles & Titles")}
       </section>
       <section id="seats">
@@ -1020,7 +1032,7 @@ function renderCapabilityModelMain(model) {
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
         <p class="lede">Domains are types of work. They do not change and they do not have levels. Capabilities are the named outcomes we promise inside a domain.</p>
-        <p class="lede">How a capability is executed is a separate scale — L1 guided work against guardrails, L2 independent practice, L3 setting the standard, and L4 as agency-wide accountability for that capability's maturity. That scale lives with capabilities, not with domains.</p>
+        <p class="lede">How a capability is executed is a separate scale — L1 Guided Execution, L2 Practitioner, L3 Advanced Lead, and L4 Capability Ownership. That scale lives with capabilities, not with domains.</p>
       </section>
       <section id="domains">
         <h2 class="mono uppercase eyebrow">Domains</h2>

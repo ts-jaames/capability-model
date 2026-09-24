@@ -6,7 +6,8 @@ definition: >
   lists never overlap. Stored today under `roles/`.
 not:
   - A job name. "Interface Lead" is a bound, not a role anyone is hired into.
-  - A title. Bounds are internal; titles face the market.
+  - A title. A title is durable ownership of a capability bundle; a bound is
+    what one seat may execute on one engagement.
   - A thing the site renders. Bounds stay unpublished until titles and bounds
     are designed on purpose.
 see_also:
