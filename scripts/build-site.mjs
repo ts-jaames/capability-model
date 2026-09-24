@@ -176,7 +176,7 @@ function renderPageLinks(pageId) {
     const caret = `<svg class="page-caret${groupOpen ? " open" : ""}" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
     return `<div class="page-group${groupOpen ? " open" : ""}">
-          <a class="page-link"${current} href="${esc(href)}">${caret}${esc(item.title)}</a>
+          <a class="page-link"${current} href="${esc(href)}">${esc(item.title)}${caret}</a>
           <div class="page-children">
             ${childLinks}
           </div>
