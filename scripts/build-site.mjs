@@ -99,6 +99,12 @@ const PAGES = [
         file: "adlc-tactical.html",
         main: renderAdlcTacticalMain,
       },
+      {
+        id: "new-discovery",
+        title: "New Discovery",
+        file: "new-discovery.html",
+        main: renderNewDiscoveryMain,
+      },
     ],
   },
 ];
@@ -200,6 +206,11 @@ const PAGE_TOC = {
   ],
   "adlc-tactical": [
     ["#overview", "Overview"],
+  ],
+  "new-discovery": [
+    ["#overview", "Overview"],
+    ["#sdlc-stages", "AI-Native SDLC stages"],
+    ["#adlc-stages", "Agentic stages"],
   ],
 };
 
@@ -1209,6 +1220,47 @@ function renderAdlcTacticalMain() {
         <h1 class="mono uppercase eyebrow">Agentic Tactical</h1>
         <p class="lede">The tactical execution details for the Agentic Development Lifecycle — skills, hooks, agents, and file names behind each phase.</p>
         <p class="lede">Placeholder — content is being authored.</p>
+      </section>`;
+}
+
+function renderNewDiscoveryMain() {
+  return `
+      <section id="overview">
+        <h1 class="mono uppercase eyebrow">New Discovery</h1>
+        <p class="lede">The discovery process rebuilt for AI-Native delivery. This is where we define how the front-loaded stages of both lifecycles combine into one commercial unit — the thing we sell as discovery, backed by real signal instead of workshop artifacts.</p>
+        <p class="lede">Content is being authored. The stages involved are mapped below.</p>
+      </section>
+
+      <section id="sdlc-stages">
+        <h2 class="mono uppercase eyebrow">AI-Native SDLC stages involved</h2>
+        <p class="lede">In the AI-Native SDLC, discovery is the <strong>Evidence Sprint</strong> — Stages 0 and 1 sold as one commercial unit.</p>
+        <table class="hairline-table">
+          <thead>
+            <tr><th>Stage</th><th>Name</th><th>What it produces</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>0</strong></td><td><a href="ai-sdlc.html#stage-0">Intent Framing</a></td><td>Raw intent.md — tagged, unvalidated assumptions</td></tr>
+            <tr><td><strong>1</strong></td><td><a href="ai-sdlc.html#stage-1">Evidence Gate</a></td><td>Cleared intent.md — Promote/Iterate/Pivot/Stop decision, tracker sync, spec compilation trigger</td></tr>
+          </tbody>
+        </table>
+        <p class="line-note">Full stage details on the <a href="ai-sdlc.html">AI-Native Strategy</a> page.</p>
+      </section>
+
+      <section id="adlc-stages">
+        <h2 class="mono uppercase eyebrow">Agentic stages involved</h2>
+        <p class="lede">In the ADLC, discovery spans <strong>Stages 0 through 3</strong> — the additional stages cover agent-specific scope framing, architecture definition, and simulation before committing to a full build.</p>
+        <table class="hairline-table">
+          <thead>
+            <tr><th>Stage</th><th>Name</th><th>What it produces</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>0</strong></td><td><a href="adlc.html#stage-0">Preparation &amp; Hypotheses</a></td><td>Raw intent.md — tagged assumptions, pain points identified</td></tr>
+            <tr><td><strong>1</strong></td><td><a href="adlc.html#stage-1">Scope Framing &amp; Problem Definition</a></td><td>Refined intent.md with human-agent responsibility mapping</td></tr>
+            <tr><td><strong>2</strong></td><td><a href="adlc.html#stage-2">Agent Definition &amp; Architecture</a></td><td>spec.md — orchestration pattern, token economics, data architecture</td></tr>
+            <tr><td><strong>3</strong></td><td><a href="adlc.html#stage-3">Simulation &amp; Proof of Value</a></td><td>Cleared intent.md + ESOA + optional Vision Prototype</td></tr>
+          </tbody>
+        </table>
+        <p class="line-note">Full stage details on the <a href="adlc.html">Agentic</a> page.</p>
       </section>`;
 }
 
