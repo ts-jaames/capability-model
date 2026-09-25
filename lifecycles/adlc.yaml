@@ -1,0 +1,291 @@
+id: adlc
+name: ADLC
+summary: >
+  The Agentic Development Lifecycle — a lifecycle built to handle uncertainty,
+  prioritize behavioral guardrails, and treat deployment as the start of
+  continuous learning rather than the end of a project.
+description: >
+  The transition from SDLC to ADLC is the realization that agentic systems
+  violate the core assumption of traditional software engineering: that behavior
+  is fully specified at build time and strictly deterministic. Agents reason,
+  adapt, and act across external tools. Small shifts in context compound into
+  entirely different outputs.
+
+core_shifts:
+  - dimension: Behavior
+    sdlc: Deterministic execution (same input = same output)
+    adlc: Probabilistic execution (behavior evolves based on models, tools, and context)
+  - dimension: Logic residency
+    sdlc: Code and config
+    adlc: Hybrid of code, prompts, foundation models, and vector data
+  - dimension: Success metrics
+    sdlc: Functional pass/fail
+    adlc: Accuracy distribution, hallucination rates, token cost, and alignment
+  - dimension: Feedback loop
+    sdlc: Reactive (users report bugs, devs fix them)
+    adlc: Recursive (telemetry feeds directly back into prompt context or auto-generates new intents)
+
+commercial_unit:
+  name: Evidence Sprint
+  stages: [0, 1, 2, 3]
+  description: >
+    Stages 0 through 3 encompass the Evidence Sprint — the additional stages
+    cover agent-specific scope framing, architecture definition, and simulation
+    before committing to a full build.
+
+stages:
+  - number: 0
+    name: Preparation & Hypotheses
+    objective: >
+      The raw capture of intent and constraints. Not everything needs an agent.
+    artifact: raw intent.md
+    gate: Facilitator validates tagging
+    primary_domain: framing
+    risk_shapes_hot:
+      - shape-problem-clarity
+    procedures:
+      - name: Tactical practice
+        description: >
+          2–4 hour structured workshop. 10-minute silent assumption dump (Value,
+          Usability, Feasibility, Viability, Operational). Failure premortem. No
+          untagged claims survive.
+    tooling:
+      - Meeting-transcription MCP (Whisper/Fathom)
+      - Miro/Slack MCP
+    agents_and_hooks:
+      - name: intent-elicitor
+        description: >
+          Probing agent that forces stakeholders to rephrase vague desires into
+          testable assertions.
+      - name: assumption-extractor
+        description: Parses live transcripts and auto-tags constraints.
+      - name: premortem-adversary
+        description: Red-teams the room on AI edge-case failures.
+    output: Raw intent.md, fully tagged. Facilitator validates tagging.
+
+  - number: 1
+    name: Scope Framing & Problem Definition
+    objective: >
+      Establishing the human-agent boundaries and compliance limits.
+    artifact: refined intent.md
+    gate: assumption-linter pre-commit hook
+    primary_domain: framing
+    risk_shapes_hot:
+      - shape-problem-clarity
+      - shape-value
+    procedures:
+      - name: Tactical practice
+        description: >
+          Defining the agent's autonomy boundaries. Explicitly mapping what
+          requires Human-in-the-Loop (HITL) approval. Drafting the initial
+          evaluation criteria.
+    agents_and_hooks:
+      - name: assumption-linter
+        description: >
+          Pre-commit hook. Rejects the commit of intent.md if any claim lacks an
+          [ASSUMPTION: Category] tag or if autonomy boundaries are undefined.
+    output: >
+      Refined intent.md with explicit human-agent responsibility mapping and
+      operational KPIs.
+
+  - number: 2
+    name: Agent Definition & Architecture
+    objective: Designing the non-deterministic structure.
+    artifact: spec.md
+    gate: Design/Tech Lead review
+    primary_domain: building
+    secondary_domain: framing
+    risk_shapes_hot:
+      - shape-feasibility
+    procedures:
+      - name: Tactical practice
+        description: >
+          Compressed design session defining the orchestration pattern, token
+          economics (CAPEX/OPEX), and data architecture. Architecture must
+          satisfy Stage 1 bounds without over-building.
+    tooling:
+      - Figma MCP or repo-native prototype design via Claude Code
+    agents_and_hooks:
+      - name: .claude/skills/security-baseline
+        description: Organization-wide security compliance skill.
+      - name: .claude/skills/ux-design-system
+        description: UX standards skill.
+      - name: .claude/skills/adlc-agent-guardrails
+        description: Agent behavioral guardrails skill.
+      - name: spec-compliance-linter
+        description: >
+          Verifying spec.md contains Agent Tool definitions, Failure Modes,
+          Token Budget, Data Models.
+    output: spec.md. Design/Tech Lead review.
+
+  - number: 3
+    name: Simulation & Proof of Value
+    objective: >
+      The commercial Evidence Gate. You do not pass this without external
+      signal.
+    artifact: intent.md (cleared) + ESOA + optional Vision Prototype
+    gate: PO merge sign-off
+    primary_domain: proof
+    secondary_domain: framing
+    risk_shapes_hot:
+      - shape-value
+      - shape-feasibility
+    procedures:
+      - name: Tactical practice
+        description: >
+          Build an Evidence Slice or Vision Prototype. Attach it to a real
+          client touchpoint. Product + Delivery decide: Promote / Iterate /
+          Pivot / Stop. On a Promote, map scope blocks to the enterprise
+          tracker and sync.
+    tooling:
+      - Conversation Intelligence MCP (Gong/Zoom)
+      - Enterprise Tracker MCP (Jira/ADO)
+    agents_and_hooks:
+      - name: synthetic-user-dryrun
+        description: >
+          Runs multi-persona simulation to test the agent before real client
+          exposure.
+      - name: evidence-synthesizer
+        description: >
+          Evaluates client signal strength, capping internal-only feedback at
+          Directional.
+      - name: gate-signoff-validator
+        description: >
+          Blocks push to /intent/ unless explicit decision tags are present.
+      - name: tracker-sync
+        description: >
+          Automates mapping markdown scopes into enterprise tracker stories.
+    output: >
+      intent.md (cleared) + per-project ESOA + optional Vision Prototype. PO
+      merge sign-off.
+
+  - number: 4
+    name: Implementation & Evals
+    objective: Agent-driven coding and baseline verification.
+    artifact: plan.md + code diffs
+    gate: Engineer plan acceptance
+    primary_domain: building
+    secondary_domain: proof
+    risk_shapes_hot:
+      - shape-feasibility
+      - shape-ai-reliability
+    procedures:
+      - name: Tactical practice
+        description: >
+          Git worktree isolation. Plan Mode first — Claude writes plan.md.
+          Engineer accepts the plan, execution begins.
+    tooling:
+      - Claude Code CLI
+      - CLAUDE.md as the repo's living context engine
+    agents_and_hooks:
+      - name: .claude/agents/verifier.md
+        description: Runs the app and verifies behavior against plan.md.
+      - name: .claude/agents/prompt-evaluator.md
+        description: >
+          Evaluates embedded AI outputs for hallucination/tool-calling accuracy
+          during implementation.
+      - name: path-blocking-hook
+        description: >
+          Intercepts file edits outside the scope defined in plan.md.
+    output: >
+      plan.md and verified code diffs in isolated branches. Engineer plan
+      acceptance.
+
+  - number: 5
+    name: Testing
+    objective: >
+      Probabilistic testing for reasoning, safety, and edge-cases.
+    artifact: verification logs + eval results
+    gate: Automated CI pass threshold
+    primary_domain: proof
+    secondary_domain: building
+    risk_shapes_hot:
+      - shape-proof
+      - shape-feasibility
+      - shape-ai-reliability
+    procedures:
+      - name: Tactical practice
+        description: >
+          Non-interactive CI eval suite runs 20–50 task scenarios. Test files
+          are read-only during bug-fix tasks — agents must fix code, not weaken
+          the test.
+    tooling:
+      - Headless Playwright/Puppeteer MCP
+      - .github/workflows/agent-evals.yml
+    agents_and_hooks:
+      - name: lock-tests.sh
+        description: Blocks Edit/Write on tests/** during bug-fix runs.
+      - name: eval-pass-checker
+        description: >
+          Blocks PR merge if task accuracy / safety alignment falls below the
+          defined threshold.
+    output: Verification logs, evaluation pass results. Automated CI pass threshold.
+
+  - number: 6
+    name: Agent Activation & Deployment
+    objective: Tiered release with strict autonomy guardrails.
+    artifact: REVIEW.md
+    gate: Human Release Manager sign-off on Production
+    primary_domain: building
+    secondary_domain: continuity
+    risk_shapes_hot:
+      - shape-proof
+      - shape-adoption
+    procedures:
+      - name: Tactical practice
+        description: >
+          Multi-pass PR review (Bugs → Security → Alignment). Environment
+          autonomy tiers: Dev = Autonomous, Staging = Clean CI + Auto-review,
+          Prod = Named Human Sign-off.
+    agents_and_hooks:
+      - name: .claude/agents/pr-reviewer.md
+        description: >
+          Multi-pass review outputting to REVIEW.md. Writes context updates back
+          to CLAUDE.md if the agent repeats a mistake twice.
+      - name: managed-settings-engine
+        description: >
+          permissions.deny, allowManagedHooksOnly, disableSideloadFlags.
+      - name: network-egress-blocker
+        description: >
+          Hard network boundary enforcement preventing unauthorized agent
+          tool-calls.
+    output: REVIEW.md. Human Release Manager sign-off on Production.
+
+  - number: 7
+    name: Continuous Learning & Governance
+    objective: Managing probabilistic drift and feeding the loop.
+    artifact: bands.yaml + incident records
+    gate: Service Owner / on-call triage
+    primary_domain: continuity
+    secondary_domain: enablement
+    risk_shapes_hot:
+      - shape-continuity
+      - shape-adoption
+    procedures:
+      - name: Tactical practice
+        description: >
+          Statistical process control using Western Electric rules. When an
+          agent hallucinates, breaches a boundary, or triggers a negative
+          feedback loop in production, a background agent diagnoses it and
+          writes a new intent back to Stage 0 automatically.
+    tooling:
+      - Infra MCP (Datadog)
+      - Product Analytics MCP (PostHog/Pendo)
+    agents_and_hooks:
+      - name: metric-watcher
+        description: Background monitor scanning bands.yaml for breaches.
+      - name: incident-to-eval-compiler
+        description: >
+          Turns post-mortem logs into permanent regression tests in Stage 5.
+      - name: Claude Tag
+        description: >
+          ChatOps bot allowing on-call engineers to tag the AI directly in
+          incident threads.
+    output: >
+      Updated bands.yaml, incident records, fresh intent.md pushed to Stage 0
+      triage queue.
+
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-25

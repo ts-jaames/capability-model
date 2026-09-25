@@ -1,0 +1,385 @@
+id: ai-native-sdlc
+name: AI-Native SDLC
+summary: >
+  Standard operating procedures for the Sparq AI-Native Software Development
+  Life Cycle. Adapted from the Anthropic AI-Native SDLC pattern, this
+  methodology integrates the Evidence Gate as a non-negotiable gate inside the
+  pipeline rather than treating it as an external meta-process.
+description: >
+  The base pipeline optimizes for speed and build correctness. However, it
+  requires a mechanism to validate whether we are building the right thing
+  before scaling execution. Therefore, the Evidence Gate explicitly gates the
+  transition from Intent Framing to Design — closing with the tracker sync and
+  merge that was previously modeled as its own Plan stage, now folded into the
+  Gate as its automatic closing action rather than a separate decision point.
+  The commit chain (Git-tracked artifacts at every stage) remains both the
+  operational workflow and the audit trail.
+pipeline_note: >
+  Pipeline is 7 stages, not 8. Stages 0 and 1 together are sold commercially
+  as one unit — the Evidence Sprint — matching how discovery has traditionally
+  been packaged, just with real signal behind it.
+companion: tactical-playbook.html
+
+commercial_unit:
+  name: Evidence Sprint
+  stages: [0, 1]
+  description: >
+    The thing that used to be pitched as discovery, now scoped to roughly 2
+    weeks because the output is evidence and a costed Build decision, not a
+    stack of workshop artifacts.
+
+stages:
+  - number: 0
+    name: Intent Framing
+    objective: >
+      Generate the raw material and problem framing required for the pipeline
+      without prematurely settling on narrative agreement. This session acts as
+      structured elicitation to expose unvalidated assumptions.
+    artifact: raw intent.md
+    gate: —
+    primary_domain: framing
+    risk_shapes_hot:
+      - shape-problem-clarity
+      - shape-commercial
+    procedures:
+      - name: Discipline
+        description: >
+          The output must be a stack of tagged, unvalidated assumptions, not
+          settled prose. Confidence is not agreement in a workshop.
+      - name: Client alignment
+        description: >
+          As a consultancy, we often do not have standing authority over
+          intent.md. Use this session to bridge the vocabulary gap and secure
+          client agreement on the problem statement before proceeding.
+    practices:
+      - name: Assumption Dump
+        description: >
+          Ask: "What must be true for this initiative to succeed?" Individually
+          list, group, and rephrase as testable statements.
+      - name: Failure Premortem
+        description: >
+          Ask: "It's 12 months from now. This failed. Why?" List causes and
+          translate them into risks.
+      - name: Domain Walkthrough
+        description: >
+          Force the identification of at least one risk per category: Value,
+          Usability, Feasibility, Viability, and Operational. This prevents
+          tunnel vision.
+      - name: Architecture Exposure
+        description: >
+          Ask: "What technical constraint could invalidate this?" Identify
+          platform limitations, integration dependencies, performance ceilings,
+          and security requirements.
+    output: >
+      A raw intent.md (problem statement, proposed outcomes, affected systems,
+      constraints) where every claim is explicitly tagged as an assumption. This
+      file does not trigger CI compilation — it must proceed to the Evidence
+      Gate.
+    note: First half of the Evidence Sprint.
+    adaptation:
+      approach: >
+        Structured elicitation producing tagged, unvalidated assumptions.
+      governance: Facilitator ensures output stays assumption-tagged.
+
+  - number: 1
+    name: Evidence Gate
+    objective: >
+      Decide whether the raw intent.md is trustworthy enough to compile into
+      spec.md. This is a human-driven evaluation gate to validate risk
+      categories that cannot be caught by CI rubrics. On a Promote, the gate
+      closes automatically: tracker sync, merge, and spec compilation fire
+      without a separate decision.
+    artifact: intent.md (cleared, synced)
+    gate: Promote / Iterate / Pivot / Stop + PO merge
+    primary_domain: proof
+    secondary_domain: framing
+    risk_shapes_hot:
+      - shape-value
+      - shape-problem-clarity
+    risk_routing:
+      - category: Feasibility
+        tested_at: Stage 4 (CI Eval Suite)
+        rationale: Deterministic — a rubric can check whether code fulfills a spec.
+      - category: Operational
+        tested_at: Stage 4 (CI Eval Suite)
+        rationale: Testable against known patterns and thresholds.
+      - category: Value
+        tested_at: Evidence Gate
+        rationale: Requires external reaction. Cannot be skipped or auto-evaluated.
+      - category: Usability
+        tested_at: Evidence Gate
+        rationale: Requires human interaction/reaction. Cannot be skipped.
+      - category: Viability
+        tested_at: Evidence Gate (Light)
+        rationale: Business/commercial sense-check.
+    procedures:
+      - name: Validation loop
+        description: >
+          Run the cycle of Risk → Assumption → Slice → Signal → Confidence →
+          Decision on tagged assumptions. Address one assumption per slice. The
+          validation loop is prototyping — build the smallest thing that tests
+          one assumption, read the signal, decide.
+      - name: Test in the real world
+        description: >
+          For Value/Usability risks, attach the test to a real occasion (next
+          client conversation, stakeholder review, prospect encounter) rather
+          than manufacturing synthetic scenarios. A slice needs something
+          behaving in the world to react to.
+      - name: Internal convergence
+        description: >
+          Only use internal convergence checks when a real external occasion
+          genuinely does not exist. Record the reason explicitly. Internal-only
+          signals cap at Directional confidence, never Validated.
+      - name: Explicit decisions
+        description: >
+          Make a clear decision for the intent: Promote, Iterate, Pivot, or
+          Stop. No numeric confidence scores.
+      - name: Close the gate
+        description: >
+          Once Promote is decided, immediately execute the dual-linkage:
+          Markdown remains the operational source of truth in the repository,
+          synced to legacy enterprise trackers (Jira/Azure DevOps) via MCP
+          connectors for client governance. This merge triggers a
+          non-interactive CI job that compiles spec.md, loading Sparq compliance
+          skills (security, UX, brand guidelines). The Product Owner performs
+          the final review.
+    output: >
+      The intent.md either clears — merged, synced, and moving to Stage 2 — or
+      gets sent back to Stage 0 for re-framing, or the initiative is
+      stopped/pivoted.
+    note: >
+      Second half of the Evidence Sprint. This stage now includes the tracker
+      sync and merge that was previously modeled as a separate Plan stage — it
+      is the mechanical result of a Promote, not an independent decision point.
+    adaptation:
+      approach: >
+        Risk validation loop for Value/Usability/Viability, closing
+        automatically into tracker sync and spec compilation on Promote.
+      governance: >
+        Product + Delivery sign-off; Promote/Iterate/Pivot/Stop, then PO merge.
+
+  - number: 2
+    name: Design
+    objective: >
+      Synthesize requirements and architecture into a formal specification.
+    artifact: spec.md
+    gate: Skills validation
+    primary_domain: building
+    secondary_domain: framing
+    risk_shapes_hot:
+      - shape-feasibility
+    procedures:
+      - name: Compressed synthesis
+        description: >
+          Execute a compressed, single-session requirements and architecture
+          synthesis.
+      - name: Skill integration
+        description: >
+          Guide the synthesis utilizing organization-wide skills for security,
+          compliance, and UX standards.
+      - name: Domain focus
+        description: >
+          Building is the primary domain — product-interface-building and
+          core-systems-engineering drive the synthesis. Framing
+          constraint-checks run as secondary, ensuring the architecture stays
+          within the boundaries set at the Evidence Gate.
+    output: spec.md.
+    adaptation:
+      approach: Compressed single-session requirements and design synthesis.
+      governance: Skills validation (Security, UX, Brand).
+
+  - number: 3
+    name: Build
+    objective: >
+      Draft implementation plans and execute code generation within isolated
+      agent environments.
+    artifact: plan.md + code diffs
+    gate: CLAUDE.md + hooks
+    primary_domain: building
+    secondary_domain: proof
+    risk_shapes_hot:
+      - shape-feasibility
+      - shape-ai-reliability
+    procedures:
+      - name: CLAUDE.md context engine
+        description: >
+          Maintain a robust context engine detailing build commands, linting
+          rules, architectural patterns, and team-specific mistakes to avoid.
+      - name: Plan mode as default
+        description: >
+          AI agents must draft plan.md before writing code. Human acceptance
+          commits the plan to Git.
+      - name: Parallel worktrees
+        description: >
+          Isolate agent sessions across separate Git worktrees. Enforce a
+          parallel session cap of 2–3 concurrent worktree sessions per engineer
+          to preserve review quality and prevent fatigue.
+      - name: Scoped auto mode
+        description: >
+          Allow autonomous edit execution only where existing test coverage and
+          build hooks are fully mature.
+      - name: Shared subagents
+        description: >
+          Utilize .claude/agents/ to store standardized helper agents across
+          repositories — verifier agents (run the app, check behavior) and
+          simplifier agents (strip redundant complexity post-implementation).
+    output: plan.md and verified code diffs.
+    adaptation:
+      approach: Plan-mode drafting, worktree-isolated implementation.
+      governance: CLAUDE.md + path-blocking hooks.
+
+  - number: 4
+    name: Test
+    objective: >
+      Continually verify code behavior and assess Feasibility and Operational
+      risks through automated CI suites.
+    artifact: verification logs + eval results
+    gate: Eval pass thresholds
+    primary_domain: proof
+    secondary_domain: building
+    risk_shapes_hot:
+      - shape-proof
+      - shape-feasibility
+      - shape-ai-reliability
+    procedures:
+      - name: Self-verification loop
+        description: >
+          Agents must run builds, tests, and visual diffs, proving success in
+          context before reporting a task complete.
+      - name: Continuous CI eval suite
+        description: >
+          Maintain 20–50 real-world task evaluations in
+          .github/workflows/agent-evals.yml. These run non-interactively upon
+          updates to code, skills, or hooks to establish baseline agent
+          performance benchmarks.
+      - name: Focused scope
+        description: >
+          CI evaluations assess Feasibility and Operational risks only. Value
+          and Usability risks are resolved upstream at the Evidence Gate
+          (Stage 1).
+      - name: Test-file locking
+        description: >
+          Implement pre-tool hooks that block agents from modifying existing
+          test files during bug-fix tasks. The agent must fix the code to pass
+          the tests — it is explicitly denied the ability to alter assertions
+          to force a passing status.
+    output: Verification logs and evaluation results.
+    adaptation:
+      approach: Continuous self-verification and CI-driven eval suites.
+      governance: Test-locking hooks and eval pass thresholds.
+
+  - number: 5
+    name: Deploy
+    objective: >
+      Conduct multi-pass reviews and securely deploy artifacts across
+      environments using defined autonomy tiers.
+    artifact: REVIEW.md + PR findings
+    gate: Environment autonomy tiers
+    primary_domain: building
+    secondary_domain: continuity
+    risk_shapes_hot:
+      - shape-proof
+      - shape-adoption
+    procedures:
+      - name: Multi-pass PR review
+        description: >
+          Automate first-pass scans for logical bugs, security gaps, and
+          compliance against spec.md and plan.md (REVIEW.md).
+      - name: Hooks as release gates
+        description: >
+          Enforce deterministic pre-execution scripts for security controls,
+          blocking unauthorized path edits.
+      - name: Environment tiers
+        description: >
+          Dev/Sandbox: full agent execution allowed. Staging: automated PR
+          review with passing CI required. Production: explicit human
+          release-manager authorization required.
+      - name: Managed settings
+        description: >
+          Deploy immutable settings centrally (e.g., allowManagedHooksOnly,
+          permissions.deny) to block shell network egress, prevent credential
+          leakage, and disable plugin sideloading.
+    output: REVIEW.md, PR findings, and deployed code.
+    adaptation:
+      approach: Multi-pass agentic PR review with human risk evaluation.
+      governance: Branch protection and production deploy hooks.
+
+  - number: 6
+    name: Maintain
+    objective: >
+      Monitor system health continuously and trigger automated triage and
+      incident resolution loops.
+    artifact: bands.yaml + incident records
+    gate: Metric-band triggers
+    primary_domain: continuity
+    secondary_domain: enablement
+    risk_shapes_hot:
+      - shape-continuity
+      - shape-adoption
+    procedures:
+      - name: Metric drift triggers
+        description: >
+          Apply deterministic monitoring using statistical control rules against
+          operational metrics (e.g., test failure rate, post-deploy 5xx rates)
+          via bands.yaml.
+      - name: Autonomous intent feed
+        description: >
+          If a metric breach occurs (e.g., 3σ deviation), a background agent
+          automatically diagnoses the root cause and writes a new intent.md into
+          the triage queue.
+      - name: ChatOps incident response
+        description: >
+          Triage live production alerts via Claude Tag in Slack/Teams, execute
+          diagnostic runbooks via MCP, and log root-cause analyses directly to
+          the thread record.
+      - name: Incident-to-eval pipeline
+        description: >
+          For every resolved production incident, automatically compile a
+          regression evaluation case into the CI suite (Stage 4) to guarantee
+          prevention of recurrence.
+    output: bands.yaml updates and incident/eval loop records.
+    adaptation:
+      approach: Metric-band monitoring auto-generating new intent items.
+      governance: Tiered automated response and on-call approval.
+
+domain_notes:
+  - domain: commercial
+    note: >
+      Commercial frames the pipeline — it sets the envelope and price before
+      Stage 0, and the proof → commercial seam updates it as evidence arrives.
+      It is not absent from the pipeline; it operates across stages rather than
+      owning one.
+  - domain: enablement
+    note: >
+      Enablement activates when the Adoption risk shape fires, typically
+      hottest at Deploy and Maintain but possible at any stage where
+      organizational change is needed to land the work.
+
+gaps:
+  - name: bands.yaml widening
+    description: >
+      Maintenance metrics primarily monitor infrastructure health (error
+      rates). A sensor is needed to monitor Value/Usability drift post-launch
+      (adoption rates, usage depth) so the pipeline does not lose signal on a
+      shipped feature nobody wants. This remains an unresolved gap — the
+      tactical playbook includes a candidate widened bands.yaml design as a
+      proposal, not yet ratified.
+  - name: Naming the Intent Framing Session
+    description: >
+      The Stage 0 session itself is deliberately left undressed. Naming it
+      before the shape is settled through repeated real use is an anti-pattern.
+      We will call it what it is until it earns a name through institutional
+      habit. This is separate from Evidence Sprint, which names the combined
+      Stage 0 + Stage 1 commercial unit, not the Stage 0 session on its own.
+  - name: Client-specific authority
+    description: >
+      How much of the Intent Framing Session includes the client versus
+      internal Sparq preparation is inherently variable by design, not a gap to
+      standardize away. Some engagements run heavy client involvement, others
+      very little; headcount in the room has ranged from as few as 2 to as many
+      as 20. This is engagement-specific and should stay that way.
+
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-25

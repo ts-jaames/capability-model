@@ -26,6 +26,7 @@ export const ENTITY_TYPES = {
   definition: { dir: "definitions" },
   title: { dir: "titles" },
   doctrine: { dir: "doctrine" },
+  lifecycle: { dir: "lifecycles" },
 };
 
 export const LEGEND_FILES = {
@@ -209,6 +210,7 @@ export function modelView(loaded) {
     definitions: plain("definition"),
     titles: plain("title"),
     doctrine: plain("doctrine"),
+    lifecycles: plain("lifecycle"),
   };
 }
 
@@ -280,6 +282,7 @@ export function scopeView(view, scope = PUBLIC_SCOPE) {
         capabilities: (step.capabilities ?? []).filter((id) => capIds.has(id)),
       })),
     })),
+    lifecycles: (view.lifecycles ?? []).filter(visible),
     domains,
     capabilities: capabilities.map((cap) => ({
       ...cap,

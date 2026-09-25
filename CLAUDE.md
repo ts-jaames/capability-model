@@ -101,6 +101,16 @@ Pass only if it has an order that carries meaning and a reader could act on it. 
 
 `steps[]` are ordered and named. A step may cite `capabilities[]`, and those refs must resolve — a doctrine that names capability work without pointing at the capability is prose. Where a doctrine is also an agent procedure, the YAML is the source and the `SKILL.md` follows it; never author the same steps twice.
 
+### Lifecycle (`lifecycles/`)
+
+A **named, ordered delivery lifecycle** with stages that have artifacts, gates, domain mappings, and risk shape associations. The AI-Native SDLC and the ADLC are the two current lifecycles.
+
+Pass only if it is a complete delivery lifecycle with sequential stages, each producing a Git-tracked artifact and passing through a governance gate. Fail — and reclassify — if it is a single procedure (that is a doctrine), a capability, or a phase of work that belongs inside an existing lifecycle as a stage rather than a separate lifecycle.
+
+`stages[]` are ordered by `number`, sequential from 0. Each stage has a `primary_domain` that must resolve to a domain, `risk_shapes_hot` that must resolve to risk shapes, and `procedures` with names and descriptions. A lifecycle may define a `commercial_unit` naming which stages are sold together (e.g., "Evidence Sprint" = Stages 0–1).
+
+Lifecycles are the machine-readable SOP: every skill, hook, and agent reads the lifecycle to know what stage the work is in, what artifact is owed, and what the guardrails are. The YAML is the source; the rendered pages follow it.
+
 ### Staffing bound (`roles/`)
 
 Which capabilities a seat **owns** (max 2, L4 accountability) vs can **execute** (max 7, L1–L3). Not a title. `Interface Lead` is an example of a bound — owns Product & interface building, executes Problem framing and Stakeholder alignment — not a job name. Titles have now been designed on purpose and are rendered; bounds have not, so the executive site still does not render `roles/`.
@@ -110,8 +120,8 @@ Which capabilities a seat **owns** (max 2, L4 accountability) vs can **execute**
 - Read this file, `levels.yaml`, and existing YAML before adding files.
 - Filename stem must equal `id` (kebab-case). Capabilities omit `id`; the stem **is** the id.
 - Capability files live at `capabilities/<domain-slug>/<kebab-id>.yaml`. `domain` in YAML is the display name (`Building`, not `building`).
-- Risk shapes live at `risk-shapes/<kebab-id>.yaml`, seams at `seams/<kebab-id>.yaml`, definitions at `definitions/<kebab-id>.yaml`, titles at `titles/<kebab-id>.yaml`, doctrine at `doctrine/<kebab-id>.yaml`. `intensity.yaml` is the dial legend and `capacity-model.yaml` is the load-to-count conversion, both beside `levels.yaml`.
-- Set `status: draft` on skills, domains, roles, risk shapes, seams, definitions, titles, and doctrine. Capabilities omit `status`; tooling treats missing status as `draft`. Never write `reviewed` or `ratified` unless a human explicitly asked to promote that file.
+- Risk shapes live at `risk-shapes/<kebab-id>.yaml`, seams at `seams/<kebab-id>.yaml`, definitions at `definitions/<kebab-id>.yaml`, titles at `titles/<kebab-id>.yaml`, doctrine at `doctrine/<kebab-id>.yaml`, lifecycles at `lifecycles/<kebab-id>.yaml`. `intensity.yaml` is the dial legend and `capacity-model.yaml` is the load-to-count conversion, both beside `levels.yaml`.
+- Set `status: draft` on skills, domains, roles, risk shapes, seams, definitions, titles, doctrine, and lifecycles. Capabilities omit `status`; tooling treats missing status as `draft`. Never write `reviewed` or `ratified` unless a human explicitly asked to promote that file.
 - `capability-profiles.yaml` records who is certified to execute what, at which level. It is `visibility: internal` and never reaches the site. Real per-person entries belong in a private overlay, not here — this repo is public. Do not invent anyone's certification.
 - Leave `dials_reviewed: false` on a risk shape unless a human has explicitly reviewed that shape's dial values. The dial is a judgment call, and pretending otherwise is the failure this model exists to prevent.
 - `capacity-model.yaml` records how demanded load converts into a seat count, and nothing else. It is the stable layer: no engagement surface-area counts, no roster, no seat assignments — those are per-engagement facts for the scope app that reads the model. Do not add example data to make it look populated.
@@ -148,6 +158,7 @@ These are shape rules. Passing them does not mean the entity should exist.
 - Title → every `owns` ref resolves to one domain or one capability; a title may not own both a domain and a capability inside it; `reading_order` unique across titles.
 - **Every capability is owned by exactly one title**, counting domain ownership. An unowned capability and a doubly-owned one are both errors. This is what makes "the five titles cover everything, and none is a grab-bag" a checked claim rather than a stated one — so adding a title means moving ownership, not appending.
 - Doctrine → step names unique within a file, and every `steps[].capabilities` id resolves.
+- Lifecycle → stage numbers are unique and sequential from 0; every `primary_domain` and `secondary_domain` resolves to a domain; every `risk_shapes_hot` entry resolves to a risk shape; every `domain_notes[].domain` resolves.
 - Capability profiles → every certified `capability` resolves and is listed once per person.
 - Capacity model → `units_by_domain` covers the six domains exactly once in reading order and each resolves; both axes' `scale_ref` is the execution scale in `levels.yaml`; `nominal_capacity` covers exactly L1, L2, L3 in that order; `hard_ceiling` is not below nominal capacity; `multiplier_by_gap` runs from gap 0 upward with no holes, never decreasing, and gap 0 is exactly 1; `change_event_doctrine` resolves to a doctrine.
 - While `capacity-model.yaml` has `values_reviewed: false`, no value in it may be marked `[VALIDATED]`. This is the one check that makes "nothing here is measured" enforced rather than claimed.

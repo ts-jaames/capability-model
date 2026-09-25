@@ -86,6 +86,8 @@ export function indexModel(view, roots = []) {
     definitionById: byId(view.definitions),
     titleById: byId(view.titles),
     doctrineById: byId(view.doctrine),
+    lifecycles: [...(view.lifecycles ?? [])].sort((a, b) => a.id.localeCompare(b.id)),
+    lifecycleById: byId(view.lifecycles ?? []),
     dialById: byId(view.intensity?.dials ?? []),
     ladderById: byId(view.levels?.execution_levels ?? []),
   };
@@ -385,6 +387,54 @@ export function getDoctrine(index, { doctrine } = {}) {
   };
 }
 
+export function listLifecycles(index) {
+  return {
+    count: index.lifecycles.length,
+    lifecycles: index.lifecycles.map((lc) => ({
+      id: lc.id,
+      name: lc.name,
+      summary: oneLine(lc.summary),
+      stages: (lc.stages ?? []).length,
+    })),
+  };
+}
+
+export function getLifecycle(index, { lifecycle } = {}) {
+  const lc = must(index.lifecycleById, "lifecycle", lifecycle);
+  return {
+    id: lc.id,
+    name: lc.name,
+    summary: oneLine(lc.summary),
+    description: lc.description ? oneLine(lc.description) : undefined,
+    commercial_unit: lc.commercial_unit
+      ? {
+          name: lc.commercial_unit.name,
+          stages: lc.commercial_unit.stages,
+          description: oneLine(lc.commercial_unit.description),
+        }
+      : undefined,
+    core_shifts: lc.core_shifts,
+    stages: (lc.stages ?? []).map((stage) => ({
+      number: stage.number,
+      name: stage.name,
+      objective: oneLine(stage.objective),
+      artifact: stage.artifact,
+      gate: stage.gate,
+      primary_domain: stage.primary_domain,
+      secondary_domain: stage.secondary_domain,
+      risk_shapes_hot: stage.risk_shapes_hot,
+      procedures: (stage.procedures ?? []).map((p) => ({
+        name: p.name,
+        description: oneLine(p.description),
+      })),
+      output: stage.output ? oneLine(stage.output) : undefined,
+      note: stage.note ? oneLine(stage.note) : undefined,
+    })),
+    domain_notes: lc.domain_notes,
+    gaps: lc.gaps,
+  };
+}
+
 const SEARCHABLE = [
   ["capability", "capabilities", (cap) => [cap.name, cap.promise, cap.client_experience, cap.sparq_how]],
   ["risk-shape", "riskShapes", (shape) => [shape.name, shape.question, shape.output]],
@@ -396,6 +446,11 @@ const SEARCHABLE = [
     "doctrine",
     "doctrine",
     (item) => [item.name, item.summary, ...(item.steps ?? []).map((step) => step.name)],
+  ],
+  [
+    "lifecycle",
+    "lifecycles",
+    (lc) => [lc.name, lc.summary, ...(lc.stages ?? []).map((s) => s.name)],
   ],
 ];
 

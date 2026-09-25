@@ -1,0 +1,164 @@
+{
+  "$id": "https://capability-model.local/schema/lifecycle.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lifecycle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "summary",
+    "stages",
+    "owner",
+    "source",
+    "last_updated"
+  ],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "summary": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "description": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "pipeline_note": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "companion": { "type": "string" },
+    "status": { "$ref": "common.json#/$defs/status" },
+    "visibility": { "$ref": "common.json#/$defs/visibility" },
+    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "source": { "$ref": "common.json#/$defs/source" },
+    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
+    "commercial_unit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "stages", "description"],
+      "properties": {
+        "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "stages": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0 }
+        },
+        "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+      }
+    },
+    "core_shifts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["dimension", "sdlc", "adlc"],
+        "properties": {
+          "dimension": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "sdlc": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "adlc": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["number", "name", "objective", "artifact", "gate"],
+        "properties": {
+          "number": { "type": "integer", "minimum": 0 },
+          "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "objective": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "artifact": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "gate": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "primary_domain": { "$ref": "common.json#/$defs/kebabId" },
+          "secondary_domain": { "$ref": "common.json#/$defs/kebabId" },
+          "risk_shapes_hot": {
+            "type": "array",
+            "items": { "$ref": "common.json#/$defs/kebabId" }
+          },
+          "risk_routing": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["category", "tested_at", "rationale"],
+              "properties": {
+                "category": { "$ref": "common.json#/$defs/nonEmptyString" },
+                "tested_at": { "$ref": "common.json#/$defs/nonEmptyString" },
+                "rationale": { "$ref": "common.json#/$defs/nonEmptyString" }
+              }
+            }
+          },
+          "procedures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "description"],
+              "properties": {
+                "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+                "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+              }
+            }
+          },
+          "practices": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "description"],
+              "properties": {
+                "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+                "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+              }
+            }
+          },
+          "tooling": {
+            "type": "array",
+            "items": { "$ref": "common.json#/$defs/nonEmptyString" }
+          },
+          "agents_and_hooks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "description"],
+              "properties": {
+                "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+                "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+              }
+            }
+          },
+          "output": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "note": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "adaptation": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "approach": { "$ref": "common.json#/$defs/nonEmptyString" },
+              "governance": { "$ref": "common.json#/$defs/nonEmptyString" }
+            }
+          }
+        }
+      }
+    },
+    "domain_notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["domain", "note"],
+        "properties": {
+          "domain": { "$ref": "common.json#/$defs/kebabId" },
+          "note": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "description"],
+        "properties": {
+          "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    }
+  }
+}

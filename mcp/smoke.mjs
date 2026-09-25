@@ -210,6 +210,36 @@ async function main() {
   check("change-response ends on the next slice", moves[5] === "Name the next slice", moves[5]);
   check("change-response says who decides", /L4s decide/i.test(change.payload?.rule ?? ""));
 
+  // Lifecycles are queryable and structurally sound.
+  const lifecycles = await client.call("list_lifecycles");
+  const lifecycleIds = (lifecycles.payload?.lifecycles ?? []).map((lc) => lc.id);
+  check("list_lifecycles returns lifecycles", lifecycleIds.length > 0);
+  for (const id of lifecycleIds) {
+    const found = await client.call("get_lifecycle", { lifecycle: id });
+    check(`get_lifecycle ${id} resolves`, !found.isError);
+    const stages = found.payload?.stages ?? [];
+    check(`lifecycle ${id} has stages`, stages.length > 0);
+    for (const stage of stages) {
+      check(
+        `lifecycle ${id} stage ${stage.number} has a name`,
+        Boolean(stage.name),
+      );
+      check(
+        `lifecycle ${id} stage ${stage.number} has an artifact`,
+        Boolean(stage.artifact),
+      );
+    }
+  }
+  const sdlc = await client.call("get_lifecycle", { lifecycle: "ai-native-sdlc" });
+  check("ai-native-sdlc has 7 stages", (sdlc.payload?.stages ?? []).length === 7);
+  check("ai-native-sdlc stage 0 is Intent Framing", sdlc.payload?.stages?.[0]?.name === "Intent Framing");
+  check("ai-native-sdlc stage 1 is Evidence Gate", sdlc.payload?.stages?.[1]?.name === "Evidence Gate");
+  check("ai-native-sdlc has a commercial unit", sdlc.payload?.commercial_unit?.name === "Evidence Sprint");
+
+  const adlc = await client.call("get_lifecycle", { lifecycle: "adlc" });
+  check("adlc has 8 stages", (adlc.payload?.stages ?? []).length === 8);
+  check("adlc stage 0 is Preparation & Hypotheses", adlc.payload?.stages?.[0]?.name === "Preparation & Hypotheses");
+
   // Every capability answers, and the levels block stays honest either way.
   for (const id of capIds) {
     const cap = await client.call("get_capability", { capability: id });

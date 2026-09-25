@@ -29,6 +29,7 @@ const SCHEMA_NAMES = [
   "doctrine",
   "capability-profiles",
   "capacity-model",
+  "lifecycle",
 ];
 
 const groups = {
@@ -522,6 +523,57 @@ async function main() {
     }
   }
 
+  for (const rec of loaded.records.lifecycle) {
+    const lc = rec.data;
+    if (!lc || typeof lc !== "object") continue;
+
+    const stages = lc.stages ?? [];
+    const numbers = stages.map((s) => s?.number);
+    if (new Set(numbers).size !== numbers.length) {
+      add("constraints", rec.file, "stage numbers must be unique");
+    }
+    for (let i = 0; i < numbers.length; i++) {
+      if (numbers[i] !== i) {
+        add(
+          "constraints",
+          rec.file,
+          `stage numbers must be sequential from 0; got ${numbers[i]} at position ${i}`,
+        );
+        break;
+      }
+    }
+    for (const stage of stages) {
+      if (stage.primary_domain && !domains.has(stage.primary_domain)) {
+        add(
+          "refs",
+          rec.file,
+          `stage ${stage.number} "${stage.name}" cites primary_domain "${stage.primary_domain}" which does not exist`,
+        );
+      }
+      if (stage.secondary_domain && !domains.has(stage.secondary_domain)) {
+        add(
+          "refs",
+          rec.file,
+          `stage ${stage.number} "${stage.name}" cites secondary_domain "${stage.secondary_domain}" which does not exist`,
+        );
+      }
+      for (const shapeId of stage.risk_shapes_hot ?? []) {
+        if (!riskShapes.has(shapeId)) {
+          add(
+            "refs",
+            rec.file,
+            `stage ${stage.number} "${stage.name}" cites risk shape "${shapeId}" which does not exist`,
+          );
+        }
+      }
+    }
+    for (const dn of lc.domain_notes ?? []) {
+      if (dn.domain && !domains.has(dn.domain)) {
+        add("refs", rec.file, `domain_notes cites domain "${dn.domain}" which does not exist`);
+      }
+    }
+  }
+
   checkLegend(
     ajv,
     loaded.legends.profiles,
@@ -699,6 +751,7 @@ async function main() {
     `${definitions.size} definitions`,
     `${loaded.byId.title.size} titles`,
     `${loaded.byId.doctrine.size} doctrine`,
+    `${loaded.byId.lifecycle.size} lifecycles`,
   ].join(", ");
   const overlays = loaded.roots.slice(1);
   const from = overlays.length

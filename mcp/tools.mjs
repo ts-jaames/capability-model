@@ -19,9 +19,11 @@ import {
   listDefinitions,
   listDoctrine,
   listDomains,
+  listLifecycles,
   listRiskShapes,
   listSeams,
   listTitles,
+  getLifecycle,
   search,
 } from "./core.mjs";
 
@@ -145,9 +147,26 @@ export const TOOLS = [
     run: (index, args) => getDoctrine(index, args),
   },
   {
+    name: "list_lifecycles",
+    description:
+      "List the delivery lifecycles: the AI-Native SDLC and the ADLC. Each lifecycle has ordered stages with artifacts, gates, domain mappings, and risk shape hotspots.",
+    inputSchema: noArgs,
+    run: (index) => listLifecycles(index),
+  },
+  {
+    name: "get_lifecycle",
+    description:
+      "One lifecycle in full: its ordered stages, each with objective, artifact, gate, primary/secondary domain, risk shapes typically hot, and procedures. The machine-readable SOP for delivery.",
+    inputSchema: oneArg(
+      "lifecycle",
+      "Lifecycle id: ai-native-sdlc, adlc.",
+    ),
+    run: (index, args) => getLifecycle(index, args),
+  },
+  {
     name: "search",
     description:
-      "Free-text search across capabilities, risk shapes, seams, definitions, skills, titles, and doctrine.",
+      "Free-text search across capabilities, risk shapes, seams, definitions, skills, titles, doctrine, and lifecycles.",
     inputSchema: {
       type: "object",
       properties: {
@@ -164,6 +183,7 @@ export const TOOLS = [
               "skill",
               "title",
               "doctrine",
+              "lifecycle",
             ],
           },
         },
