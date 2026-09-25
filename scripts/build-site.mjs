@@ -1894,6 +1894,18 @@ function render(model, pageId = "how-it-all-relates") {
       <footer>Generated <span class="mono">${esc(generated)}</span> from the YAML source of truth. Read-only.</footer>
     </div>
   </div>
+  <script>
+    document.querySelectorAll('.page-toggle').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var group = el.closest('.page-group');
+        if (group) {
+          group.classList.toggle('open');
+          var caret = el.querySelector('.page-caret');
+          if (caret) caret.classList.toggle('open');
+        }
+      });
+    });
+  </script>
 </body>
 </html>`;
 }
