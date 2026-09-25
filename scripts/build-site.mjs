@@ -188,15 +188,15 @@ const PAGE_TOC = {
   "adlc": [
     ["#overview", "Overview"],
     ["#core-shifts", "Core shifts"],
-    ["#phases", "The 8 phases"],
-    ["#phase-0", "0 · Preparation"],
-    ["#phase-1", "1 · Scope Framing"],
-    ["#phase-2", "2 · Architecture"],
-    ["#phase-3", "3 · Proof of Value"],
-    ["#phase-4", "4 · Implementation"],
-    ["#phase-5", "5 · Testing"],
-    ["#phase-6", "6 · Deployment"],
-    ["#phase-7", "7 · Learning"],
+    ["#stages", "The 8 stages"],
+    ["#stage-0", "0 · Preparation"],
+    ["#stage-1", "1 · Scope Framing"],
+    ["#stage-2", "2 · Architecture"],
+    ["#stage-3", "3 · Proof of Value"],
+    ["#stage-4", "4 · Implementation"],
+    ["#stage-5", "5 · Testing"],
+    ["#stage-6", "6 · Deployment"],
+    ["#stage-7", "7 · Learning"],
   ],
   "adlc-tactical": [
     ["#overview", "Overview"],
@@ -928,12 +928,12 @@ function renderAdlcMain() {
         </table>
       </section>
 
-      <section id="phases">
-        <h2 class="mono uppercase eyebrow">The 8 phases</h2>
-        <p class="lede">Commercially, Phases 0 through 3 encompass the Evidence Sprint.</p>
+      <section id="stages">
+        <h2 class="mono uppercase eyebrow">The 8 stages</h2>
+        <p class="lede">Commercially, Stages 0 through 3 encompass the Evidence Sprint.</p>
         <table class="hairline-table">
           <thead>
-            <tr><th>Phase</th><th>Name</th><th>Core question</th></tr>
+            <tr><th>Stage</th><th>Name</th><th>Core question</th></tr>
           </thead>
           <tbody>
             <tr><td><strong>0</strong></td><td>Preparation &amp; Hypotheses</td><td>What are the pain points and what must be true?</td></tr>
@@ -948,8 +948,8 @@ function renderAdlcMain() {
         </table>
       </section>
 
-      <section id="phase-0">
-        <h2 class="mono uppercase eyebrow">Phase 0 · Preparation &amp; Hypotheses</h2>
+      <section id="stage-0">
+        <h2 class="mono uppercase eyebrow">Stage 0 · Preparation &amp; Hypotheses</h2>
         <p class="lede">The raw capture of intent and constraints. Not everything needs an agent.</p>
         <div class="kvs">
           ${kv("Tactical practice", "<p>2–4 hour structured workshop. 10-minute silent assumption dump (Value, Usability, Feasibility, Viability, Operational). Failure premortem. No untagged claims survive.</p>")}
@@ -959,8 +959,8 @@ function renderAdlcMain() {
         <p class="line-note">Artifact: raw intent.md, fully tagged. Facilitator validates tagging.</p>
       </section>
 
-      <section id="phase-1">
-        <h2 class="mono uppercase eyebrow">Phase 1 · Scope Framing &amp; Problem Definition</h2>
+      <section id="stage-1">
+        <h2 class="mono uppercase eyebrow">Stage 1 · Scope Framing &amp; Problem Definition</h2>
         <p class="lede">Establishing the human-agent boundaries and compliance limits.</p>
         <div class="kvs">
           ${kv("Tactical practice", "<p>Defining the agent's autonomy boundaries. Explicitly mapping what requires Human-in-the-Loop (HITL) approval. Drafting the initial evaluation criteria.</p>")}
@@ -969,19 +969,19 @@ function renderAdlcMain() {
         <p class="line-note">Artifact: refined intent.md with explicit human-agent responsibility mapping and operational KPIs.</p>
       </section>
 
-      <section id="phase-2">
-        <h2 class="mono uppercase eyebrow">Phase 2 · Agent Definition &amp; Architecture</h2>
+      <section id="stage-2">
+        <h2 class="mono uppercase eyebrow">Stage 2 · Agent Definition &amp; Architecture</h2>
         <p class="lede">Designing the non-deterministic structure.</p>
         <div class="kvs">
-          ${kv("Tactical practice", "<p>Compressed design session defining the orchestration pattern, token economics (CAPEX/OPEX), and data architecture. Architecture must satisfy Phase 1's bounds without over-building.</p>")}
+          ${kv("Tactical practice", "<p>Compressed design session defining the orchestration pattern, token economics (CAPEX/OPEX), and data architecture. Architecture must satisfy Stage 1 bounds without over-building.</p>")}
           ${kv("Tooling", "<p>Figma MCP or repo-native prototype design via Claude Code.</p>")}
           ${kv("Agents &amp; skills", '<ul class="bullets"><li>.claude/skills/security-baseline &amp; .claude/skills/ux-design-system</li><li>.claude/skills/adlc-agent-guardrails</li><li><strong>spec-compliance-linter</strong> — verifying spec.md contains Agent Tool definitions, Failure Modes, Token Budget, Data Models.</li></ul>')}
         </div>
         <p class="line-note">Artifact: spec.md. Design/Tech Lead review.</p>
       </section>
 
-      <section id="phase-3">
-        <h2 class="mono uppercase eyebrow">Phase 3 · Simulation &amp; Proof of Value</h2>
+      <section id="stage-3">
+        <h2 class="mono uppercase eyebrow">Stage 3 · Simulation &amp; Proof of Value</h2>
         <p class="lede">The commercial Evidence Gate. You do not pass this without external signal.</p>
         <div class="kvs">
           ${kv("Tactical practice", "<p>Build an Evidence Slice or Vision Prototype. Attach it to a real client touchpoint. Product + Delivery decide: Promote / Iterate / Pivot / Stop. On a Promote, map scope blocks to the enterprise tracker and sync.</p>")}
@@ -991,8 +991,8 @@ function renderAdlcMain() {
         <p class="line-note">Artifact: intent.md (cleared) + per-project ESOA + optional Vision Prototype. PO merge sign-off.</p>
       </section>
 
-      <section id="phase-4">
-        <h2 class="mono uppercase eyebrow">Phase 4 · Implementation &amp; Evals</h2>
+      <section id="stage-4">
+        <h2 class="mono uppercase eyebrow">Stage 4 · Implementation &amp; Evals</h2>
         <p class="lede">Agent-driven coding and baseline verification.</p>
         <div class="kvs">
           ${kv("Tactical practice", "<p>Git worktree isolation. Plan Mode first — Claude writes plan.md. Engineer accepts the plan, execution begins.</p>")}
@@ -1002,8 +1002,8 @@ function renderAdlcMain() {
         <p class="line-note">Artifact: plan.md and verified code diffs in isolated branches. Engineer plan acceptance.</p>
       </section>
 
-      <section id="phase-5">
-        <h2 class="mono uppercase eyebrow">Phase 5 · Testing</h2>
+      <section id="stage-5">
+        <h2 class="mono uppercase eyebrow">Stage 5 · Testing</h2>
         <p class="lede">Probabilistic testing for reasoning, safety, and edge-cases.</p>
         <div class="kvs">
           ${kv("Tactical practice", "<p>Non-interactive CI eval suite runs 20–50 task scenarios. Test files are read-only during bug-fix tasks — agents must fix code, not weaken the test.</p>")}
@@ -1013,8 +1013,8 @@ function renderAdlcMain() {
         <p class="line-note">Artifact: verification logs, evaluation pass results. Automated CI pass threshold.</p>
       </section>
 
-      <section id="phase-6">
-        <h2 class="mono uppercase eyebrow">Phase 6 · Agent Activation &amp; Deployment</h2>
+      <section id="stage-6">
+        <h2 class="mono uppercase eyebrow">Stage 6 · Agent Activation &amp; Deployment</h2>
         <p class="lede">Tiered release with strict autonomy guardrails.</p>
         <div class="kvs">
           ${kv("Tactical practice", "<p>Multi-pass PR review (Bugs → Security → Alignment). Environment autonomy tiers: Dev = Autonomous, Staging = Clean CI + Auto-review, Prod = Named Human Sign-off.</p>")}
@@ -1023,15 +1023,15 @@ function renderAdlcMain() {
         <p class="line-note">Artifact: REVIEW.md. Human Release Manager sign-off on Production.</p>
       </section>
 
-      <section id="phase-7">
-        <h2 class="mono uppercase eyebrow">Phase 7 · Continuous Learning &amp; Governance</h2>
+      <section id="stage-7">
+        <h2 class="mono uppercase eyebrow">Stage 7 · Continuous Learning &amp; Governance</h2>
         <p class="lede">Managing probabilistic drift and feeding the loop.</p>
         <div class="kvs">
-          ${kv("Tactical practice", "<p>Statistical process control using Western Electric rules. When an agent hallucinates, breaches a boundary, or triggers a negative feedback loop in production, a background agent diagnoses it and writes a new intent back to Phase 0 automatically.</p>")}
+          ${kv("Tactical practice", "<p>Statistical process control using Western Electric rules. When an agent hallucinates, breaches a boundary, or triggers a negative feedback loop in production, a background agent diagnoses it and writes a new intent back to Stage 0 automatically.</p>")}
           ${kv("Tooling", "<p>Infra MCP (Datadog) + Product Analytics MCP (PostHog/Pendo).</p>")}
-          ${kv("Agents &amp; hooks", '<ul class="bullets"><li><strong>metric-watcher</strong> daemon — background monitor scanning bands.yaml for breaches.</li><li><strong>incident-to-eval-compiler</strong> — turns post-mortem logs into permanent regression tests in Phase 5.</li><li><strong>Claude Tag</strong> — ChatOps bot allowing on-call engineers to tag the AI directly in incident threads.</li></ul>')}
+          ${kv("Agents &amp; hooks", '<ul class="bullets"><li><strong>metric-watcher</strong> daemon — background monitor scanning bands.yaml for breaches.</li><li><strong>incident-to-eval-compiler</strong> — turns post-mortem logs into permanent regression tests in Stage 5.</li><li><strong>Claude Tag</strong> — ChatOps bot allowing on-call engineers to tag the AI directly in incident threads.</li></ul>')}
         </div>
-        <p class="line-note">Artifact: updated bands.yaml, incident records, fresh intent.md pushed to Phase 0 triage queue.</p>
+        <p class="line-note">Artifact: updated bands.yaml, incident records, fresh intent.md pushed to Stage 0 triage queue.</p>
       </section>`;
 }
 
