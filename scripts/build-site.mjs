@@ -77,6 +77,12 @@ const PAGES = [
     main: renderAiSdlcMain,
     children: [
       {
+        id: "tactical-playbook",
+        title: "Tactical Playbook",
+        file: "tactical-playbook.html",
+        main: renderTacticalPlaybookMain,
+      },
+      {
         id: "adlc",
         title: "ADLC",
         file: "adlc.html",
@@ -143,18 +149,40 @@ const PAGE_TOC = {
     ["#how-stages-and-risk-work", "Stages vs risk shapes"],
     ["#stage-0", "0 · Intent Framing"],
     ["#stage-1", "1 · Evidence Gate"],
-    ["#stage-2", "2 · Plan"],
-    ["#stage-3", "3 · Design"],
-    ["#stage-4", "4 · Build"],
-    ["#stage-5", "5 · Test"],
-    ["#stage-6", "6 · Deploy"],
-    ["#stage-7", "7 · Maintain"],
+    ["#stage-2", "2 · Design"],
+    ["#stage-3", "3 · Build"],
+    ["#stage-4", "4 · Test"],
+    ["#stage-5", "5 · Deploy"],
+    ["#stage-6", "6 · Maintain"],
     ["#domains-across", "Domains across stages"],
     ["#adaptation", "Adaptation matrix"],
     ["#gaps", "Known gaps"],
   ],
+  "tactical-playbook": [
+    ["#overview", "Overview"],
+    ["#anthropic-mapping", "Anthropic mapping"],
+    ["#tactical-0", "0 · Intent Framing"],
+    ["#tactical-1", "1 · Evidence Gate"],
+    ["#tactical-2", "2 · Design"],
+    ["#tactical-3", "3 · Build"],
+    ["#tactical-4", "4 · Test"],
+    ["#tactical-5", "5 · Deploy"],
+    ["#tactical-6", "6 · Maintain"],
+    ["#reconciliation", "Reconciliation log"],
+    ["#open-gaps", "Open gaps"],
+  ],
   "adlc": [
     ["#overview", "Overview"],
+    ["#core-shifts", "Core shifts"],
+    ["#phases", "The 8 phases"],
+    ["#phase-0", "0 · Preparation"],
+    ["#phase-1", "1 · Scope Framing"],
+    ["#phase-2", "2 · Architecture"],
+    ["#phase-3", "3 · Proof of Value"],
+    ["#phase-4", "4 · Implementation"],
+    ["#phase-5", "5 · Testing"],
+    ["#phase-6", "6 · Deployment"],
+    ["#phase-7", "7 · Learning"],
   ],
 };
 
@@ -652,12 +680,14 @@ function renderAiSdlcMain() {
       <section id="overview">
         <h1 class="mono uppercase eyebrow">AI-Native SDLC</h1>
         <p class="lede">This playbook establishes the standard operating procedures for the Sparq AI-Native Software Development Life Cycle. Adapted from the Anthropic AI-Native SDLC pattern, this methodology integrates the Evidence Gate as a non-negotiable gate inside the pipeline rather than treating it as an external meta-process.</p>
-        <p class="lede">The base pipeline optimizes for speed and build correctness. However, it requires a mechanism to validate whether we are building the right thing before scaling execution. Therefore, the Evidence Gate explicitly gates the transition from Plan → Design. Feasibility and Operational risks are handled inside the Build → Test phases via Continuous Integration (CI) evaluation suites. The commit chain (Git-tracked artifacts at every stage) remains both the operational workflow and the audit trail.</p>
+        <p class="lede">The base pipeline optimizes for speed and build correctness. However, it requires a mechanism to validate whether we are building the right thing before scaling execution. Therefore, the Evidence Gate explicitly gates the transition from Intent Framing to Design — closing with the tracker sync and merge that was previously modeled as its own "Plan" stage, now folded into the Gate as its automatic closing action rather than a separate decision point.</p>
+        <p class="lede">The commit chain (Git-tracked artifacts at every stage) remains both the operational workflow and the audit trail.</p>
+        <p class="lede"><strong>Pipeline is 7 stages, not 8.</strong> Stages 0 and 1 together are sold commercially as one unit — the <strong>Evidence Sprint</strong> — matching how discovery has traditionally been packaged, just with real signal behind it. For the exact skill/hook/agent/file names behind each stage, see the <a href="tactical-playbook.html">Tactical Playbook</a>. This page is the what and why; that one is the how.</p>
       </section>
 
       <section id="pipeline">
         <h2 class="mono uppercase eyebrow">The pipeline</h2>
-        <p class="lede">Eight stages, each producing a Git-tracked artifact. The Evidence Gate sits between Intent Framing and Plan — a human-driven gate for the risks CI cannot catch.</p>
+        <p class="lede">Seven stages, each producing a Git-tracked artifact. The Evidence Gate sits between Intent Framing and Design — a human-driven gate for the risks CI cannot catch, closing automatically into tracker sync and spec compilation on a Promote decision.</p>
         <table class="hairline-table">
           <thead>
             <tr>
@@ -668,13 +698,12 @@ function renderAiSdlcMain() {
           </thead>
           <tbody>
             <tr><td><strong>0 · Intent Framing</strong></td><td>raw intent.md</td><td>—</td></tr>
-            <tr><td><strong>1 · Evidence Gate</strong></td><td>decision on intent.md</td><td>Promote / Iterate / Pivot / Stop</td></tr>
-            <tr><td><strong>2 · Plan</strong></td><td>intent.md (cleared)</td><td>Product Owner merge</td></tr>
-            <tr><td><strong>3 · Design</strong></td><td>spec.md</td><td>Skills validation</td></tr>
-            <tr><td><strong>4 · Build</strong></td><td>plan.md + code diffs</td><td>CLAUDE.md + hooks</td></tr>
-            <tr><td><strong>5 · Test</strong></td><td>verification logs + eval results</td><td>Eval pass thresholds</td></tr>
-            <tr><td><strong>6 · Deploy</strong></td><td>REVIEW.md + PR findings</td><td>Environment autonomy tiers</td></tr>
-            <tr><td><strong>7 · Maintain</strong></td><td>bands.yaml + incident records</td><td>Metric-band triggers</td></tr>
+            <tr><td><strong>1 · Evidence Gate</strong></td><td>intent.md (cleared, synced)</td><td>Promote / Iterate / Pivot / Stop + PO merge</td></tr>
+            <tr><td><strong>2 · Design</strong></td><td>spec.md</td><td>Skills validation</td></tr>
+            <tr><td><strong>3 · Build</strong></td><td>plan.md + code diffs</td><td>CLAUDE.md + hooks</td></tr>
+            <tr><td><strong>4 · Test</strong></td><td>verification logs + eval results</td><td>Eval pass thresholds</td></tr>
+            <tr><td><strong>5 · Deploy</strong></td><td>REVIEW.md + PR findings</td><td>Environment autonomy tiers</td></tr>
+            <tr><td><strong>6 · Maintain</strong></td><td>bands.yaml + incident records</td><td>Metric-band triggers</td></tr>
           </tbody>
         </table>
       </section>
@@ -684,12 +713,13 @@ function renderAiSdlcMain() {
         <p class="lede">Stages are artifact order. They describe the sequence of what you produce and which governance gate you pass through. Risk shapes are the real-time operating picture — they describe which capabilities run hot right now, regardless of which stage the work is in.</p>
         <p class="lede">A risk shape fires wherever it fires. The Feasibility shape can spike during Intent Framing if an architecture constraint surfaces early. The Value shape can stay active deep into Build if a prior assumption gets challenged. Shapes co-occur, recur, and persist — they are not bound to a single stage.</p>
         <p class="lede">The stage tells you what artifact you owe. The live risk mix tells you what to worry about while you produce it. You are always in a stage, and you are always responding to risk shapes.</p>
-        <p class="lede">Stages have a default gravity — 0 through 7 — but change events and failed gates send you back. The change-response doctrine runs at any stage: re-read the risk, re-set the dials, decision gate, re-staff, re-price and re-time, name the next slice.</p>
+        <p class="lede">Stages have a default gravity — 0 through 6 — but change events and failed gates send you back. The change-response doctrine runs at any stage: re-read the risk, re-set the dials, decision gate, re-staff, re-price and re-time, name the next slice.</p>
       </section>
 
       <section id="stage-0">
-        <h2 class="mono uppercase eyebrow">Stage 0 · Intent Framing Session</h2>
+        <h2 class="mono uppercase eyebrow">Stage 0 · Intent Framing</h2>
         <p class="lede">Generate the raw material and problem framing required for the pipeline without prematurely settling on narrative agreement. This session acts as structured elicitation to expose unvalidated assumptions.</p>
+        <p class="line-note">First half of the Evidence Sprint.</p>
         <div class="kvs">
           ${kv("Discipline", "<p>The output must be a stack of tagged, unvalidated assumptions, not settled prose. Confidence is not agreement in a workshop.</p>")}
           ${kv("Client alignment", "<p>As a consultancy, we often do not have standing authority over intent.md. Use this session to bridge the vocabulary gap and secure client agreement on the problem statement before proceeding.</p>")}
@@ -705,7 +735,8 @@ function renderAiSdlcMain() {
 
       <section id="stage-1">
         <h2 class="mono uppercase eyebrow">Stage 1 · Evidence Gate</h2>
-        <p class="lede">Decide whether the raw intent.md is trustworthy enough to compile into spec.md. This is a human-driven evaluation gate to validate risk categories that cannot be caught by CI rubrics.</p>
+        <p class="lede">Decide whether the raw intent.md is trustworthy enough to compile into spec.md. This is a human-driven evaluation gate to validate risk categories that cannot be caught by CI rubrics. On a Promote, the gate closes automatically: tracker sync, merge, and spec compilation fire without a separate decision.</p>
+        <p class="line-note">Second half of the Evidence Sprint. This stage now includes the tracker sync and merge that was previously modeled as a separate "Plan" stage — it is the mechanical result of a Promote, not an independent decision point.</p>
         <table class="hairline-table">
           <thead>
             <tr>
@@ -715,34 +746,25 @@ function renderAiSdlcMain() {
             </tr>
           </thead>
           <tbody>
-            <tr><td><strong>Feasibility</strong></td><td>Stage 5 (CI Eval Suite)</td><td>Deterministic — a rubric can check whether code fulfills a spec.</td></tr>
-            <tr><td><strong>Operational</strong></td><td>Stage 5 (CI Eval Suite)</td><td>Testable against known patterns and thresholds.</td></tr>
+            <tr><td><strong>Feasibility</strong></td><td>Stage 4 (CI Eval Suite)</td><td>Deterministic — a rubric can check whether code fulfills a spec.</td></tr>
+            <tr><td><strong>Operational</strong></td><td>Stage 4 (CI Eval Suite)</td><td>Testable against known patterns and thresholds.</td></tr>
             <tr><td><strong>Value</strong></td><td>Evidence Gate</td><td>Requires external reaction. Cannot be skipped or auto-evaluated.</td></tr>
             <tr><td><strong>Usability</strong></td><td>Evidence Gate</td><td>Requires human interaction/reaction. Cannot be skipped.</td></tr>
             <tr><td><strong>Viability</strong></td><td>Evidence Gate (Light)</td><td>Business/commercial sense-check.</td></tr>
           </tbody>
         </table>
         <div class="kvs">
-          ${kv("Validation loop", "<p>Run the cycle of Risk → Assumption → Slice → Signal → Confidence → Decision on tagged assumptions. Address one assumption per slice.</p>")}
+          ${kv("Validation loop", "<p>Run the cycle of Risk → Assumption → Slice → Signal → Confidence → Decision on tagged assumptions. Address one assumption per slice. The validation loop is prototyping — build the smallest thing that tests one assumption, read the signal, decide.</p>")}
           ${kv("Test in the real world", "<p>For Value/Usability risks, attach the test to a real occasion (next client conversation, stakeholder review, prospect encounter) rather than manufacturing synthetic scenarios. A slice needs something behaving in the world to react to.</p>")}
           ${kv("Internal convergence", "<p>Only use internal convergence checks when a real external occasion genuinely does not exist. Record the reason explicitly. Internal-only signals cap at Directional confidence, never Validated.</p>")}
           ${kv("Explicit decisions", "<p>Make a clear decision for the intent: Promote, Iterate, Pivot, or Stop. No numeric confidence scores.</p>")}
+          ${kv("Close the gate", "<p>Once Promote is decided, immediately execute the dual-linkage: Markdown remains the operational source of truth in the repository, synced to legacy enterprise trackers (Jira/Azure DevOps) via MCP connectors for client governance. This merge triggers a non-interactive CI job that compiles spec.md, loading Sparq compliance skills (security, UX, brand guidelines). The Product Owner performs the final review.</p>")}
         </div>
-        <p class="line-note">Output: the intent.md either clears (moves to Stage 2), gets sent back to Stage 0 for re-framing, or the initiative is stopped/pivoted.</p>
+        <p class="line-note">Output: the intent.md either clears — merged, synced, and moving to Stage 2 — or gets sent back to Stage 0 for re-framing, or the initiative is stopped/pivoted.</p>
       </section>
 
       <section id="stage-2">
-        <h2 class="mono uppercase eyebrow">Stage 2 · Plan</h2>
-        <p class="lede">Establish the cleared intent as the proto-spec artifact and synchronize it across operational systems.</p>
-        <div class="kvs">
-          ${kv("Dual-linkage", "<p>Markdown remains the operational truth within the repository. Sync to legacy enterprise trackers (Jira/Azure DevOps) via MCP connectors to maintain client governance requirements.</p>")}
-          ${kv("Automated spec trigger", "<p>Upon merge of a gate-cleared intent.md into the /intent/ directory, trigger a non-interactive CI job. This job automatically compiles spec.md with Sparq compliance skills loaded (security, UX, brand guidelines). The Product Owner is responsible for the final review step.</p>")}
-        </div>
-        <p class="line-note">Output: intent.md (cleared and synced).</p>
-      </section>
-
-      <section id="stage-3">
-        <h2 class="mono uppercase eyebrow">Stage 3 · Design</h2>
+        <h2 class="mono uppercase eyebrow">Stage 2 · Design</h2>
         <p class="lede">Synthesize requirements and architecture into a formal specification.</p>
         <div class="kvs">
           ${kv("Compressed synthesis", "<p>Execute a compressed, single-session requirements and architecture synthesis.</p>")}
@@ -752,8 +774,8 @@ function renderAiSdlcMain() {
         <p class="line-note">Output: spec.md.</p>
       </section>
 
-      <section id="stage-4">
-        <h2 class="mono uppercase eyebrow">Stage 4 · Build</h2>
+      <section id="stage-3">
+        <h2 class="mono uppercase eyebrow">Stage 3 · Build</h2>
         <p class="lede">Draft implementation plans and execute code generation within isolated agent environments.</p>
         <div class="kvs">
           ${kv("CLAUDE.md context engine", "<p>Maintain a robust context engine detailing build commands, linting rules, architectural patterns, and team-specific mistakes to avoid.</p>")}
@@ -765,8 +787,8 @@ function renderAiSdlcMain() {
         <p class="line-note">Output: plan.md and verified code diffs.</p>
       </section>
 
-      <section id="stage-5">
-        <h2 class="mono uppercase eyebrow">Stage 5 · Test</h2>
+      <section id="stage-4">
+        <h2 class="mono uppercase eyebrow">Stage 4 · Test</h2>
         <p class="lede">Continually verify code behavior and assess Feasibility and Operational risks through automated CI suites.</p>
         <div class="kvs">
           ${kv("Self-verification loop", "<p>Agents must run builds, tests, and visual diffs, proving success in context before reporting a task complete.</p>")}
@@ -777,8 +799,8 @@ function renderAiSdlcMain() {
         <p class="line-note">Output: verification logs and evaluation results.</p>
       </section>
 
-      <section id="stage-6">
-        <h2 class="mono uppercase eyebrow">Stage 6 · Deploy</h2>
+      <section id="stage-5">
+        <h2 class="mono uppercase eyebrow">Stage 5 · Deploy</h2>
         <p class="lede">Conduct multi-pass reviews and securely deploy artifacts across environments using defined autonomy tiers.</p>
         <div class="kvs">
           ${kv("Multi-pass PR review", "<p>Automate first-pass scans for logical bugs, security gaps, and compliance against spec.md and plan.md (REVIEW.md).</p>")}
@@ -789,21 +811,21 @@ function renderAiSdlcMain() {
         <p class="line-note">Output: REVIEW.md, PR findings, and deployed code.</p>
       </section>
 
-      <section id="stage-7">
-        <h2 class="mono uppercase eyebrow">Stage 7 · Maintain</h2>
+      <section id="stage-6">
+        <h2 class="mono uppercase eyebrow">Stage 6 · Maintain</h2>
         <p class="lede">Monitor system health continuously and trigger automated triage and incident resolution loops.</p>
         <div class="kvs">
           ${kv("Metric drift triggers", "<p>Apply deterministic monitoring using statistical control rules against operational metrics (e.g., test failure rate, post-deploy 5xx rates) via bands.yaml.</p>")}
           ${kv("Autonomous intent feed", "<p>If a metric breach occurs (e.g., 3σ deviation), a background agent automatically diagnoses the root cause and writes a new intent.md into the triage queue.</p>")}
-          ${kv("ChatOps incident response", "<p>Triage live production alerts via Claude tag in Slack/Teams, execute diagnostic runbooks via MCP, and log root-cause analyses directly to the thread record.</p>")}
-          ${kv("Incident-to-eval pipeline", "<p>For every resolved production incident, automatically compile a regression evaluation case into the CI suite (Stage 5) to guarantee prevention of recurrence.</p>")}
+          ${kv("ChatOps incident response", "<p>Triage live production alerts via Claude Tag in Slack/Teams, execute diagnostic runbooks via MCP, and log root-cause analyses directly to the thread record.</p>")}
+          ${kv("Incident-to-eval pipeline", "<p>For every resolved production incident, automatically compile a regression evaluation case into the CI suite (Stage 4) to guarantee prevention of recurrence.</p>")}
         </div>
         <p class="line-note">Output: bands.yaml updates and incident/eval loop records.</p>
       </section>
 
       <section id="domains-across">
         <h2 class="mono uppercase eyebrow">Domains and risk shapes across the pipeline</h2>
-        <p class="lede">Each stage has a primary domain driving the work and risk shapes that are typically hottest at that point. Framing tapers over time but does not hard-stop at Plan. Proof runs at the Evidence Gate, Test, and Maintain stages, handling distinct but related evaluation tasks.</p>
+        <p class="lede">Each stage has a primary domain driving the work and risk shapes that are typically hottest at that point. Framing tapers over time but does not hard-stop at the Evidence Gate. Proof runs at the Gate, Test, and Maintain stages, handling distinct but related evaluation tasks.</p>
         <table class="hairline-table">
           <thead>
             <tr>
@@ -815,13 +837,12 @@ function renderAiSdlcMain() {
           </thead>
           <tbody>
             <tr><td>0 · Intent Framing</td><td>Framing</td><td>—</td><td>Problem clarity, Commercial</td></tr>
-            <tr><td>1 · Evidence Gate</td><td>Proof</td><td>Framing</td><td>Value, Problem clarity</td></tr>
-            <tr><td>2 · Plan</td><td>Framing (tapering)</td><td>Commercial</td><td>Commercial</td></tr>
-            <tr><td>3 · Design</td><td>Building</td><td>Framing</td><td>Feasibility</td></tr>
-            <tr><td>4 · Build</td><td>Building</td><td>Proof</td><td>Feasibility, AI reliability</td></tr>
-            <tr><td>5 · Test</td><td>Proof</td><td>Building</td><td>Proof/acceptance, Feasibility, AI reliability</td></tr>
-            <tr><td>6 · Deploy</td><td>Building</td><td>Continuity</td><td>Proof/acceptance, Adoption</td></tr>
-            <tr><td>7 · Maintain</td><td>Continuity</td><td>Enablement</td><td>Continuity, Adoption</td></tr>
+            <tr><td>1 · Evidence Gate</td><td>Proof</td><td>Framing (tapering)</td><td>Value, Problem clarity</td></tr>
+            <tr><td>2 · Design</td><td>Building</td><td>Framing</td><td>Feasibility</td></tr>
+            <tr><td>3 · Build</td><td>Building</td><td>Proof</td><td>Feasibility, AI reliability</td></tr>
+            <tr><td>4 · Test</td><td>Proof</td><td>Building</td><td>Proof/acceptance, Feasibility, AI reliability</td></tr>
+            <tr><td>5 · Deploy</td><td>Building</td><td>Continuity</td><td>Proof/acceptance, Adoption</td></tr>
+            <tr><td>6 · Maintain</td><td>Continuity</td><td>Enablement</td><td>Continuity, Adoption</td></tr>
           </tbody>
         </table>
         <p class="lede">Risk shapes are listed where they are typically hottest, not where they only fire. Any shape can spike at any stage — a Feasibility constraint can surface during Intent Framing, and a Value question can re-open during Build.</p>
@@ -831,25 +852,24 @@ function renderAiSdlcMain() {
 
       <section id="adaptation">
         <h2 class="mono uppercase eyebrow">Adaptation matrix</h2>
-        <p class="lede">How each stage adapts to the AI-native context — the core artifact, the approach, and the governance mechanism that keeps it honest.</p>
+        <p class="lede">How each stage adapts to the AI-Native context — the core artifact, the approach, and the governance mechanism that keeps it honest.</p>
         <table class="hairline-table">
           <thead>
             <tr>
               <th>Stage</th>
-              <th>AI-native approach</th>
+              <th>AI-Native approach</th>
               <th>Artifact / trigger</th>
               <th>Governance</th>
             </tr>
           </thead>
           <tbody>
             <tr><td>0 · Intent Framing</td><td>Structured elicitation producing tagged, unvalidated assumptions</td><td>raw intent.md</td><td>Facilitator ensures output stays assumption-tagged</td></tr>
-            <tr><td>1 · Evidence Gate</td><td>Risk validation loop for Value/Usability/Viability only</td><td>Decision on intent.md</td><td>Product + Delivery sign-off; Promote/Iterate/Pivot/Stop</td></tr>
-            <tr><td>2 · Plan</td><td>Brainstorming sessions generating concise proto-specs</td><td>intent.md (cleared)</td><td>Product Owner merge sign-off</td></tr>
-            <tr><td>3 · Design</td><td>Compressed single-session requirements &amp; design synthesis</td><td>spec.md</td><td>Skills validation (Security, UX, Brand)</td></tr>
-            <tr><td>4 · Build</td><td>Plan-mode drafting, worktree-isolated implementation</td><td>plan.md &amp; code diffs</td><td>CLAUDE.md + path-blocking hooks</td></tr>
-            <tr><td>5 · Test</td><td>Continuous self-verification and CI-driven eval suites</td><td>Verification logs &amp; eval results</td><td>Test-locking hooks &amp; eval pass thresholds</td></tr>
-            <tr><td>6 · Deploy</td><td>Multi-pass agentic PR review with human risk evaluation</td><td>REVIEW.md &amp; PR findings</td><td>Branch protection &amp; production deploy hooks</td></tr>
-            <tr><td>7 · Maintain</td><td>Metric-band monitoring auto-generating new intent items</td><td>bands.yaml &amp; incident records</td><td>Tiered automated response &amp; on-call approval</td></tr>
+            <tr><td>1 · Evidence Gate</td><td>Risk validation loop for Value/Usability/Viability, closing automatically into tracker sync and spec compilation on Promote</td><td>intent.md (cleared, synced)</td><td>Product + Delivery sign-off; Promote/Iterate/Pivot/Stop, then PO merge</td></tr>
+            <tr><td>2 · Design</td><td>Compressed single-session requirements &amp; design synthesis</td><td>spec.md</td><td>Skills validation (Security, UX, Brand)</td></tr>
+            <tr><td>3 · Build</td><td>Plan-mode drafting, worktree-isolated implementation</td><td>plan.md &amp; code diffs</td><td>CLAUDE.md + path-blocking hooks</td></tr>
+            <tr><td>4 · Test</td><td>Continuous self-verification and CI-driven eval suites</td><td>Verification logs &amp; eval results</td><td>Test-locking hooks &amp; eval pass thresholds</td></tr>
+            <tr><td>5 · Deploy</td><td>Multi-pass agentic PR review with human risk evaluation</td><td>REVIEW.md &amp; PR findings</td><td>Branch protection &amp; production deploy hooks</td></tr>
+            <tr><td>6 · Maintain</td><td>Metric-band monitoring auto-generating new intent items</td><td>bands.yaml &amp; incident records</td><td>Tiered automated response &amp; on-call approval</td></tr>
           </tbody>
         </table>
       </section>
@@ -857,9 +877,9 @@ function renderAiSdlcMain() {
       <section id="gaps">
         <h2 class="mono uppercase eyebrow">Known gaps</h2>
         <div class="kvs">
-          ${kv("bands.yaml widening", "<p>Maintenance metrics primarily monitor infrastructure health (error rates). A sensor is needed to monitor Value/Usability drift post-launch (adoption rates, usage depth) so the pipeline does not lose signal on a shipped feature nobody wants. This remains an unresolved gap.</p>")}
-          ${kv("Naming the Intent Framing Session", "<p>This stage is deliberately left undressed. Naming it before the shape is settled through repeated real use is an anti-pattern. We will call it what it is until it earns a name through institutional habit.</p>")}
-          ${kv("Client-specific authority", "<p>Engagement models differ on how much of the Intent Framing Session includes the client versus internal Sparq preparation. This balance is engagement-specific and not yet standardized across all delivery modes.</p>")}
+          ${kv("bands.yaml widening", "<p>Maintenance metrics primarily monitor infrastructure health (error rates). A sensor is needed to monitor Value/Usability drift post-launch (adoption rates, usage depth) so the pipeline does not lose signal on a shipped feature nobody wants. This remains an unresolved gap — the tactical playbook includes a candidate widened bands.yaml design as a proposal, not yet ratified.</p>")}
+          ${kv("Naming the Intent Framing Session", "<p>The Stage 0 session itself is deliberately left undressed. Naming it before the shape is settled through repeated real use is an anti-pattern. We will call it what it is until it earns a name through institutional habit. This is separate from Evidence Sprint, which names the combined Stage 0 + Stage 1 commercial unit, not the Stage 0 session on its own.</p>")}
+          ${kv("Client-specific authority", "<p>How much of the Intent Framing Session includes the client versus internal Sparq preparation is inherently variable by design, not a gap to standardize away. Some engagements run heavy client involvement, others very little; headcount in the room has ranged from as few as 2 to as many as 20. This is engagement-specific and should stay that way.</p>")}
         </div>
       </section>`;
 }
@@ -868,8 +888,297 @@ function renderAdlcMain() {
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">ADLC</h1>
-        <p class="lede">The AI-Native development lifecycle — how code, context, and judgment flow through a delivery slice.</p>
-        <p class="lede">Placeholder — content is being authored.</p>
+        <p class="lede">The transition from SDLC to ADLC is the realization that agentic systems violate the core assumption of traditional software engineering: that behavior is fully specified at build time and strictly deterministic.</p>
+        <p class="lede">Agents reason, adapt, and act across external tools. Small shifts in context compound into entirely different outputs. ADLC is a lifecycle built to handle uncertainty, prioritize behavioral guardrails, and treat deployment as the start of continuous learning, rather than the end of a project.</p>
+      </section>
+
+      <section id="core-shifts">
+        <h2 class="mono uppercase eyebrow">Core shifts: SDLC vs ADLC</h2>
+        <table class="hairline-table">
+          <thead>
+            <tr><th>Dimension</th><th>SDLC</th><th>ADLC</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Behavior</strong></td><td>Deterministic execution (same input = same output)</td><td>Probabilistic execution (behavior evolves based on models, tools, and context)</td></tr>
+            <tr><td><strong>Logic residency</strong></td><td>Code and config</td><td>Hybrid of code, prompts, foundation models, and vector data</td></tr>
+            <tr><td><strong>Success metrics</strong></td><td>Functional pass/fail</td><td>Accuracy distribution, hallucination rates, token cost, and alignment</td></tr>
+            <tr><td><strong>Feedback loop</strong></td><td>Reactive (users report bugs, devs fix them)</td><td>Recursive (telemetry feeds directly back into prompt context or auto-generates new intents)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="phases">
+        <h2 class="mono uppercase eyebrow">The 8 phases</h2>
+        <p class="lede">Commercially, Phases 0 through 3 encompass the Evidence Sprint.</p>
+        <table class="hairline-table">
+          <thead>
+            <tr><th>Phase</th><th>Name</th><th>Core question</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>0</strong></td><td>Preparation &amp; Hypotheses</td><td>What are the pain points and what must be true?</td></tr>
+            <tr><td><strong>1</strong></td><td>Scope Framing &amp; Problem Definition</td><td>What is the agent allowed to do, and where must a human step in?</td></tr>
+            <tr><td><strong>2</strong></td><td>Agent Definition &amp; Architecture</td><td>What orchestration pattern, data pipeline, and token economics?</td></tr>
+            <tr><td><strong>3</strong></td><td>Simulation &amp; Proof of Value</td><td>Does the hypothesis hold against real users or environments?</td></tr>
+            <tr><td><strong>4</strong></td><td>Implementation &amp; Evals</td><td>Does the system pass reasoning and tool-use evaluations, not just syntax?</td></tr>
+            <tr><td><strong>5</strong></td><td>Testing</td><td>Does the agent hold boundaries under edge-case stress?</td></tr>
+            <tr><td><strong>6</strong></td><td>Agent Activation &amp; Deployment</td><td>Can we release with strict egress and action guardrails?</td></tr>
+            <tr><td><strong>7</strong></td><td>Continuous Learning &amp; Governance</td><td>Is the agent drifting, and does failure route back into the pipeline?</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="phase-0">
+        <h2 class="mono uppercase eyebrow">Phase 0 · Preparation &amp; Hypotheses</h2>
+        <p class="lede">The raw capture of intent and constraints. Not everything needs an agent.</p>
+        <div class="kvs">
+          ${kv("Tactical practice", "<p>2–4 hour structured workshop. 10-minute silent assumption dump (Value, Usability, Feasibility, Viability, Operational). Failure premortem. No untagged claims survive.</p>")}
+          ${kv("Tooling", "<p>Meeting-transcription MCP (Whisper/Fathom) + Miro/Slack MCP.</p>")}
+          ${kv("Agents &amp; hooks", '<ul class="bullets"><li><strong>intent-elicitor</strong> — probing agent that forces stakeholders to rephrase vague desires into testable assertions.</li><li><strong>assumption-extractor</strong> — parses live transcripts and auto-tags constraints.</li><li><strong>premortem-adversary</strong> — red-teams the room on AI edge-case failures.</li></ul>')}
+        </div>
+        <p class="line-note">Artifact: raw intent.md, fully tagged. Facilitator validates tagging.</p>
+      </section>
+
+      <section id="phase-1">
+        <h2 class="mono uppercase eyebrow">Phase 1 · Scope Framing &amp; Problem Definition</h2>
+        <p class="lede">Establishing the human-agent boundaries and compliance limits.</p>
+        <div class="kvs">
+          ${kv("Tactical practice", "<p>Defining the agent's autonomy boundaries. Explicitly mapping what requires Human-in-the-Loop (HITL) approval. Drafting the initial evaluation criteria.</p>")}
+          ${kv("Agents &amp; hooks", '<ul class="bullets"><li><strong>assumption-linter</strong> (pre-commit hook) — rejects the commit of intent.md if any claim lacks an [ASSUMPTION: Category] tag or if autonomy boundaries are undefined.</li></ul>')}
+        </div>
+        <p class="line-note">Artifact: refined intent.md with explicit human-agent responsibility mapping and operational KPIs.</p>
+      </section>
+
+      <section id="phase-2">
+        <h2 class="mono uppercase eyebrow">Phase 2 · Agent Definition &amp; Architecture</h2>
+        <p class="lede">Designing the non-deterministic structure.</p>
+        <div class="kvs">
+          ${kv("Tactical practice", "<p>Compressed design session defining the orchestration pattern, token economics (CAPEX/OPEX), and data architecture. Architecture must satisfy Phase 1's bounds without over-building.</p>")}
+          ${kv("Tooling", "<p>Figma MCP or repo-native prototype design via Claude Code.</p>")}
+          ${kv("Agents &amp; skills", '<ul class="bullets"><li>.claude/skills/security-baseline &amp; .claude/skills/ux-design-system</li><li>.claude/skills/adlc-agent-guardrails</li><li><strong>spec-compliance-linter</strong> — verifying spec.md contains Agent Tool definitions, Failure Modes, Token Budget, Data Models.</li></ul>')}
+        </div>
+        <p class="line-note">Artifact: spec.md. Design/Tech Lead review.</p>
+      </section>
+
+      <section id="phase-3">
+        <h2 class="mono uppercase eyebrow">Phase 3 · Simulation &amp; Proof of Value</h2>
+        <p class="lede">The commercial Evidence Gate. You do not pass this without external signal.</p>
+        <div class="kvs">
+          ${kv("Tactical practice", "<p>Build an Evidence Slice or Vision Prototype. Attach it to a real client touchpoint. Product + Delivery decide: Promote / Iterate / Pivot / Stop. On a Promote, map scope blocks to the enterprise tracker and sync.</p>")}
+          ${kv("Tooling", "<p>Conversation Intelligence MCP (Gong/Zoom) for real-world signal capture. Enterprise Tracker MCP (Jira/ADO).</p>")}
+          ${kv("Agents &amp; hooks", '<ul class="bullets"><li><strong>synthetic-user-dryrun</strong> — runs multi-persona simulation to test the agent before real client exposure.</li><li><strong>evidence-synthesizer</strong> — evaluates client signal strength, capping internal-only feedback at Directional.</li><li><strong>gate-signoff-validator</strong> — blocks push to /intent/ unless explicit decision tags are present.</li><li><strong>tracker-sync</strong> — automates mapping markdown scopes into enterprise tracker stories.</li></ul>')}
+        </div>
+        <p class="line-note">Artifact: intent.md (cleared) + per-project ESOA + optional Vision Prototype. PO merge sign-off.</p>
+      </section>
+
+      <section id="phase-4">
+        <h2 class="mono uppercase eyebrow">Phase 4 · Implementation &amp; Evals</h2>
+        <p class="lede">Agent-driven coding and baseline verification.</p>
+        <div class="kvs">
+          ${kv("Tactical practice", "<p>Git worktree isolation. Plan Mode first — Claude writes plan.md. Engineer accepts the plan, execution begins.</p>")}
+          ${kv("Tooling", "<p>Claude Code CLI, CLAUDE.md acting as the repo's living context engine.</p>")}
+          ${kv("Agents &amp; hooks", '<ul class="bullets"><li><strong>.claude/agents/verifier.md</strong> — runs the app and verifies behavior against plan.md.</li><li><strong>.claude/agents/prompt-evaluator.md</strong> — evaluates embedded AI outputs for hallucination/tool-calling accuracy during implementation.</li><li><strong>path-blocking-hook</strong> — intercepts file edits outside the scope defined in plan.md.</li></ul>')}
+        </div>
+        <p class="line-note">Artifact: plan.md and verified code diffs in isolated branches. Engineer plan acceptance.</p>
+      </section>
+
+      <section id="phase-5">
+        <h2 class="mono uppercase eyebrow">Phase 5 · Testing</h2>
+        <p class="lede">Probabilistic testing for reasoning, safety, and edge-cases.</p>
+        <div class="kvs">
+          ${kv("Tactical practice", "<p>Non-interactive CI eval suite runs 20–50 task scenarios. Test files are read-only during bug-fix tasks — agents must fix code, not weaken the test.</p>")}
+          ${kv("Tooling", "<p>Headless Playwright/Puppeteer MCP, .github/workflows/agent-evals.yml.</p>")}
+          ${kv("Agents &amp; hooks", '<ul class="bullets"><li><strong>lock-tests.sh</strong> — blocks Edit/Write on tests/** during bug-fix runs.</li><li><strong>eval-pass-checker</strong> — blocks PR merge if task accuracy / safety alignment falls below the defined threshold.</li></ul>')}
+        </div>
+        <p class="line-note">Artifact: verification logs, evaluation pass results. Automated CI pass threshold.</p>
+      </section>
+
+      <section id="phase-6">
+        <h2 class="mono uppercase eyebrow">Phase 6 · Agent Activation &amp; Deployment</h2>
+        <p class="lede">Tiered release with strict autonomy guardrails.</p>
+        <div class="kvs">
+          ${kv("Tactical practice", "<p>Multi-pass PR review (Bugs → Security → Alignment). Environment autonomy tiers: Dev = Autonomous, Staging = Clean CI + Auto-review, Prod = Named Human Sign-off.</p>")}
+          ${kv("Agents &amp; hooks", '<ul class="bullets"><li><strong>.claude/agents/pr-reviewer.md</strong> — multi-pass review outputting to REVIEW.md. Writes context updates back to CLAUDE.md if the agent repeats a mistake twice.</li><li>Centralized managed-settings engine (permissions.deny, allowManagedHooksOnly, disableSideloadFlags).</li><li><strong>network-egress-blocker</strong> — hard network boundary enforcement preventing unauthorized agent tool-calls.</li></ul>')}
+        </div>
+        <p class="line-note">Artifact: REVIEW.md. Human Release Manager sign-off on Production.</p>
+      </section>
+
+      <section id="phase-7">
+        <h2 class="mono uppercase eyebrow">Phase 7 · Continuous Learning &amp; Governance</h2>
+        <p class="lede">Managing probabilistic drift and feeding the loop.</p>
+        <div class="kvs">
+          ${kv("Tactical practice", "<p>Statistical process control using Western Electric rules. When an agent hallucinates, breaches a boundary, or triggers a negative feedback loop in production, a background agent diagnoses it and writes a new intent back to Phase 0 automatically.</p>")}
+          ${kv("Tooling", "<p>Infra MCP (Datadog) + Product Analytics MCP (PostHog/Pendo).</p>")}
+          ${kv("Agents &amp; hooks", '<ul class="bullets"><li><strong>metric-watcher</strong> daemon — background monitor scanning bands.yaml for breaches.</li><li><strong>incident-to-eval-compiler</strong> — turns post-mortem logs into permanent regression tests in Phase 5.</li><li><strong>Claude Tag</strong> — ChatOps bot allowing on-call engineers to tag the AI directly in incident threads.</li></ul>')}
+        </div>
+        <p class="line-note">Artifact: updated bands.yaml, incident records, fresh intent.md pushed to Phase 0 triage queue.</p>
+      </section>`;
+}
+
+function renderTacticalPlaybookMain() {
+  return `
+      <section id="overview">
+        <h1 class="mono uppercase eyebrow">Tactical Playbook</h1>
+        <p class="lede">The reconciled tactical execution behind the AI-Native SDLC — the exact skills, hooks, agents, and file names behind each stage, checked against Anthropic's published playbook.</p>
+        <p class="lede">The <a href="ai-sdlc.html">AI-Native SDLC</a> is the what and why. This page is the how.</p>
+      </section>
+
+      <section id="anthropic-mapping">
+        <h2 class="mono uppercase eyebrow">How our stages map to Anthropic's 6</h2>
+        <p class="lede">Anthropic's playbook runs six stages: Plan → Design → Build → Test → Deploy → Maintain. Sparq splits the first stage into two gates, sold together as one commercial unit — the Evidence Sprint. This is the actual differentiator.</p>
+        <table class="hairline-table">
+          <thead>
+            <tr><th>Sparq stage</th><th>Anthropic stage</th><th>What Sparq adds</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>0 · Intent Framing</strong></td><td>Plan</td><td>Structured workshop (2–4 hrs) + strict inline assumption-tagging before intent.md exists</td></tr>
+            <tr><td><strong>1 · Evidence Gate</strong></td><td>Plan</td><td>Required external-signal checkpoint (Promote/Iterate/Pivot/Stop) + tracker sync and merge on close</td></tr>
+            <tr><td><strong>2 · Design</strong></td><td>Design</td><td>1:1</td></tr>
+            <tr><td><strong>3 · Build</strong></td><td>Build</td><td>1:1</td></tr>
+            <tr><td><strong>4 · Test</strong></td><td>Test</td><td>1:1</td></tr>
+            <tr><td><strong>5 · Deploy</strong></td><td>Deploy</td><td>1:1</td></tr>
+            <tr><td><strong>6 · Maintain</strong></td><td>Maintain</td><td>1:1, plus product-analytics bands widened beyond Anthropic's infra-only example</td></tr>
+          </tbody>
+        </table>
+        <p class="lede"><strong>Commercially:</strong> Stages 0–1 together are the Evidence Sprint — the thing that used to be pitched as discovery, now scoped to roughly 2 weeks because the output is evidence and a costed Build decision, not a stack of workshop artifacts. Everything from Design onward tracks Anthropic's canonical mechanics closely.</p>
+      </section>
+
+      <section id="tactical-0">
+        <h2 class="mono uppercase eyebrow">Stage 0 · Intent Framing — Tactical</h2>
+        <p class="line-note">First half of the Evidence Sprint.</p>
+        <div class="kvs">
+          ${kv("Practice", "<p>A 2–4 hour structured workshop. 10 min silent assumption dump sorted into Value / Usability / Feasibility / Viability / Operational → failure premortem → architecture exposure with engineering. No untagged claims survive the file.</p>")}
+          ${kv("Tooling", "<p>Meeting-transcription MCP (Whisper/Fathom/Recall.ai) for live capture, plus Miro/Mural/Slack MCP for stickies and threads.</p>")}
+        </div>
+        <div class="kvs">
+          ${kv("intent-elicitor skill", "<p>Interactive elicitation — asks probing questions, rephrases claims as testable assertions.</p>")}
+          ${kv("assumption-extractor skill", "<p>Parses the transcript in real time and auto-tags into the 5 risk categories.</p>")}
+          ${kv("premortem-adversary subagent", "<p>Red-teams the room on technical constraints and unstated dependencies.</p>")}
+          ${kv("assumption-linter hook", "<p>Pre-commit. Rejects the commit if any claim lacks an [ASSUMPTION: Category] tag.</p>")}
+        </div>
+        <p class="line-note">Artifact: raw intent.md, 100% tagged. Facilitator validates tagging before it moves.</p>
+      </section>
+
+      <section id="tactical-1">
+        <h2 class="mono uppercase eyebrow">Stage 1 · Evidence Gate — Tactical</h2>
+        <p class="line-note">Second half of the Evidence Sprint — the execution part of discovery.</p>
+        <div class="kvs">
+          ${kv("Practice", "<p>Pull the highest-risk Value/Usability assumption. Frame a minimal external-facing slice. Attach it to a real client touchpoint — synthetic-only validation is disallowed without a logged exception. Record signal. Product + Delivery decide: Promote / Iterate / Pivot / Stop. On a Promote, close by merging cleared intent.md into /intent/, mapping scope blocks into the enterprise tracker, and defining hard boundary markers.</p>")}
+          ${kv("Repo home", "<p>Evidence Work skills and the resulting evidence-of-signal live in a per-project repo. That's also where the ESOA lives — transitioning from a solutions-side version into the delivery-side version rather than being recreated.</p>")}
+          ${kv("Vision Prototype", "<p>Distinct from the narrow Evidence Slice. Where an Evidence Slice tests one assumption, a Vision Prototype is a holistic build — full breadth, selective depth — meant to show the client the future-state value, not validate a single risk. Optional per engagement, but when built, it sits alongside the Promote decision and the costed Build proposal.</p>")}
+          ${kv("Tooling", "<p>Conversation Intelligence MCP (Gong/Zoom/Teams/Chorus) for signal capture; Enterprise Tracker MCP (Jira/Azure DevOps/ServiceNow) and a non-interactive Claude CI runner for the close.</p>")}
+        </div>
+        <div class="kvs">
+          ${kv("evidence-synthesizer skill", "<p>Maps quotes to tagged assumptions, evaluates signal strength, and caps internal-only feedback at Directional confidence so it can't be mistaken for a real-occasion validation.</p>")}
+          ${kv("synthetic-user-dryrun subagent", "<p>Pre-gate multi-persona simulation so live client time isn't burned on an obviously broken pitch.</p>")}
+          ${kv("gate-signoff-validator hook", "<p>Blocks the push to /intent/ unless an explicit decision tag and signature block are present.</p>")}
+          ${kv("tracker-sync skill", "<p>Automates mapping between Markdown scope blocks and enterprise epic/story schemas.</p>")}
+          ${kv("cleared-intent-trigger", "<p>GitHub Action that fires only when the intent.md frontmatter reads gate_status: cleared, instantiating Stage 2 (Design).</p>")}
+        </div>
+        <p class="line-note">Artifact: intent.md (cleared, synced, merged to main) + per-project ESOA (carried forward) + optional Vision Prototype.</p>
+      </section>
+
+      <section id="tactical-2">
+        <h2 class="mono uppercase eyebrow">Stage 2 · Design — Tactical</h2>
+        <div class="kvs">
+          ${kv("Practice", "<p>Compressed design session(s), Claude + core engineering leads. Enterprise skills injected into context. Architecture must satisfy the Evidence Gate's operational bounds without over-building beyond intent.md.</p>")}
+          ${kv("Tooling", "<p>Figma MCP or repo-native design — design capability doesn't have to live in Figma. Where the capability is confidently prototype-driven, the design system is built directly in Claude Code / Cursor and lives in the repo, feeding spec.md without a Figma round-trip. Choose per project; both paths converge on the same artifact.</p>")}
+        </div>
+        <div class="kvs">
+          ${kv(".claude/skills/security-baseline", "<p>Organization-wide security compliance skill.</p>")}
+          ${kv(".claude/skills/brand-guidelines", "<p>Brand compliance skill.</p>")}
+          ${kv(".claude/skills/ux-design-system", "<p>UX standards skill.</p>")}
+          ${kv(".claude/skills/adlc-agent-guardrails", "<p>Agent behavioral guardrails skill.</p>")}
+          ${kv("spec-compliance-linter", "<p>Verifies spec.md has every required section (API specs, failure modes, data models) before the stage can transition.</p>")}
+        </div>
+        <p class="line-note">Artifact: spec.md. Design/Tech Lead review.</p>
+      </section>
+
+      <section id="tactical-3">
+        <h2 class="mono uppercase eyebrow">Stage 3 · Build — Tactical</h2>
+        <div class="kvs">
+          ${kv("Practice", "<p>Git worktree isolation (cap 2–3 per engineer). Plan Mode first — Claude writes plan.md before touching source. Engineer accepts the plan, then code generation starts. Scoped Auto Mode execution within defined paths. Deliberately mimics Anthropic's own Build stage — plan mode, CLAUDE.md, subagents, hooks. Sparq-specific tooling layers on top.</p>")}
+          ${kv("Tooling", "<p>Claude Code CLI, CLAUDE.md as the repo's context engine.</p>")}
+        </div>
+        <div class="kvs">
+          ${kv(".claude/agents/verifier.md", "<p>Spins up a fresh context window, runs the app, verifies behavior against plan.md.</p>")}
+          ${kv(".claude/agents/simplifier.md", "<p>Strips redundant abstraction from generated diffs.</p>")}
+          ${kv(".claude/agents/prompt-evaluator.md", "<p>For builds with embedded AI agents — evaluates prompt responses for safety/hallucination/tool-calling accuracy.</p>")}
+          ${kv("path-blocking-hook", "<p>Intercepts file edits outside the scope defined in plan.md.</p>")}
+        </div>
+        <p class="line-note">Artifact: plan.md and verified code diffs, in isolated branches. Engineer plan acceptance.</p>
+      </section>
+
+      <section id="tactical-4">
+        <h2 class="mono uppercase eyebrow">Stage 4 · Test — Tactical</h2>
+        <div class="kvs">
+          ${kv("Practice", "<p>Agent self-verification (build, unit tests, visual regression) before submission. Non-interactive CI eval suite runs 20–50 task scenarios. Test files are read-only during bug-fix tasks — the agent must fix the code, never weaken the assertion.</p>")}
+          ${kv("Tooling", "<p>Headless Playwright/Puppeteer MCP, .github/workflows/agent-evals.yml.</p>")}
+        </div>
+        <div class="kvs">
+          ${kv("lock-tests.sh hook", "<p>Blocks Edit/Write on tests/** during bug-fix tasks.</p>")}
+          ${kv("eval-pass-checker", "<p>Blocks PR merge if task accuracy falls below the threshold.</p>")}
+        </div>
+        <p class="line-note">Artifact: verification logs and CI evaluation pass results. Automated CI pass threshold.</p>
+      </section>
+
+      <section id="tactical-5">
+        <h2 class="mono uppercase eyebrow">Stage 5 · Deploy — Tactical</h2>
+        <div class="kvs">
+          ${kv("Practice", "<p>Multi-pass PR review (Bugs → Security/PII → spec.md/plan.md compliance). Environment autonomy is tiered: Dev is fully autonomous, Staging requires a clean CI eval run plus automated review, Production requires named human Release Manager sign-off.</p>")}
+          ${kv("Tooling", "<p>Claude Code PR Review Agent.</p>")}
+        </div>
+        <div class="kvs">
+          ${kv(".claude/agents/pr-reviewer.md", "<p>Multi-pass review writing findings to REVIEW.md.</p>")}
+          ${kv("Managed-settings engine", "<p>allowManagedHooksOnly, permissions.deny, sandboxed shell, disableSideloadFlags, allowManagedMcpServersOnly — matching Anthropic's reference settings.json.</p>")}
+          ${kv("network-egress-blocker hook", "<p>Its own named control rather than folded into managed settings generically.</p>")}
+        </div>
+        <p class="line-note">Artifact: REVIEW.md, PR findings, release log. Human Release Manager sign-off on Production only.</p>
+      </section>
+
+      <section id="tactical-6">
+        <h2 class="mono uppercase eyebrow">Stage 6 · Maintain — Tactical</h2>
+        <div class="kvs">
+          ${kv("Practice", "<p>Statistical process control on bands.yaml (Western Electric rules). On a breach, a background agent diagnoses root cause and writes a fresh raw intent.md back into Stage 0's triage queue — closing the loop without a human starting it. On-call engineers can also tag Claude directly in incident threads. Every resolved bug becomes a permanent regression case in the Stage 4 eval suite.</p>")}
+          ${kv("Tooling", "<p>Infra MCP (Datadog/Prometheus/New Relic) and Product Analytics MCP (PostHog/Mixpanel/Pendo/Zendesk) feeding the same sensor.</p>")}
+        </div>
+        <div class="kvs">
+          ${kv("metric-watcher daemon", "<p>Background monitor triggering triage agents on band breaches.</p>")}
+          ${kv("incident-to-eval-compiler", "<p>Turns post-mortem logs into permanent regression tests.</p>")}
+          ${kv("Claude Tag", "<p>ChatOps bot for on-call — Anthropic's actual Claude Tag product, not a generic ChatOps MCP Bot.</p>")}
+        </div>
+        <p class="line-note">Artifact: bands.yaml updates, incident records, new regression cases added to Stage 4. Service Owner / on-call triage.</p>
+      </section>
+
+      <section id="reconciliation">
+        <h2 class="mono uppercase eyebrow">Reconciliation log</h2>
+        <p class="lede">Every place the two internal source documents disagreed and the call that was made.</p>
+        <table class="hairline-table">
+          <thead>
+            <tr><th>Stage</th><th>Conflict</th><th>Call made</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td>assumption-extractor (A) vs intent-elicitor + assumption-linter (B)</td><td>Not a conflict — different functions. Keep all three.</td></tr>
+            <tr><td>0</td><td>Workshop length: 60–90 min (both docs)</td><td>Extended to 2–4 hrs to reflect real client kickoffs.</td></tr>
+            <tr><td>1</td><td>Skill named evidence-signal-check (A) vs evidence-synthesizer (B)</td><td>Canonicalize as evidence-synthesizer.</td></tr>
+            <tr><td>1</td><td>Separate confidence-decision.md (A) vs updated intent.md (B)</td><td>Canonicalize as intent.md updated in place, in the per-project repo alongside the ESOA.</td></tr>
+            <tr><td>1</td><td>Old Stage 2 (tracker sync) as its own numbered stage</td><td>Folded into Stage 1 as a closing action — automatic result of a Promote.</td></tr>
+            <tr><td>2</td><td>4 compliance skills (A) vs 2 (B)</td><td>Keep A's full 4; add B's spec-compliance-linter on top.</td></tr>
+            <tr><td>2</td><td>Figma-only tooling (both docs)</td><td>Added repo-native design as an equal path, not a fallback.</td></tr>
+            <tr><td>3/4</td><td>Test-lock hook placed at Build (A) vs Test (B)</td><td>Move to Test — matches Anthropic's own placement.</td></tr>
+            <tr><td>3</td><td>prompt-evaluator.md present (A) vs absent (B)</td><td>Keep — relevant for embedded-AI-agent builds.</td></tr>
+            <tr><td>5</td><td>Bundled MDM settings (A) vs split config-engine + network hook (B)</td><td>Canonicalize on B's split, matches Anthropic's reference settings.json.</td></tr>
+            <tr><td>6</td><td>Generic ChatOps MCP Bot (B)</td><td>Rename to Claude Tag — it's a real, named Anthropic product.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="open-gaps">
+        <h2 class="mono uppercase eyebrow">Open gaps vs Anthropic's playbook</h2>
+        <div class="kvs">
+          ${kv("CLAUDE.md as governed artifact", "<p>Anthropic treats CLAUDE.md with its own feedback loop — the correction goes into CLAUDE.md the second time an agent repeats a mistake, and PR review flags staleness. Neither internal doc gives CLAUDE.md this maintenance loop; it's currently just a context source.</p>")}
+          ${kv("Scheduled security scanning", "<p>Anthropic's Deploy stage includes scheduled, model-driven security scanning (Claude Security) running independently of PR review — a recurring scan, not point-in-time, with findings fed back as fresh intent.md. Sparq's only security coverage at Deploy is currently the PR review pass.</p>")}
+          ${kv("Leading/lagging metrics per stage", "<p>Anthropic's playbook defines explicit metrics per stage (e.g., time from intent.md commit to spec.md commit; first-pass CI success rate; time from band breach to intent.md in triage). Neither internal doc names how Sparq will measure whether the pipeline itself is working.</p>")}
+        </div>
       </section>`;
 }
 
