@@ -71,29 +71,43 @@ const PAGES = [
     main: renderOperatingMain,
   },
   {
-    id: "ai-sdlc",
-    title: "AI-Native SDLC",
-    file: "ai-sdlc.html",
-    main: renderAiSdlcMain,
+    id: "delivery-lifecycles",
+    title: "Delivery Lifecycles",
+    toggleOnly: true,
     children: [
       {
+        id: "ai-sdlc",
+        title: "AI-Native Strategy",
+        file: "ai-sdlc.html",
+        main: renderAiSdlcMain,
+      },
+      {
         id: "tactical-playbook",
-        title: "Tactical Playbook",
+        title: "AI-Native Tactical",
         file: "tactical-playbook.html",
         main: renderTacticalPlaybookMain,
       },
       {
         id: "adlc",
-        title: "ADLC",
+        title: "Agentic",
         file: "adlc.html",
         main: renderAdlcMain,
+      },
+      {
+        id: "adlc-tactical",
+        title: "Agentic Tactical",
+        file: "adlc-tactical.html",
+        main: renderAdlcTacticalMain,
       },
     ],
   },
 ];
 
-// Flat list of every page for build output and TOC lookup.
-const ALL_PAGES = PAGES.flatMap((page) => [page, ...(page.children ?? [])]);
+// Flat list of every renderable page for build output, render lookup, and TOC.
+// Toggle-only parents (no file/main) are excluded — they exist only in the nav.
+const ALL_PAGES = PAGES.flatMap((page) =>
+  page.toggleOnly ? (page.children ?? []) : [page, ...(page.children ?? [])],
+);
 
 const ILLUSTRATIONS = "assets/how-it-all-relates-illustrations";
 
@@ -184,6 +198,9 @@ const PAGE_TOC = {
     ["#phase-6", "6 · Deployment"],
     ["#phase-7", "7 · Learning"],
   ],
+  "adlc-tactical": [
+    ["#overview", "Overview"],
+  ],
 };
 
 function pageToc(pageId) {
@@ -216,8 +233,12 @@ function renderPageLinks(pageId) {
 
     const caret = `<svg class="page-caret${groupOpen ? " open" : ""}" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
+    const parentEl = item.toggleOnly
+      ? `<span class="page-link page-toggle">${esc(item.title)}${caret}</span>`
+      : `<a class="page-link"${current} href="${esc(href)}">${esc(item.title)}${caret}</a>`;
+
     return `<div class="page-group${groupOpen ? " open" : ""}">
-          <a class="page-link"${current} href="${esc(href)}">${esc(item.title)}${caret}</a>
+          ${parentEl}
           <div class="page-children">
             ${childLinks}
           </div>
@@ -1182,6 +1203,15 @@ function renderTacticalPlaybookMain() {
       </section>`;
 }
 
+function renderAdlcTacticalMain() {
+  return `
+      <section id="overview">
+        <h1 class="mono uppercase eyebrow">Agentic Tactical</h1>
+        <p class="lede">The tactical execution details for the Agentic Development Lifecycle — skills, hooks, agents, and file names behind each phase.</p>
+        <p class="lede">Placeholder — content is being authored.</p>
+      </section>`;
+}
+
 function renderHowItRelatesMain(model) {
   const stack = requireDoctrine(model, "commercial-stack");
   const layers = (stack.steps ?? [])
@@ -1558,6 +1588,7 @@ function render(model, pageId = "how-it-all-relates") {
       color: var(--dim);
     }
     .page-caret.open { transform: rotate(90deg); }
+    .page-toggle { cursor: pointer; }
     .page-child { font-size: 12.5px; }
     .side .toc {
       display: flex;
