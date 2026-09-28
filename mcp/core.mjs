@@ -423,6 +423,9 @@ export function getLifecycle(index, { lifecycle } = {}) {
       primary_domain: stage.primary_domain,
       secondary_domain: stage.secondary_domain,
       risk_shapes_hot: stage.risk_shapes_hot,
+      framing: stage.framing ? oneLine(stage.framing) : undefined,
+      entry_routes: stage.entry_routes,
+      infrastructure: stage.infrastructure ? oneLine(stage.infrastructure) : undefined,
       procedures: (stage.procedures ?? []).map((p) => ({
         name: p.name,
         description: oneLine(p.description),

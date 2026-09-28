@@ -714,6 +714,19 @@ function requireLifecycle(model, id) {
 }
 
 function renderStage(stage) {
+  const framingParas = stage.framing
+    ? String(stage.framing)
+        .trim()
+        .split(/\n{2,}/)
+        .map((block) => `<p class="lede">${esc(block.replace(/\n/g, " ").trim())}</p>`)
+        .join("")
+    : "";
+  const entryRoutes = (stage.entry_routes ?? [])
+    .map((r) => kv(r.name, `<p>${esc(oneLine(r.description))}</p>`))
+    .join("");
+  const infra = stage.infrastructure
+    ? kv("Infrastructure", `<p>${esc(oneLine(stage.infrastructure))}</p>`)
+    : "";
   const procedures = (stage.procedures ?? [])
     .map((p) => kv(p.name, `<p>${esc(oneLine(p.description))}</p>`))
     .join("");
@@ -731,6 +744,9 @@ function renderStage(stage) {
         <h2 class="mono uppercase eyebrow">Stage ${stage.number} · ${esc(stage.name)}</h2>
         <p class="lede">${esc(oneLine(stage.objective))}</p>
         ${note}
+        ${framingParas}
+        ${entryRoutes ? `<div class="kvs">${kv("How intent arrives", "")}${entryRoutes}</div>` : ""}
+        ${infra ? `<div class="kvs">${infra}</div>` : ""}
         ${procedures ? `<div class="kvs">${procedures}</div>` : ""}
         ${practices ? `<div class="kvs">${practices}</div>` : ""}
         ${output}

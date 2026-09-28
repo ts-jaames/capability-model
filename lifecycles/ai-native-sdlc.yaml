@@ -35,6 +35,62 @@ stages:
       Generate the raw material and problem framing required for the pipeline
       without prematurely settling on narrative agreement. This session acts as
       structured elicitation to expose unvalidated assumptions.
+    framing: >
+      In an AI-Native delivery model, writing code is faster than ever. But
+      speed is a double-edged sword: if you start running in the wrong
+      direction, AI will just help you get lost at lightspeed. Stage 0 is not
+      about jumping straight to solutions, drafting architecture, or writing
+      polished specs. It is about getting brutally honest about what we
+      actually know and what we are just guessing.
+
+      Think of raw intent.md as the project's truth anchor. In standard
+      engagements, teams often leave kickoff workshops with polite agreement.
+      Everyone nods along, uses the same buzzwords, and leaves assuming they
+      are on the same page. In reality, deep vocabulary gaps and unspoken
+      assumptions are usually hiding underneath.
+
+      The raw intent.md file deliberately rejects premature agreement. Instead
+      of settled prose or confident promises, it creates a structured inventory
+      of tagged assumptions. Its job is to capture the business goals, affected
+      systems, and constraints, but label every single unverified claim as an
+      open hypothesis rather than a fact.
+
+      By making raw intent.md the primary deliverable, you achieve three
+      things. You bridge the client vocabulary gap — it forces client
+      stakeholders and engineering teams to agree on the exact definition of
+      the problem before anyone starts talking about tools or tactics. You
+      eliminate false confidence — workshop agreement is not the same as
+      empirical proof, and tagging claims as assumptions keeps everyone honest
+      about what still needs testing. You protect budget and focus — it
+      converts vague project risks into a sharp, prioritized checklist that
+      feeds directly into the Evidence Gate, ensuring you only spend real
+      money on ideas that hold up under scrutiny.
+    entry_routes:
+      - name: A person has an idea
+        description: >
+          Someone brainstorms with Claude and produces a Markdown proto-spec.
+          The proto-spec is human readable, version controlled, and immediately
+          consumable by the next stage. It is saved as an intent.md.
+      - name: A ticket is filed
+        description: >
+          An existing backlog item or feature request enters the pipeline.
+          The same intent.md structure applies — the request is captured as
+          tagged assumptions, not settled requirements.
+      - name: An incident surfaces
+        description: >
+          A metric breach in Stage 6 (Maintain) triggers a background agent
+          that diagnoses root cause and writes a new raw intent.md into the
+          triage queue. The lifecycle is a loop, not a line.
+    infrastructure: >
+      Claude access for people who are not engineers (claude.ai or Cowork); an
+      agreed intent.md template; a shared, version-controlled home for intent
+      that the product owner watches. For a single product the simplest home
+      is an intent/ folder in the product repo — this keeps the artifact chain
+      next to the code derived from it. A dedicated intent repo is only worth
+      the overhead when intent spans many repositories. Contributors without
+      Git experience do not need to use Git directly — a connector to the
+      version-control system lets Claude commit Markdown files on their behalf.
+      Setting this up is a one-time task for the platform or engineering team.
     artifact: raw intent.md
     gate: —
     primary_domain: framing
@@ -51,30 +107,39 @@ stages:
           As a consultancy, we often do not have standing authority over
           intent.md. Use this session to bridge the vocabulary gap and secure
           client agreement on the problem statement before proceeding.
+      - name: Product owner review
+        description: >
+          Regardless of whether the intent originates from an event trigger or
+          a person, the same step applies: the product owner reviews and
+          corrects the agent-written intent.md before it is committed.
     practices:
       - name: Assumption Dump
         description: >
-          Ask: "What must be true for this initiative to succeed?" Individually
-          list, group, and rephrase as testable statements.
+          Ask: "What must be true for this initiative to succeed?" Capture
+          every expectation — from user behavior to API response times — and
+          rephrase them into testable statements.
       - name: Failure Premortem
         description: >
-          Ask: "It's 12 months from now. This failed. Why?" List causes and
-          translate them into risks.
-      - name: Domain Walkthrough
+          Ask: "It's 12 months from now and this project completely failed.
+          What happened?" This uncovers hidden organizational, political, and
+          operational risks that teams usually hesitate to bring up.
+      - name: 5-Lens Walkthrough
         description: >
-          Force the identification of at least one risk per category: Value,
-          Usability, Feasibility, Viability, and Operational. This prevents
-          tunnel vision.
+          Force the identification of at least one clear risk across five
+          critical categories. Value: will people want it? Usability: can they
+          use it? Feasibility: can we build it? Viability: does the business
+          math work? Operations: can we maintain it long-term?
       - name: Architecture Exposure
         description: >
-          Ask: "What technical constraint could invalidate this?" Identify
-          platform limitations, integration dependencies, performance ceilings,
-          and security requirements.
+          Ask: "What technical wall could shatter this entire idea?" Map out
+          platform limits, security boundaries, and data constraints before
+          they catch us by surprise.
     output: >
-      A raw intent.md (problem statement, proposed outcomes, affected systems,
-      constraints) where every claim is explicitly tagged as an assumption. This
-      file does not trigger CI compilation — it must proceed to the Evidence
-      Gate.
+      A clean, human-readable raw intent.md. This file is intentionally
+      inert — it does not trigger automated code generators, build pipelines,
+      or CI runs. It simply sits as the raw input for Stage 1 (Evidence Gate),
+      where the team takes those tagged assumptions and starts gathering the
+      real-world evidence required to clear them.
     note: First half of the Evidence Sprint.
     adaptation:
       approach: >

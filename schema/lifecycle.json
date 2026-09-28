@@ -123,6 +123,20 @@
               }
             }
           },
+          "framing": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "entry_routes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "description"],
+              "properties": {
+                "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+                "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+              }
+            }
+          },
+          "infrastructure": { "$ref": "common.json#/$defs/nonEmptyString" },
           "output": { "$ref": "common.json#/$defs/nonEmptyString" },
           "note": { "$ref": "common.json#/$defs/nonEmptyString" },
           "adaptation": {
