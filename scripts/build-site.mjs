@@ -1616,7 +1616,7 @@ function render(model, pageId = "how-it-all-relates") {
     .label {
       font-size: 13.5px;
       color: var(--ink);
-      font-weight: 400;
+      font-weight: 600;
     }
     .row .kvs .label::after {
       content: " \\2014";
@@ -1711,9 +1711,9 @@ function render(model, pageId = "how-it-all-relates") {
       letter-spacing: 0.04em;
       text-transform: uppercase;
       padding: 2px 10px;
-      border: 1px solid var(--line);
       border-radius: 99px;
-      color: var(--ink);
+      background: #e8690b;
+      color: #fff;
       margin-left: 10px;
       vertical-align: middle;
     }
