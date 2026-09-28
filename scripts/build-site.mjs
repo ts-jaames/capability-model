@@ -1707,10 +1707,10 @@ function render(model, pageId = "how-it-all-relates") {
     .stage-tag {
       display: inline-block;
       font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
-      font-size: 11px;
+      font-size: 10px;
       letter-spacing: 0.04em;
       text-transform: uppercase;
-      padding: 2px 10px;
+      padding: 3px 10px 2px;
       border-radius: 99px;
       background: #e8690b;
       color: #fff;
@@ -1720,6 +1720,7 @@ function render(model, pageId = "how-it-all-relates") {
     .file-ref {
       font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
       font-size: 0.88em;
+      color: #e8690b;
       background: rgba(0,0,0,0.04);
       border: 1px solid var(--line);
       border-radius: 4px;
