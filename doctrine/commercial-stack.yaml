@@ -2,8 +2,11 @@ id: commercial-stack
 name: What the SOW shows
 summary: Three layers, one of them hidden.
 rule: >
-  The title never appears on the SOW. The level carries the seniority a title
-  used to imply — and carries it precisely.
+  This three-layer structure is non-negotiable. The SOW sells an outcome,
+  priced from capabilities at levels. Titles, seats, and named people never
+  appear. The level carries the seniority a title used to imply, and carries
+  it precisely. Nothing below the capabilities-at-levels line is visible to
+  the client unless they ask how the number was reached.
 closing_note: >
   "Capabilities at levels, with counts" is the same person-agnostic shape we can
   put in front of a client; the moment it resolves to named people, it drops

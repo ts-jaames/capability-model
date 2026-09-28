@@ -3,15 +3,19 @@ term: Capability ownership
 definition: >
   What you're accountable for.
 
-  The atomic, permanent unit. An L4 keeps a capability cluster fit: authors
-  the guardrails, prompt packs, and templates, and sets the standard others
-  execute against. This is a person's durable identity, and where progression
-  lives. You advance by deepening ownership and building the assets the firm
-  runs on, not by billing more hours.
+  An L4 Capability Owner is a named individual practitioner, not a title or a
+  team. One person owns each capability cluster and is accountable for keeping
+  it fit: authoring the guardrails, prompt packs, and templates, and setting
+  the standard others execute against. This is a person's durable identity, and
+  where progression lives. You advance by deepening ownership and building the
+  assets the firm runs on, not by billing more hours.
 not:
+  - A title. Titles group capabilities for coverage; ownership is a named
+    person accountable for one cluster.
   - L3 execution. An L3 sets the standard on the work; an L4 is accountable
     for the capability itself.
   - A management line or a headcount.
+  - A committee or shared responsibility. One name, one capability cluster.
 see_also:
   - capability
   - level

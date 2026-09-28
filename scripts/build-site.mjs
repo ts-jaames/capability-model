@@ -658,7 +658,7 @@ function renderRolesMain(model) {
         <h1 class="mono uppercase eyebrow">Roles & Titles</h1>
         <p class="lede">Capabilities are the contract. Seats are the fulfillment. Titles are internal coverage.</p>
         <p class="lede">The SOW sells an outcome, priced from the capabilities-at-levels underneath it, never headcount and never a title. A title is internal shorthand for a coherent bundle of owned capabilities. It groups coverage; it is not a thing a client buys.</p>
-        <p class="lede">An L4 is accountable for one capability cluster's maturity. L4s compose into the titles below: common compositions, named for internal coverage, not for the market. Six titles cover every capability, so each has a coherent home and none is a grab-bag, now an enforced invariant, not just a claim.</p>
+        <p class="lede">An L4 Capability Owner is a named individual practitioner, not a title or a team. One person owns each capability cluster and is accountable for its maturity. L4s compose into the titles below: common compositions, named for internal coverage, not for the market. Six titles cover every capability, so each has a coherent home and none is a grab-bag, now an enforced invariant, not just a claim.</p>
         <p class="lede">One person can hold up to 2 engagement seats and execute up to 7 stage capabilities. The title is who they are; the seat is what they do on this engagement.</p>
       </section>
 
