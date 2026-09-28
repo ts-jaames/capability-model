@@ -41,17 +41,18 @@ stages:
       vocabulary gaps and hidden risks sit underneath. intent.md exists to
       reject that agreement. It captures business goals, affected systems, and
       constraints as a structured inventory of tagged assumptions, not settled
-      facts. Three things this buys you:
-
-      Bridges vocabulary gaps: aligns client leadership and engineering on the
-      precise problem before anyone talks tools or tactics.
-
-      Eliminates false confidence: converts workshop optimism into testable
-      hypotheses that require empirical proof.
-
-      Protects capital and focus: turns vague project risk into a sharp
-      checklist, so budget only goes toward validated ideas.
-
+      facts.
+    framing_benefits:
+      - >
+        Bridges vocabulary gaps: aligns client leadership and engineering on
+        the precise problem before anyone talks tools or tactics.
+      - >
+        Eliminates false confidence: converts workshop optimism into testable
+        hypotheses that require empirical proof.
+      - >
+        Protects capital and focus: turns vague project risk into a sharp
+        checklist, so budget only goes toward validated ideas.
+    framing_coda: >
       Stage 0 is not limited to fresh kickoffs. A standard feature request, or
       even a production incident surfacing back through Stage 6 (Maintain),
       enters the pipeline through this same gate and gets tagged the same way

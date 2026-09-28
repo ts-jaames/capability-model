@@ -722,12 +722,21 @@ function fileRefs(html) {
 }
 
 function renderStage(stage) {
+  const framingLabel = stage.framing
+    ? `<p class="lede"><strong>The artifact: ${fileRefs(esc(stage.artifact))}</strong></p>`
+    : "";
   const framingParas = stage.framing
     ? String(stage.framing)
         .trim()
         .split(/\n{2,}/)
         .map((block) => `<p class="lede">${fileRefs(esc(block.replace(/\n/g, " ").trim()))}</p>`)
         .join("")
+    : "";
+  const framingBullets = (stage.framing_benefits ?? []).length
+    ? `<ul class="bullets">${(stage.framing_benefits).map((b) => `<li>${fileRefs(esc(oneLine(b)))}</li>`).join("")}</ul>`
+    : "";
+  const framingCoda = stage.framing_coda
+    ? `<p class="lede">${fileRefs(esc(oneLine(stage.framing_coda)))}</p>`
     : "";
   const entryRoutes = (stage.entry_routes ?? [])
     .map((r) => kv(r.name, `<p>${fileRefs(esc(oneLine(r.description)))}</p>`))
@@ -751,7 +760,10 @@ function renderStage(stage) {
       <section id="stage-${stage.number}">
         <h2 class="mono uppercase eyebrow">Stage ${stage.number} · ${esc(stage.name)}${noteTag}</h2>
         <p class="lede">${fileRefs(esc(oneLine(stage.objective)))}</p>
+        ${framingLabel}
         ${framingParas}
+        ${framingBullets}
+        ${framingCoda}
         ${entryRoutes ? `<div class="kvs">${entryRoutes}</div>` : ""}
         ${infra || procedures ? `<div class="kvs">${infra}${procedures}</div>` : ""}
         ${practices ? `<div class="kvs">${practices}</div>` : ""}

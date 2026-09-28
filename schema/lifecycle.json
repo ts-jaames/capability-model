@@ -124,6 +124,11 @@
             }
           },
           "framing": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "framing_benefits": {
+            "type": "array",
+            "items": { "$ref": "common.json#/$defs/nonEmptyString" }
+          },
+          "framing_coda": { "$ref": "common.json#/$defs/nonEmptyString" },
           "entry_routes": {
             "type": "array",
             "items": {
