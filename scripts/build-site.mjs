@@ -713,49 +713,55 @@ function requireLifecycle(model, id) {
   return found;
 }
 
+// Wrap file references like intent.md, spec.md, plan.md in styled spans.
+function fileRefs(html) {
+  return html.replace(
+    /\b((?:raw |cleared )?intent\.md|spec\.md|plan\.md|bands\.yaml|REVIEW\.md|CLAUDE\.md)\b/g,
+    '<span class="file-ref">$1</span>',
+  );
+}
+
 function renderStage(stage) {
   const framingParas = stage.framing
     ? String(stage.framing)
         .trim()
         .split(/\n{2,}/)
-        .map((block) => `<p class="lede">${esc(block.replace(/\n/g, " ").trim())}</p>`)
+        .map((block) => `<p class="lede">${fileRefs(esc(block.replace(/\n/g, " ").trim()))}</p>`)
         .join("")
     : "";
   const entryRoutes = (stage.entry_routes ?? [])
-    .map((r) => kv(r.name, `<p>${esc(oneLine(r.description))}</p>`))
+    .map((r) => kv(r.name, `<p>${fileRefs(esc(oneLine(r.description)))}</p>`))
     .join("");
   const infra = stage.infrastructure
-    ? kv("Infrastructure", `<p>${esc(oneLine(stage.infrastructure))}</p>`)
+    ? kv("Infrastructure", `<p>${fileRefs(esc(oneLine(stage.infrastructure)))}</p>`)
     : "";
   const procedures = (stage.procedures ?? [])
-    .map((p) => kv(p.name, `<p>${esc(oneLine(p.description))}</p>`))
+    .map((p) => kv(p.name, `<p>${fileRefs(esc(oneLine(p.description)))}</p>`))
     .join("");
   const practices = (stage.practices ?? [])
-    .map((p) => kv(p.name, `<p>${esc(oneLine(p.description))}</p>`))
+    .map((p) => kv(p.name, `<p>${fileRefs(esc(oneLine(p.description)))}</p>`))
     .join("");
-  const note = stage.note
-    ? `<p class="line-note">${esc(oneLine(stage.note))}</p>`
+  const noteTag = stage.note
+    ? `<span class="stage-tag">${esc(oneLine(stage.note))}</span>`
     : "";
-  const output = stage.output
-    ? `<p class="line-note">Output: ${esc(oneLine(stage.output))}</p>`
+  const outputTag = stage.output
+    ? `<div class="stage-output"><span class="stage-output-label">Output</span> ${fileRefs(esc(oneLine(stage.output)))}</div>`
     : "";
   return `
       <section id="stage-${stage.number}">
-        <h2 class="mono uppercase eyebrow">Stage ${stage.number} · ${esc(stage.name)}</h2>
-        <p class="lede">${esc(oneLine(stage.objective))}</p>
-        ${note}
+        <h2 class="mono uppercase eyebrow">Stage ${stage.number} · ${esc(stage.name)}${noteTag}</h2>
+        <p class="lede">${fileRefs(esc(oneLine(stage.objective)))}</p>
         ${framingParas}
-        ${entryRoutes ? `<div class="kvs">${kv("How intent arrives", "")}${entryRoutes}</div>` : ""}
-        ${infra ? `<div class="kvs">${infra}</div>` : ""}
-        ${procedures ? `<div class="kvs">${procedures}</div>` : ""}
+        ${entryRoutes ? `<div class="kvs">${entryRoutes}</div>` : ""}
+        ${infra || procedures ? `<div class="kvs">${infra}${procedures}</div>` : ""}
         ${practices ? `<div class="kvs">${practices}</div>` : ""}
-        ${output}
+        ${outputTag}
       </section>`;
 }
 
 function renderStageWithTactical(stage) {
   const procedures = (stage.procedures ?? [])
-    .map((p) => kv(p.name, `<p>${esc(oneLine(p.description))}</p>`))
+    .map((p) => kv(p.name, `<p>${fileRefs(esc(oneLine(p.description)))}</p>`))
     .join("");
   const tooling = (stage.tooling ?? []).length
     ? kv("Tooling", `<p>${esc(stage.tooling.join("; "))}.</p>`)
@@ -763,26 +769,25 @@ function renderStageWithTactical(stage) {
   const agents = (stage.agents_and_hooks ?? [])
     .map(
       (a) =>
-        `<li><strong>${esc(a.name)}</strong> — ${esc(oneLine(a.description))}</li>`,
+        `<li><strong>${esc(a.name)}</strong> — ${fileRefs(esc(oneLine(a.description)))}</li>`,
     )
     .join("");
   const agentsBlock = agents
     ? kv("Agents & hooks", `<ul class="bullets">${agents}</ul>`)
     : "";
-  const note = stage.note
-    ? `<p class="line-note">${esc(oneLine(stage.note))}</p>`
+  const noteTag = stage.note
+    ? `<span class="stage-tag">${esc(oneLine(stage.note))}</span>`
     : "";
-  const output = stage.output
-    ? `<p class="line-note">Artifact: ${esc(oneLine(stage.output))}</p>`
+  const outputTag = stage.output
+    ? `<div class="stage-output"><span class="stage-output-label">Artifact</span> ${fileRefs(esc(oneLine(stage.output)))}</div>`
     : "";
   return `
       <section id="stage-${stage.number}">
-        <h2 class="mono uppercase eyebrow">Stage ${stage.number} · ${esc(stage.name)}</h2>
-        <p class="lede">${esc(oneLine(stage.objective))}</p>
-        ${note}
+        <h2 class="mono uppercase eyebrow">Stage ${stage.number} · ${esc(stage.name)}${noteTag}</h2>
+        <p class="lede">${fileRefs(esc(oneLine(stage.objective)))}</p>
         ${procedures ? `<div class="kvs">${procedures}</div>` : ""}
         ${tooling || agentsBlock ? `<div class="kvs">${tooling}${agentsBlock}</div>` : ""}
-        ${output}
+        ${outputTag}
       </section>`;
 }
 
@@ -1694,16 +1699,57 @@ function render(model, pageId = "how-it-all-relates") {
     .meta, .dim { color: var(--muted); font-size: 12px; }
     .dim { color: var(--dim); }
     .line-note {
-      color: var(--muted);
-      font-size: 12px;
-      font-style: italic;
+      color: var(--ink);
+      font-size: 13px;
       margin-top: 12px;
       max-width: 700px;
+    }
+    .stage-tag {
+      display: inline-block;
+      font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 10px;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      color: var(--ink);
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    .file-ref {
+      font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
+      font-size: 0.88em;
+      background: rgba(0,0,0,0.04);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 1px 6px;
+    }
+    .stage-output {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      color: var(--ink);
+      margin-top: 16px;
+      max-width: 700px;
+    }
+    .stage-output-label {
+      font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      opacity: 0.5;
     }
     .prose { margin-bottom: 24px; max-width: 700px; }
     .stack .prose { margin-bottom: 8px; }
     .stack .prose:last-child { margin-bottom: 0; }
-    .kvs { display: flex; flex-direction: column; gap: 12px; }
+    .kvs { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .kvs:last-child { margin-bottom: 0; }
     .kv {
       display: flex;
       flex-direction: column;

@@ -105,7 +105,7 @@ stages:
       raw intent.md — a fully tagged, human-readable stack of assumptions.
       Advances directly to Stage 1 (Evidence Gate) for empirical testing.
       Inert: does not trigger automated builds or CI runs.
-    note: First half of the Evidence Sprint.
+    note: Evidence Sprint
     adaptation:
       approach: >
         Structured elicitation producing tagged, unvalidated assumptions.
@@ -177,10 +177,7 @@ stages:
       The intent.md either clears — merged, synced, and moving to Stage 2 — or
       gets sent back to Stage 0 for re-framing, or the initiative is
       stopped/pivoted.
-    note: >
-      Second half of the Evidence Sprint. This stage now includes the tracker
-      sync and merge that was previously modeled as a separate Plan stage — it
-      is the mechanical result of a Promote, not an independent decision point.
+    note: Evidence Sprint
     adaptation:
       approach: >
         Risk validation loop for Value/Usability/Viability, closing
