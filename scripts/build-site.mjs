@@ -25,7 +25,7 @@ function esc(value) {
 
 // A blank line in a YAML folded scalar arrives here as a single newline, so
 // splitting on one is what lets an author get a paragraph break by leaving a
-// blank line — the thing they would expect to work.
+// blank line. the thing they would expect to work.
 function paragraphs(value) {
   const text = String(value ?? "").trim();
   if (!text) return "";
@@ -110,7 +110,7 @@ const PAGES = [
 ];
 
 // Flat list of every renderable page for build output, render lookup, and TOC.
-// Toggle-only parents (no file/main) are excluded — they exist only in the nav.
+// Toggle-only parents (no file/main) are excluded. they exist only in the nav.
 const ALL_PAGES = PAGES.flatMap((page) =>
   page.toggleOnly ? (page.children ?? []) : [page, ...(page.children ?? [])],
 );
@@ -286,7 +286,7 @@ function levelRow(tag, body, cls = "") {
 
 // The Levels block. Level prose comes from YAML only: authored copy for
 // `specific` capabilities, and the single firm ladder (levels.yaml) for
-// `standard-ladder` ones — never hardcoded per-capability prose here.
+// `standard-ladder` ones. never hardcoded per-capability prose here.
 function renderLevelsBlock(cap, legend) {
   const mode = cap.levels_mode === "specific" ? "specific" : "standard-ladder";
   const badgeText = mode === "specific" ? "capability-specific" : "standard ladder";
@@ -537,7 +537,7 @@ function renderRolesMain(model) {
   };
 
   // The layers in the order they read: what you group under, what you are
-  // accountable for, how deep, what you are doing now — then how that seat
+  // accountable for, how deep, what you are doing now. then how that seat
   // actually gets a person in it, before who you are at the firm.
   const layers = [
     layer("title"),
@@ -552,10 +552,10 @@ function renderRolesMain(model) {
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
         <p class="lede">Capabilities are the contract. Seats are the fulfillment. Titles are internal coverage.</p>
-        <p class="lede">The SOW sells an outcome, priced from the capabilities-at-levels underneath it — never headcount, and never a title. A title is internal shorthand for a coherent bundle of owned capabilities; it groups coverage, it isn't a thing a client buys.</p>
-        <p class="lede">An L4 is the atomic internal unit — accountable for one capability cluster's maturity. L4s compose into the lines below: common compositions, named for internal coverage, not for the market.</p>
+        <p class="lede">The SOW sells an outcome, priced from the capabilities-at-levels underneath it, never headcount, and never a title. A title is internal shorthand for a coherent bundle of owned capabilities; it groups coverage, it isn't a thing a client buys.</p>
+        <p class="lede">An L4 is the atomic internal unit, accountable for one capability cluster's maturity. L4s compose into the lines below: common compositions, named for internal coverage, not for the market.</p>
         <p class="lede">A pair of single-spike L4s and one M-shaped person can fulfil the same commitment. The contract promises capabilities at levels; it doesn't care who covers them.</p>
-        <p class="lede">Five lines cover every capability, so each has a coherent home and none is a grab-bag — now an enforced invariant, not just a claim.</p>
+        <p class="lede">Five lines cover every capability, so each has a coherent home and none is a grab-bag, now an enforced invariant, not just a claim.</p>
       </section>
       <section id="commercial-stack">
         <h2 class="mono uppercase eyebrow">${esc(stack.name)}</h2>
@@ -661,7 +661,7 @@ function renderOperatingMain(model) {
       </section>
       <section id="risk-shapes">
         <h2 class="mono uppercase eyebrow">Risk shapes</h2>
-        <p class="lede">The recurring kinds of "riskiest unknown." Each names an unknown, activates a set of capabilities at a dial, and produces an output that becomes available as input to whatever fires next. Shapes co-occur, recur, and persist — the order they fire in is not fixed.</p>
+        <p class="lede">The recurring kinds of "riskiest unknown." Each names an unknown, activates a set of capabilities at a dial, and produces an output that becomes available as input to whatever fires next. Shapes co-occur, recur, and persist; the order they fire in is not fixed.</p>
         ${dialsDraft ? `<p class="line-note">Dial values are authored drafts. They have not been reviewed, and no page or document recorded them before now.</p>` : ""}
         <div class="stack">
         ${shapes}
@@ -669,7 +669,7 @@ function renderOperatingMain(model) {
       </section>
       <section id="seams">
         <h2 class="mono uppercase eyebrow">Seams</h2>
-        <p class="lede">The load-bearing handoffs between capabilities. A seam is the interface between two capabilities: what must cross, in what form. This is the floor — the minimum for a valid handoff. It holds regardless of tool; AI carries the artifact across, judgment decides whether what crossed is right.</p>
+        <p class="lede">The load-bearing handoffs between capabilities. A seam is the interface between two capabilities: what must cross, in what form. This is the floor, the minimum for a valid handoff. It holds regardless of tool; AI carries the artifact across, judgment decides whether what crossed is right.</p>
         <div class="stack">
         ${seams}
         </div>
@@ -744,8 +744,8 @@ function renderStage(stage) {
   const noteTag = stage.note
     ? `<span class="stage-tag">${esc(oneLine(stage.note))}</span>`
     : "";
-  const outputTag = stage.output
-    ? `<div class="stage-output"><span class="stage-output-label">Output</span> ${fileRefs(esc(oneLine(stage.output)))}</div>`
+  const outputBlock = stage.output
+    ? `<div class="stage-output"><span class="stage-output-label">Output</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs(esc(stage.artifact))}</span><span>${fileRefs(esc(oneLine(stage.output)))}</span></div></div>`
     : "";
   return `
       <section id="stage-${stage.number}">
@@ -755,7 +755,7 @@ function renderStage(stage) {
         ${entryRoutes ? `<div class="kvs">${entryRoutes}</div>` : ""}
         ${infra || procedures ? `<div class="kvs">${infra}${procedures}</div>` : ""}
         ${practices ? `<div class="kvs">${practices}</div>` : ""}
-        ${outputTag}
+        ${outputBlock}
       </section>`;
 }
 
@@ -769,7 +769,7 @@ function renderStageWithTactical(stage) {
   const agents = (stage.agents_and_hooks ?? [])
     .map(
       (a) =>
-        `<li><strong>${esc(a.name)}</strong> — ${fileRefs(esc(oneLine(a.description)))}</li>`,
+        `<li><strong>${esc(a.name)}</strong>: ${fileRefs(esc(oneLine(a.description)))}</li>`,
     )
     .join("");
   const agentsBlock = agents
@@ -778,8 +778,8 @@ function renderStageWithTactical(stage) {
   const noteTag = stage.note
     ? `<span class="stage-tag">${esc(oneLine(stage.note))}</span>`
     : "";
-  const outputTag = stage.output
-    ? `<div class="stage-output"><span class="stage-output-label">Artifact</span> ${fileRefs(esc(oneLine(stage.output)))}</div>`
+  const outputBlock = stage.output
+    ? `<div class="stage-output"><span class="stage-output-label">Artifact</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs(esc(stage.artifact))}</span><span>${fileRefs(esc(oneLine(stage.output)))}</span></div></div>`
     : "";
   return `
       <section id="stage-${stage.number}">
@@ -787,7 +787,7 @@ function renderStageWithTactical(stage) {
         <p class="lede">${fileRefs(esc(oneLine(stage.objective)))}</p>
         ${procedures ? `<div class="kvs">${procedures}</div>` : ""}
         ${tooling || agentsBlock ? `<div class="kvs">${tooling}${agentsBlock}</div>` : ""}
-        ${outputTag}
+        ${outputBlock}
       </section>`;
 }
 
@@ -860,10 +860,10 @@ function renderAiSdlcMain(model) {
 
       <section id="how-stages-and-risk-work">
         <h2 class="mono uppercase eyebrow">How stages and risk shapes work together</h2>
-        <p class="lede">Stages are artifact order. They describe the sequence of what you produce and which governance gate you pass through. Risk shapes are the real-time operating picture — they describe which capabilities run hot right now, regardless of which stage the work is in.</p>
-        <p class="lede">A risk shape fires wherever it fires. The Feasibility shape can spike during Intent Framing if an architecture constraint surfaces early. The Value shape can stay active deep into Build if a prior assumption gets challenged. Shapes co-occur, recur, and persist — they are not bound to a single stage.</p>
+        <p class="lede">Stages are artifact order. They describe the sequence of what you produce and which governance gate you pass through. Risk shapes are the real-time operating picture: they describe which capabilities run hot right now, regardless of which stage the work is in.</p>
+        <p class="lede">A risk shape fires wherever it fires. The Feasibility shape can spike during Intent Framing if an architecture constraint surfaces early. The Value shape can stay active deep into Build if a prior assumption gets challenged. Shapes co-occur, recur, and persist. they are not bound to a single stage.</p>
         <p class="lede">The stage tells you what artifact you owe. The live risk mix tells you what to worry about while you produce it. You are always in a stage, and you are always responding to risk shapes.</p>
-        <p class="lede">Stages have a default gravity — 0 through ${stages.length - 1} — but change events and failed gates send you back. The change-response doctrine runs at any stage: re-read the risk, re-set the dials, decision gate, re-staff, re-price and re-time, name the next slice.</p>
+        <p class="lede">Stages have a default gravity, 0 through ${stages.length - 1}. but change events and failed gates send you back. The change-response doctrine runs at any stage: re-read the risk, re-set the dials, decision gate, re-staff, re-price and re-time, name the next slice.</p>
       </section>
 
       ${stageBlocks}
@@ -950,13 +950,13 @@ function renderTacticalPlaybookMain() {
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Tactical Playbook</h1>
-        <p class="lede">The reconciled tactical execution behind the AI-Native SDLC — the exact skills, hooks, agents, and file names behind each stage, checked against Anthropic's published playbook.</p>
+        <p class="lede">The reconciled tactical execution behind the AI-Native SDLC: the exact skills, hooks, agents, and file names behind each stage, checked against Anthropic's published playbook.</p>
         <p class="lede">The <a href="ai-sdlc.html">AI-Native SDLC</a> is the what and why. This page is the how.</p>
       </section>
 
       <section id="anthropic-mapping">
         <h2 class="mono uppercase eyebrow">How our stages map to Anthropic's 6</h2>
-        <p class="lede">Anthropic's playbook runs six stages: Plan → Design → Build → Test → Deploy → Maintain. Sparq splits the first stage into two gates, sold together as one commercial unit — the Evidence Sprint. This is the actual differentiator.</p>
+        <p class="lede">Anthropic's playbook runs six stages: Plan → Design → Build → Test → Deploy → Maintain. Sparq splits the first stage into two gates, sold together as one commercial unit, the Evidence Sprint. This is the actual differentiator.</p>
         <table class="hairline-table">
           <thead>
             <tr><th>Sparq stage</th><th>Anthropic stage</th><th>What Sparq adds</th></tr>
@@ -971,18 +971,18 @@ function renderTacticalPlaybookMain() {
             <tr><td><strong>6 · Maintain</strong></td><td>Maintain</td><td>1:1, plus product-analytics bands widened beyond Anthropic's infra-only example</td></tr>
           </tbody>
         </table>
-        <p class="lede"><strong>Commercially:</strong> Stages 0–1 together are the Evidence Sprint — the thing that used to be pitched as discovery, now scoped to roughly 2 weeks because the output is evidence and a costed Build decision, not a stack of workshop artifacts. Everything from Design onward tracks Anthropic's canonical mechanics closely.</p>
+        <p class="lede"><strong>Commercially:</strong> Stages 0–1 together are the Evidence Sprint, the thing that used to be pitched as discovery, now scoped to roughly 2 weeks because the output is evidence and a costed Build decision, not a stack of workshop artifacts. Everything from Design onward tracks Anthropic's canonical mechanics closely.</p>
       </section>
 
       <section id="tactical-0">
-        <h2 class="mono uppercase eyebrow">Stage 0 · Intent Framing — Tactical</h2>
+        <h2 class="mono uppercase eyebrow">Stage 0 · Intent Framing. Tactical</h2>
         <p class="line-note">First half of the Evidence Sprint.</p>
         <div class="kvs">
           ${kv("Practice", "<p>A 2–4 hour structured workshop. 10 min silent assumption dump sorted into Value / Usability / Feasibility / Viability / Operational → failure premortem → architecture exposure with engineering. No untagged claims survive the file.</p>")}
           ${kv("Tooling", "<p>Meeting-transcription MCP (Whisper/Fathom/Recall.ai) for live capture, plus Miro/Mural/Slack MCP for stickies and threads.</p>")}
         </div>
         <div class="kvs">
-          ${kv("intent-elicitor skill", "<p>Interactive elicitation — asks probing questions, rephrases claims as testable assertions.</p>")}
+          ${kv("intent-elicitor skill", "<p>Interactive elicitation: asks probing questions, rephrases claims as testable assertions.</p>")}
           ${kv("assumption-extractor skill", "<p>Parses the transcript in real time and auto-tags into the 5 risk categories.</p>")}
           ${kv("premortem-adversary subagent", "<p>Red-teams the room on technical constraints and unstated dependencies.</p>")}
           ${kv("assumption-linter hook", "<p>Pre-commit. Rejects the commit if any claim lacks an [ASSUMPTION: Category] tag.</p>")}
@@ -991,12 +991,12 @@ function renderTacticalPlaybookMain() {
       </section>
 
       <section id="tactical-1">
-        <h2 class="mono uppercase eyebrow">Stage 1 · Evidence Gate — Tactical</h2>
-        <p class="line-note">Second half of the Evidence Sprint — the execution part of discovery.</p>
+        <h2 class="mono uppercase eyebrow">Stage 1 · Evidence Gate. Tactical</h2>
+        <p class="line-note">Second half of the Evidence Sprint, the execution part of discovery.</p>
         <div class="kvs">
-          ${kv("Practice", "<p>Pull the highest-risk Value/Usability assumption. Frame a minimal external-facing slice. Attach it to a real client touchpoint — synthetic-only validation is disallowed without a logged exception. Record signal. Product + Delivery decide: Promote / Iterate / Pivot / Stop. On a Promote, close by merging cleared intent.md into /intent/, mapping scope blocks into the enterprise tracker, and defining hard boundary markers.</p>")}
-          ${kv("Repo home", "<p>Evidence Work skills and the resulting evidence-of-signal live in a per-project repo. That's also where the ESOA lives — transitioning from a solutions-side version into the delivery-side version rather than being recreated.</p>")}
-          ${kv("Vision Prototype", "<p>Distinct from the narrow Evidence Slice. Where an Evidence Slice tests one assumption, a Vision Prototype is a holistic build — full breadth, selective depth — meant to show the client the future-state value, not validate a single risk. Optional per engagement, but when built, it sits alongside the Promote decision and the costed Build proposal.</p>")}
+          ${kv("Practice", "<p>Pull the highest-risk Value/Usability assumption. Frame a minimal external-facing slice. Attach it to a real client touchpoint; synthetic-only validation is disallowed without a logged exception. Record signal. Product + Delivery decide: Promote / Iterate / Pivot / Stop. On a Promote, close by merging cleared intent.md into /intent/, mapping scope blocks into the enterprise tracker, and defining hard boundary markers.</p>")}
+          ${kv("Repo home", "<p>Evidence Work skills and the resulting evidence-of-signal live in a per-project repo. That's also where the ESOA lives, transitioning from a solutions-side version into the delivery-side version rather than being recreated.</p>")}
+          ${kv("Vision Prototype", "<p>Distinct from the narrow Evidence Slice. Where an Evidence Slice tests one assumption, a Vision Prototype is a holistic build, full breadth, selective depth, meant to show the client the future-state value, not validate a single risk. Optional per engagement, but when built, it sits alongside the Promote decision and the costed Build proposal.</p>")}
           ${kv("Tooling", "<p>Conversation Intelligence MCP (Gong/Zoom/Teams/Chorus) for signal capture; Enterprise Tracker MCP (Jira/Azure DevOps/ServiceNow) and a non-interactive Claude CI runner for the close.</p>")}
         </div>
         <div class="kvs">
@@ -1010,10 +1010,10 @@ function renderTacticalPlaybookMain() {
       </section>
 
       <section id="tactical-2">
-        <h2 class="mono uppercase eyebrow">Stage 2 · Design — Tactical</h2>
+        <h2 class="mono uppercase eyebrow">Stage 2 · Design. Tactical</h2>
         <div class="kvs">
           ${kv("Practice", "<p>Compressed design session(s), Claude + core engineering leads. Enterprise skills injected into context. Architecture must satisfy the Evidence Gate's operational bounds without over-building beyond intent.md.</p>")}
-          ${kv("Tooling", "<p>Figma MCP or repo-native design — design capability doesn't have to live in Figma. Where the capability is confidently prototype-driven, the design system is built directly in Claude Code / Cursor and lives in the repo, feeding spec.md without a Figma round-trip. Choose per project; both paths converge on the same artifact.</p>")}
+          ${kv("Tooling", "<p>Figma MCP or repo-native design: design capability doesn't have to live in Figma. Where the capability is confidently prototype-driven, the design system is built directly in Claude Code / Cursor and lives in the repo, feeding spec.md without a Figma round-trip. Choose per project; both paths converge on the same artifact.</p>")}
         </div>
         <div class="kvs">
           ${kv(".claude/skills/security-baseline", "<p>Organization-wide security compliance skill.</p>")}
@@ -1026,24 +1026,24 @@ function renderTacticalPlaybookMain() {
       </section>
 
       <section id="tactical-3">
-        <h2 class="mono uppercase eyebrow">Stage 3 · Build — Tactical</h2>
+        <h2 class="mono uppercase eyebrow">Stage 3 · Build. Tactical</h2>
         <div class="kvs">
-          ${kv("Practice", "<p>Git worktree isolation (cap 2–3 per engineer). Plan Mode first — Claude writes plan.md before touching source. Engineer accepts the plan, then code generation starts. Scoped Auto Mode execution within defined paths. Deliberately mimics Anthropic's own Build stage — plan mode, CLAUDE.md, subagents, hooks. Sparq-specific tooling layers on top.</p>")}
+          ${kv("Practice", "<p>Git worktree isolation (cap 2–3 per engineer). Plan Mode first: Claude writes plan.md before touching source. Engineer accepts the plan, then code generation starts. Scoped Auto Mode execution within defined paths. Deliberately mimics Anthropic's own Build stage: plan mode, CLAUDE.md, subagents, hooks. Sparq-specific tooling layers on top.</p>")}
           ${kv("Tooling", "<p>Claude Code CLI, CLAUDE.md as the repo's context engine.</p>")}
         </div>
         <div class="kvs">
           ${kv(".claude/agents/verifier.md", "<p>Spins up a fresh context window, runs the app, verifies behavior against plan.md.</p>")}
           ${kv(".claude/agents/simplifier.md", "<p>Strips redundant abstraction from generated diffs.</p>")}
-          ${kv(".claude/agents/prompt-evaluator.md", "<p>For builds with embedded AI agents — evaluates prompt responses for safety/hallucination/tool-calling accuracy.</p>")}
+          ${kv(".claude/agents/prompt-evaluator.md", "<p>For builds with embedded AI agents. evaluates prompt responses for safety/hallucination/tool-calling accuracy.</p>")}
           ${kv("path-blocking-hook", "<p>Intercepts file edits outside the scope defined in plan.md.</p>")}
         </div>
         <p class="line-note">Artifact: plan.md and verified code diffs, in isolated branches. Engineer plan acceptance.</p>
       </section>
 
       <section id="tactical-4">
-        <h2 class="mono uppercase eyebrow">Stage 4 · Test — Tactical</h2>
+        <h2 class="mono uppercase eyebrow">Stage 4 · Test. Tactical</h2>
         <div class="kvs">
-          ${kv("Practice", "<p>Agent self-verification (build, unit tests, visual regression) before submission. Non-interactive CI eval suite runs 20–50 task scenarios. Test files are read-only during bug-fix tasks — the agent must fix the code, never weaken the assertion.</p>")}
+          ${kv("Practice", "<p>Agent self-verification (build, unit tests, visual regression) before submission. Non-interactive CI eval suite runs 20–50 task scenarios. Test files are read-only during bug-fix tasks; the agent must fix the code, never weaken the assertion.</p>")}
           ${kv("Tooling", "<p>Headless Playwright/Puppeteer MCP, .github/workflows/agent-evals.yml.</p>")}
         </div>
         <div class="kvs">
@@ -1054,29 +1054,29 @@ function renderTacticalPlaybookMain() {
       </section>
 
       <section id="tactical-5">
-        <h2 class="mono uppercase eyebrow">Stage 5 · Deploy — Tactical</h2>
+        <h2 class="mono uppercase eyebrow">Stage 5 · Deploy. Tactical</h2>
         <div class="kvs">
           ${kv("Practice", "<p>Multi-pass PR review (Bugs → Security/PII → spec.md/plan.md compliance). Environment autonomy is tiered: Dev is fully autonomous, Staging requires a clean CI eval run plus automated review, Production requires named human Release Manager sign-off.</p>")}
           ${kv("Tooling", "<p>Claude Code PR Review Agent.</p>")}
         </div>
         <div class="kvs">
           ${kv(".claude/agents/pr-reviewer.md", "<p>Multi-pass review writing findings to REVIEW.md.</p>")}
-          ${kv("Managed-settings engine", "<p>allowManagedHooksOnly, permissions.deny, sandboxed shell, disableSideloadFlags, allowManagedMcpServersOnly — matching Anthropic's reference settings.json.</p>")}
+          ${kv("Managed-settings engine", "<p>allowManagedHooksOnly, permissions.deny, sandboxed shell, disableSideloadFlags, allowManagedMcpServersOnly, matching Anthropic's reference settings.json.</p>")}
           ${kv("network-egress-blocker hook", "<p>Its own named control rather than folded into managed settings generically.</p>")}
         </div>
         <p class="line-note">Artifact: REVIEW.md, PR findings, release log. Human Release Manager sign-off on Production only.</p>
       </section>
 
       <section id="tactical-6">
-        <h2 class="mono uppercase eyebrow">Stage 6 · Maintain — Tactical</h2>
+        <h2 class="mono uppercase eyebrow">Stage 6 · Maintain. Tactical</h2>
         <div class="kvs">
-          ${kv("Practice", "<p>Statistical process control on bands.yaml (Western Electric rules). On a breach, a background agent diagnoses root cause and writes a fresh raw intent.md back into Stage 0's triage queue — closing the loop without a human starting it. On-call engineers can also tag Claude directly in incident threads. Every resolved bug becomes a permanent regression case in the Stage 4 eval suite.</p>")}
+          ${kv("Practice", "<p>Statistical process control on bands.yaml (Western Electric rules). On a breach, a background agent diagnoses root cause and writes a fresh raw intent.md back into Stage 0's triage queue. closing the loop without a human starting it. On-call engineers can also tag Claude directly in incident threads. Every resolved bug becomes a permanent regression case in the Stage 4 eval suite.</p>")}
           ${kv("Tooling", "<p>Infra MCP (Datadog/Prometheus/New Relic) and Product Analytics MCP (PostHog/Mixpanel/Pendo/Zendesk) feeding the same sensor.</p>")}
         </div>
         <div class="kvs">
           ${kv("metric-watcher daemon", "<p>Background monitor triggering triage agents on band breaches.</p>")}
           ${kv("incident-to-eval-compiler", "<p>Turns post-mortem logs into permanent regression tests.</p>")}
-          ${kv("Claude Tag", "<p>ChatOps bot for on-call — Anthropic's actual Claude Tag product, not a generic ChatOps MCP Bot.</p>")}
+          ${kv("Claude Tag", "<p>ChatOps bot for on-call. Anthropic's actual Claude Tag product, not a generic ChatOps MCP Bot.</p>")}
         </div>
         <p class="line-note">Artifact: bands.yaml updates, incident records, new regression cases added to Stage 4. Service Owner / on-call triage.</p>
       </section>
@@ -1089,17 +1089,17 @@ function renderTacticalPlaybookMain() {
             <tr><th>Stage</th><th>Conflict</th><th>Call made</th></tr>
           </thead>
           <tbody>
-            <tr><td>0</td><td>assumption-extractor (A) vs intent-elicitor + assumption-linter (B)</td><td>Not a conflict — different functions. Keep all three.</td></tr>
+            <tr><td>0</td><td>assumption-extractor (A) vs intent-elicitor + assumption-linter (B)</td><td>Not a conflict. different functions. Keep all three.</td></tr>
             <tr><td>0</td><td>Workshop length: 60–90 min (both docs)</td><td>Extended to 2–4 hrs to reflect real client kickoffs.</td></tr>
             <tr><td>1</td><td>Skill named evidence-signal-check (A) vs evidence-synthesizer (B)</td><td>Canonicalize as evidence-synthesizer.</td></tr>
             <tr><td>1</td><td>Separate confidence-decision.md (A) vs updated intent.md (B)</td><td>Canonicalize as intent.md updated in place, in the per-project repo alongside the ESOA.</td></tr>
-            <tr><td>1</td><td>Old Stage 2 (tracker sync) as its own numbered stage</td><td>Folded into Stage 1 as a closing action — automatic result of a Promote.</td></tr>
+            <tr><td>1</td><td>Old Stage 2 (tracker sync) as its own numbered stage</td><td>Folded into Stage 1 as a closing action. automatic result of a Promote.</td></tr>
             <tr><td>2</td><td>4 compliance skills (A) vs 2 (B)</td><td>Keep A's full 4; add B's spec-compliance-linter on top.</td></tr>
             <tr><td>2</td><td>Figma-only tooling (both docs)</td><td>Added repo-native design as an equal path, not a fallback.</td></tr>
-            <tr><td>3/4</td><td>Test-lock hook placed at Build (A) vs Test (B)</td><td>Move to Test — matches Anthropic's own placement.</td></tr>
-            <tr><td>3</td><td>prompt-evaluator.md present (A) vs absent (B)</td><td>Keep — relevant for embedded-AI-agent builds.</td></tr>
+            <tr><td>3/4</td><td>Test-lock hook placed at Build (A) vs Test (B)</td><td>Move to Test. matches Anthropic's own placement.</td></tr>
+            <tr><td>3</td><td>prompt-evaluator.md present (A) vs absent (B)</td><td>Keep. relevant for embedded-AI-agent builds.</td></tr>
             <tr><td>5</td><td>Bundled MDM settings (A) vs split config-engine + network hook (B)</td><td>Canonicalize on B's split, matches Anthropic's reference settings.json.</td></tr>
-            <tr><td>6</td><td>Generic ChatOps MCP Bot (B)</td><td>Rename to Claude Tag — it's a real, named Anthropic product.</td></tr>
+            <tr><td>6</td><td>Generic ChatOps MCP Bot (B)</td><td>Rename to Claude Tag. it's a real, named Anthropic product.</td></tr>
           </tbody>
         </table>
       </section>
@@ -1107,8 +1107,8 @@ function renderTacticalPlaybookMain() {
       <section id="open-gaps">
         <h2 class="mono uppercase eyebrow">Open gaps vs Anthropic's playbook</h2>
         <div class="kvs">
-          ${kv("CLAUDE.md as governed artifact", "<p>Anthropic treats CLAUDE.md with its own feedback loop — the correction goes into CLAUDE.md the second time an agent repeats a mistake, and PR review flags staleness. Neither internal doc gives CLAUDE.md this maintenance loop; it's currently just a context source.</p>")}
-          ${kv("Scheduled security scanning", "<p>Anthropic's Deploy stage includes scheduled, model-driven security scanning (Claude Security) running independently of PR review — a recurring scan, not point-in-time, with findings fed back as fresh intent.md. Sparq's only security coverage at Deploy is currently the PR review pass.</p>")}
+          ${kv("CLAUDE.md as governed artifact", "<p>Anthropic treats CLAUDE.md with its own feedback loop: the correction goes into CLAUDE.md the second time an agent repeats a mistake, and PR review flags staleness. Neither internal doc gives CLAUDE.md this maintenance loop; it's currently just a context source.</p>")}
+          ${kv("Scheduled security scanning", "<p>Anthropic's Deploy stage includes scheduled, model-driven security scanning (Claude Security) running independently of PR review, a recurring scan, not point-in-time, with findings fed back as fresh intent.md. Sparq's only security coverage at Deploy is currently the PR review pass.</p>")}
           ${kv("Leading/lagging metrics per stage", "<p>Anthropic's playbook defines explicit metrics per stage (e.g., time from intent.md commit to spec.md commit; first-pass CI success rate; time from band breach to intent.md in triage). Neither internal doc names how Sparq will measure whether the pipeline itself is working.</p>")}
         </div>
       </section>`;
@@ -1118,8 +1118,8 @@ function renderAdlcTacticalMain() {
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Agentic Tactical</h1>
-        <p class="lede">The tactical execution details for the Agentic Development Lifecycle — skills, hooks, agents, and file names behind each phase.</p>
-        <p class="lede">Placeholder — content is being authored.</p>
+        <p class="lede">The tactical execution details for the Agentic Development Lifecycle. skills, hooks, agents, and file names behind each phase.</p>
+        <p class="lede">Placeholder; content is being authored.</p>
       </section>`;
 }
 
@@ -1152,13 +1152,13 @@ function renderNewDiscoveryMain(model) {
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">New Discovery</h1>
-        <p class="lede">The discovery process rebuilt for AI-Native delivery. This is where we define how the front-loaded stages of both lifecycles combine into one commercial unit — the thing we sell as discovery, backed by real signal instead of workshop artifacts.</p>
+        <p class="lede">The discovery process rebuilt for AI-Native delivery. This is where we define how the front-loaded stages of both lifecycles combine into one commercial unit. the thing we sell as discovery, backed by real signal instead of workshop artifacts.</p>
         <p class="lede">Content is being authored. The stages involved are mapped below.</p>
       </section>
 
       <section id="sdlc-stages">
         <h2 class="mono uppercase eyebrow">${esc(sdlc.name)} stages involved</h2>
-        ${sdlcCu ? `<p class="lede">In the ${esc(sdlc.name)}, discovery is the <strong>${esc(sdlcCu.name)}</strong> — Stages ${sdlcCu.stages.join(" and ")} sold as one commercial unit.</p>` : ""}
+        ${sdlcCu ? `<p class="lede">In the ${esc(sdlc.name)}, discovery is the <strong>${esc(sdlcCu.name)}</strong>. Stages ${sdlcCu.stages.join(" and ")} sold as one commercial unit.</p>` : ""}
         <table class="hairline-table">
           <thead><tr><th>Stage</th><th>Name</th><th>Artifact</th></tr></thead>
           <tbody>${sdlcRows}</tbody>
@@ -1168,7 +1168,7 @@ function renderNewDiscoveryMain(model) {
 
       <section id="adlc-stages">
         <h2 class="mono uppercase eyebrow">${esc(adlc.name)} stages involved</h2>
-        ${adlcCu ? `<p class="lede">In the ${esc(adlc.name)}, discovery spans <strong>Stages ${adlcCu.stages[0]} through ${adlcCu.stages[adlcCu.stages.length - 1]}</strong> — the additional stages cover agent-specific scope framing, architecture definition, and simulation.</p>` : ""}
+        ${adlcCu ? `<p class="lede">In the ${esc(adlc.name)}, discovery spans <strong>Stages ${adlcCu.stages[0]} through ${adlcCu.stages[adlcCu.stages.length - 1]}</strong>, the additional stages cover agent-specific scope framing, architecture definition, and simulation.</p>` : ""}
         <table class="hairline-table">
           <thead><tr><th>Stage</th><th>Name</th><th>Artifact</th></tr></thead>
           <tbody>${adlcRows}</tbody>
@@ -1199,13 +1199,13 @@ function renderHowItRelatesMain(model) {
       <section id="overview">
         <h1 class="mono uppercase eyebrow">How it all relates</h1>
         <p class="lede">Domains, capabilities, levels, roles, titles, seats. That looks like six lists. It is one list. Everything else is a way of pointing at it.</p>
-        <p class="lede">The convolution comes from treating those six words as six things to keep. Domains and capabilities are the list. Levels are how a capability is executed. Roles, titles, and seats are people pointing at it — not parallel inventories.</p>
+        <p class="lede">The convolution comes from treating those six words as six things to keep. Domains and capabilities are the list. Levels are how a capability is executed. Roles, titles, and seats are people pointing at it, not parallel inventories.</p>
         <p class="lede">The count we now attach to a seat is not a seventh list. It's a quantity on one entry, not a new inventory to keep.</p>
         ${figure("01-one-list.png", "One list, not several lists")}
       </section>
       <section id="the-spine">
         <h2 class="mono uppercase eyebrow">The spine</h2>
-        <p class="lede">Domain contains capability. A capability is the named outcome we promise. It can be executed at L1, L2, L3, or L4 — same promise, different depth of judgment and accountability.</p>
+        <p class="lede">Domain contains capability. A capability is the named outcome we promise. It can be executed at L1, L2, L3, or L4, same promise, different depth of judgment and accountability.</p>
         <p class="lede">The capability is the whole piece. The level is which piece you slot in to assemble it. Same promise either way. Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.</p>
         ${figure("02-the-spine.png", "Capability assembled at a level")}
         ${to("capability-model.html", "Capability Model")}
@@ -1213,26 +1213,26 @@ function renderHowItRelatesMain(model) {
       <section id="two-questions">
         <h2 class="mono uppercase eyebrow">Two questions, not one</h2>
         <p class="lede">A seat is set by two questions that do different jobs. How much rides on this sets the level. How much of it there is sets the count. Neither answers the other.</p>
-        <p class="lede">Level is depth of judgment, fixed by collapse risk. Count is volume, fixed by how much of the work there is. A bigger project does not raise the level — it raises the count at whatever level the risk already fixed. This is the answer to whether scale changes the level: it doesn't. Scale is a count question; level is a risk question. They're orthogonal.</p>
-        <p class="lede">L3×1, L1×5, and L2×3 are all coherent seats — one deep expert on the thing that can't fail, many hands on routine surface, or moderate stakes with more of it than one seat can carry.</p>
+        <p class="lede">Level is depth of judgment, fixed by collapse risk. Count is volume, fixed by how much of the work there is. A bigger project does not raise the level; it raises the count at whatever level the risk already fixed. This is the answer to whether scale changes the level: it doesn't. Scale is a count question; level is a risk question. They're orthogonal.</p>
+        <p class="lede">L3×1, L1×5, and L2×3 are all coherent seats: one deep expert on the thing that can't fail, many hands on routine surface, or moderate stakes with more of it than one seat can carry.</p>
       </section>
       <section id="surface-area">
         <h2 class="mono uppercase eyebrow">Surface area</h2>
-        <p class="lede">Count comes from surface area — how much of a capability-at-level the work demands, divided by how much one seat can hold.</p>
-        <p class="lede">Surface area is the number of independently attention-demanding units at a capability×level — units that can't share one operator's attention without one of them degrading. It's a concurrency measure, set by the timeline: two things on separate critical paths are two units; the same work done serially is fewer.</p>
-        <p class="lede">What one seat holds depends on the level and on who's in it. Nominal capacity falls as the level rises — higher stakes tax attention per unit ${esc(capacityShape)}. And an overqualified operator covers more, up to a hard ceiling, because the work is easy for them.</p>
-        <p class="lede">One flag stays open: surface area counts cleanly in engineering (services, streams), but whether the same unit survives in the judgment-heavy domains — Framing, Proof, Commercial, Enablement, Continuity — is ${esc(countability)}. Named and unresolved, not assumed closed.</p>
+        <p class="lede">Count comes from surface area: how much of a capability-at-level the work demands, divided by how much one seat can hold.</p>
+        <p class="lede">Surface area is the number of independently attention-demanding units at a capability×level, units that can't share one operator's attention without one of them degrading. It's a concurrency measure, set by the timeline: two things on separate critical paths are two units; the same work done serially is fewer.</p>
+        <p class="lede">What one seat holds depends on the level and on who's in it. Nominal capacity falls as the level rises. higher stakes tax attention per unit ${esc(capacityShape)}. And an overqualified operator covers more, up to a hard ceiling, because the work is easy for them.</p>
+        <p class="lede">One flag stays open: surface area counts cleanly in engineering (services, streams), but whether the same unit survives in the judgment-heavy domains (Framing, Proof, Commercial, Enablement, Continuity) is ${esc(countability)}. Named and unresolved, not assumed closed.</p>
       </section>
       <section id="three-verbs">
         <h2 class="mono uppercase eyebrow">Three verbs</h2>
         <p class="lede">Title, ownership, and seat are not three more lists. They are three verbs on the same capability: grouped under, keeps fit, executes.</p>
-        <p class="lede">Title is grouped under — a bundle of owned capabilities, internal shorthand for coverage. L4 Capability Ownership is keeps fit — the capability you author guardrails for, internal and permanent. Seat is executes — one capability at one level, this squad, internal and dynamic. All three are internal; none of them is what the client buys.</p>
+        <p class="lede">Title is grouped under. a bundle of owned capabilities, internal shorthand for coverage. L4 Capability Ownership is keeps fit. the capability you author guardrails for, internal and permanent. Seat is executes. one capability at one level, this squad, internal and dynamic. All three are internal; none of them is what the client buys.</p>
         ${to("roles-titles.html#title-ownership-seat", "Roles & Titles")}
       </section>
       <section id="seats">
         <h2 class="mono uppercase eyebrow">A seat is runtime</h2>
-        <p class="lede">A seat is a capability at a level, with a count, filled by a person or people, on this engagement. That's a runtime instance — and the count isn't a new list, it's how many times we instantiate one entry.</p>
-        <p class="lede">The count is confidence-gated, same as everything else. Before the work can prove the load, the count is assumed — a demanded ceiling estimated at intake, the least-validated moment we have, when we don't yet know what we don't know. As surface area validates during the work, a committed floor emerges.</p>
+        <p class="lede">A seat is a capability at a level, with a count, filled by a person or people, on this engagement. That's a runtime instance. and the count isn't a new list, it's how many times we instantiate one entry.</p>
+        <p class="lede">The count is confidence-gated, same as everything else. Before the work can prove the load, the count is assumed, a demanded ceiling estimated at intake, the least-validated moment we have, when we don't yet know what we don't know. As surface area validates during the work, a committed floor emerges.</p>
         <p class="lede">We stand behind the floor and watch the ceiling; a surface-area update re-derives the count mid-engagement. One person can hold the seat, or several people who each clear the bar can make up the count together. Seat names churn. The capability underneath does not.</p>
         ${figure("04-seat-is-runtime.png", "One capability, staffed one or several ways")}
         ${to("operating-view.html", "Operating View")}
@@ -1336,7 +1336,7 @@ function renderCapabilityModelMain(model) {
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
         <p class="lede">Domains are types of work. They do not change and they do not have levels. Capabilities are the named outcomes we promise inside a domain.</p>
-        <p class="lede">How a capability is executed is a separate scale — L1 Guided Execution, L2 Practitioner, L3 Advanced Lead, and L4 Capability Ownership. That scale lives with capabilities, not with domains.</p>
+        <p class="lede">How a capability is executed is a separate scale. L1 Guided Execution, L2 Practitioner, L3 Advanced Lead, and L4 Capability Ownership. That scale lives with capabilities, not with domains.</p>
       </section>
       <section id="domains">
         <h2 class="mono uppercase eyebrow">Domains</h2>
@@ -1727,24 +1727,33 @@ function render(model, pageId = "how-it-all-relates") {
       padding: 1px 6px;
     }
     .stage-output {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      font-weight: 500;
-      padding: 6px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 24px;
+      padding: 16px 20px;
       border: 1px solid var(--line);
-      border-radius: 99px;
-      color: var(--ink);
-      margin-top: 16px;
+      border-radius: 8px;
       max-width: 700px;
     }
     .stage-output-label {
       font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
-      font-size: 11px;
-      letter-spacing: 0.04em;
+      font-size: 10px;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      opacity: 0.5;
+      font-weight: 600;
+      opacity: 0.4;
+    }
+    .stage-output-body {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      font-size: 13.5px;
+      line-height: 1.5;
+    }
+    .stage-output-file {
+      flex-shrink: 0;
+      white-space: nowrap;
     }
     .prose { margin-bottom: 24px; max-width: 700px; }
     .stack .prose { margin-bottom: 8px; }

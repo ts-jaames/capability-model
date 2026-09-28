@@ -1,7 +1,7 @@
 id: adlc
 name: ADLC
 summary: >
-  The Agentic Development Lifecycle — a lifecycle built to handle uncertainty,
+  The Agentic Development Lifecycle, a lifecycle built to handle uncertainty,
   prioritize behavioral guardrails, and treat deployment as the start of
   continuous learning rather than the end of a project.
 description: >
@@ -29,7 +29,7 @@ commercial_unit:
   name: Evidence Sprint
   stages: [0, 1, 2, 3]
   description: >
-    Stages 0 through 3 encompass the Evidence Sprint — the additional stages
+    Stages 0 through 3 encompass the Evidence Sprint; the additional stages
     cover agent-specific scope framing, architecture definition, and simulation
     before committing to a full build.
 
@@ -172,7 +172,7 @@ stages:
     procedures:
       - name: Tactical practice
         description: >
-          Git worktree isolation. Plan Mode first — Claude writes plan.md.
+          Git worktree isolation. Plan Mode first. Claude writes plan.md.
           Engineer accepts the plan, execution begins.
     tooling:
       - Claude Code CLI
@@ -207,7 +207,7 @@ stages:
       - name: Tactical practice
         description: >
           Non-interactive CI eval suite runs 20–50 task scenarios. Test files
-          are read-only during bug-fix tasks — agents must fix code, not weaken
+          are read-only during bug-fix tasks. agents must fix code, not weaken
           the test.
     tooling:
       - Headless Playwright/Puppeteer MCP

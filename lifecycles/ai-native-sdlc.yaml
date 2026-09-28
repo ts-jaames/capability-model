@@ -9,14 +9,14 @@ description: >
   The base pipeline optimizes for speed and build correctness. However, it
   requires a mechanism to validate whether we are building the right thing
   before scaling execution. Therefore, the Evidence Gate explicitly gates the
-  transition from Intent Framing to Design — closing with the tracker sync and
+  transition from Intent Framing to Design, closing with the tracker sync and
   merge that was previously modeled as its own Plan stage, now folded into the
   Gate as its automatic closing action rather than a separate decision point.
   The commit chain (Git-tracked artifacts at every stage) remains both the
   operational workflow and the audit trail.
 pipeline_note: >
   Pipeline is 7 stages, not 8. Stages 0 and 1 together are sold commercially
-  as one unit — the Evidence Sprint — matching how discovery has traditionally
+  as one unit, the Evidence Sprint, matching how discovery has traditionally
   been packaged, just with real signal behind it.
 companion: tactical-playbook.html
 
@@ -32,7 +32,7 @@ stages:
   - number: 0
     name: Intent Framing
     objective: >
-      In an AI-Native model, writing code is fast — which means running in the
+      In an AI-Native model, writing code is fast, which means running in the
       wrong direction happens at lightspeed. Stage 0 is not about jumping to
       solutions or writing specs; it is about getting brutally honest about
       what is known versus what is merely guessed.
@@ -79,7 +79,7 @@ stages:
     procedures:
       - name: Product Owner gate
         description: >
-          Every intent.md — whether written by humans or background agents —
+          Every intent.md, whether written by humans or background agents,
           must be reviewed and corrected by the Product Owner before
           proceeding.
     practices:
@@ -89,7 +89,7 @@ stages:
           expectations into testable claims.
       - name: Failure Premortem
         description: >
-          Ask "It's 12 months from now and this failed — why?" to uncover
+          Ask "It's 12 months from now and this failed, why?" to uncover
           hidden operational and political risks.
       - name: 5-Lens Walkthrough
         description: >
@@ -102,7 +102,7 @@ stages:
           Identify non-negotiable platform ceilings, integration dependencies,
           and security limits early.
     output: >
-      raw intent.md — a fully tagged, human-readable stack of assumptions.
+      A fully tagged, human-readable stack of assumptions.
       Advances directly to Stage 1 (Evidence Gate) for empirical testing.
       Inert: does not trigger automated builds or CI runs.
     note: Evidence Sprint
@@ -129,7 +129,7 @@ stages:
     risk_routing:
       - category: Feasibility
         tested_at: Stage 4 (CI Eval Suite)
-        rationale: Deterministic — a rubric can check whether code fulfills a spec.
+        rationale: Deterministic; a rubric can check whether code fulfills a spec.
       - category: Operational
         tested_at: Stage 4 (CI Eval Suite)
         rationale: Testable against known patterns and thresholds.
@@ -147,7 +147,7 @@ stages:
         description: >
           Run the cycle of Risk → Assumption → Slice → Signal → Confidence →
           Decision on tagged assumptions. Address one assumption per slice. The
-          validation loop is prototyping — build the smallest thing that tests
+          validation loop is prototyping: build the smallest thing that tests
           one assumption, read the signal, decide.
       - name: Test in the real world
         description: >
@@ -174,7 +174,7 @@ stages:
           skills (security, UX, brand guidelines). The Product Owner performs
           the final review.
     output: >
-      The intent.md either clears — merged, synced, and moving to Stage 2 — or
+      The intent.md either clears (merged, synced, and moving to Stage 2) or
       gets sent back to Stage 0 for re-framing, or the initiative is
       stopped/pivoted.
     note: Evidence Sprint
@@ -206,7 +206,7 @@ stages:
           compliance, and UX standards.
       - name: Domain focus
         description: >
-          Building is the primary domain — product-interface-building and
+          Building is the primary domain: product-interface-building and
           core-systems-engineering drive the synthesis. Framing
           constraint-checks run as secondary, ensuring the architecture stays
           within the boundaries set at the Evidence Gate.
@@ -248,7 +248,7 @@ stages:
       - name: Shared subagents
         description: >
           Utilize .claude/agents/ to store standardized helper agents across
-          repositories — verifier agents (run the app, check behavior) and
+          repositories, including verifier agents (run the app, check behavior) and
           simplifier agents (strip redundant complexity post-implementation).
     output: plan.md and verified code diffs.
     adaptation:
@@ -288,7 +288,7 @@ stages:
         description: >
           Implement pre-tool hooks that block agents from modifying existing
           test files during bug-fix tasks. The agent must fix the code to pass
-          the tests — it is explicitly denied the ability to alter assertions
+          the tests; it is explicitly denied the ability to alter assertions
           to force a passing status.
     output: Verification logs and evaluation results.
     adaptation:
@@ -372,7 +372,7 @@ stages:
 domain_notes:
   - domain: commercial
     note: >
-      Commercial frames the pipeline — it sets the envelope and price before
+      Commercial frames the pipeline: it sets the envelope and price before
       Stage 0, and the proof → commercial seam updates it as evidence arrives.
       It is not absent from the pipeline; it operates across stages rather than
       owning one.
@@ -388,7 +388,7 @@ gaps:
       Maintenance metrics primarily monitor infrastructure health (error
       rates). A sensor is needed to monitor Value/Usability drift post-launch
       (adoption rates, usage depth) so the pipeline does not lose signal on a
-      shipped feature nobody wants. This remains an unresolved gap — the
+      shipped feature nobody wants. This remains an unresolved gap; the
       tactical playbook includes a candidate widened bands.yaml design as a
       proposal, not yet ratified.
   - name: Naming the Intent Framing Session
