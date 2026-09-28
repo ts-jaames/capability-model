@@ -350,6 +350,106 @@ domain_notes:
       hottest at Deploy and Maintain but possible at any stage where
       organizational change is needed to land the work.
 
+raci:
+  - stage: 0
+    assignments:
+      - title: product-architect
+        designation: A
+      - title: forward-deployed-engineer
+        designation: C
+      - title: ai-systems-engineer
+        designation: C
+      - title: eval-quality-engineer
+        designation: I
+      - title: ai-interaction-designer
+        designation: C
+      - title: engagement-autonomy-lead
+        designation: C
+  - stage: 1
+    assignments:
+      - title: product-architect
+        designation: R
+      - title: forward-deployed-engineer
+        designation: R
+      - title: ai-systems-engineer
+        designation: C
+      - title: eval-quality-engineer
+        designation: C
+      - title: ai-interaction-designer
+        designation: I
+      - title: engagement-autonomy-lead
+        designation: C
+  - stage: 2
+    assignments:
+      - title: product-architect
+        designation: C
+      - title: forward-deployed-engineer
+        designation: A
+      - title: ai-systems-engineer
+        designation: C
+      - title: eval-quality-engineer
+        designation: I
+      - title: ai-interaction-designer
+        designation: R
+      - title: engagement-autonomy-lead
+        designation: I
+  - stage: 3
+    assignments:
+      - title: product-architect
+        designation: I
+      - title: forward-deployed-engineer
+        designation: A
+      - title: ai-systems-engineer
+        designation: R
+      - title: eval-quality-engineer
+        designation: I
+      - title: ai-interaction-designer
+        designation: C
+      - title: engagement-autonomy-lead
+        designation: C
+  - stage: 4
+    assignments:
+      - title: product-architect
+        designation: I
+      - title: forward-deployed-engineer
+        designation: C
+      - title: ai-systems-engineer
+        designation: C
+      - title: eval-quality-engineer
+        designation: A
+      - title: ai-interaction-designer
+        designation: I
+      - title: engagement-autonomy-lead
+        designation: I
+  - stage: 5
+    assignments:
+      - title: product-architect
+        designation: I
+      - title: forward-deployed-engineer
+        designation: C
+      - title: ai-systems-engineer
+        designation: R
+      - title: eval-quality-engineer
+        designation: C
+      - title: ai-interaction-designer
+        designation: I
+      - title: engagement-autonomy-lead
+        designation: A
+  - stage: 6
+    assignments:
+      - title: product-architect
+        designation: C
+      - title: forward-deployed-engineer
+        designation: R
+      - title: ai-systems-engineer
+        designation: R
+      - title: eval-quality-engineer
+        designation: C
+      - title: ai-interaction-designer
+        designation: I
+      - title: engagement-autonomy-lead
+        designation: I
+
 gaps:
   - name: bands.yaml widening
     description: >

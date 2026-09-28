@@ -572,6 +572,17 @@ async function main() {
         add("refs", rec.file, `domain_notes cites domain "${dn.domain}" which does not exist`);
       }
     }
+    const numberSet = new Set(numbers);
+    for (const entry of lc.raci ?? []) {
+      if (!numberSet.has(entry.stage)) {
+        add("refs", rec.file, `raci cites stage ${entry.stage} which does not exist`);
+      }
+      for (const a of entry.assignments ?? []) {
+        if (!loaded.byId.title.has(a.title)) {
+          add("refs", rec.file, `raci stage ${entry.stage} cites title "${a.title}" which does not exist`);
+        }
+      }
+    }
   }
 
   checkLegend(

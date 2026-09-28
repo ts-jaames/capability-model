@@ -1,0 +1,38 @@
+id: engagement-autonomy-lead
+name: Engagement & Autonomy Lead
+description: >
+  Manages delivery velocity, risk exposure, client alignment, and autonomy
+  tiers. Instead of tracking manual JIRA tickets, they govern stage gates,
+  manage scope drift, and ensure evidence thresholds are met before advancing
+  capital investment.
+why: >
+  Someone has to govern the pipeline itself: stage gates, autonomy tiers at
+  deploy, the change-response doctrine, commercial alignment, and evidence
+  thresholds. This is the person who makes sure speed does not outrun
+  governance. Also owns the handoff: making sure the client org can absorb
+  and run what we build.
+replaces:
+  - Project & Program Management
+owns:
+  - domain: enablement
+  - capability: client-operating-model-design
+  - capability: transition-warranty-design
+default_executes:
+  - capability: stakeholder-alignment
+    level: L2
+  - capability: transparent-delivery
+    level: L2
+  - capability: commercial-scoping-envelope-shaping
+    level: L1
+typical_seats:
+  - Interface Lead
+executes: >
+  Stage gate governance; autonomy tier management; change-response doctrine
+  execution; client alignment and handoff; adoption path design against the
+  org's real incentives and constraints.
+shape: "Cross-cutting: governance, enablement, and client handoff in one lane."
+reading_order: 6
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-28

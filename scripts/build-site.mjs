@@ -151,10 +151,13 @@ const PAGE_TOC = {
   ],
   "roles-titles": [
     ["#overview", "Overview"],
+    ["#traditional-mapping", "Traditional to AI-Native"],
+    ["#titles", "The 6 titles"],
+    ["#engagement-seats", "Engagement seats"],
+    ["#raci", "RACI matrix"],
     ["#commercial-stack", "The SOW"],
-    ["#lines", "Lines"],
-    ["#title-ownership-seat", "Title · Ownership · Seat"],
-    ["#doctrine-seat-fulfilment", "Filling seats"],
+    ["#how-seats-get-filled", "Filling seats"],
+    ["#key-definitions", "Key definitions"],
   ],
   "operating-view": [
     ["#overview", "Overview"],
@@ -517,16 +520,124 @@ function renderSeam(seam, capsById, domainsById) {
 }
 
 function renderRolesMain(model) {
-  const { titles, capabilities, domains, definitions } = model;
+  const { titles, capabilities, domains, definitions, roles, lifecycles } = model;
   const capsById = byId(capabilities);
   const domainsById = byId(domains);
   const definitionsById = byId(definitions);
 
-  const lines = [...titles]
+  // Traditional-to-AI-Native mapping table
+  const mappingRows = [...titles]
     .sort((a, b) => (a.reading_order ?? 99) - (b.reading_order ?? 99))
-    .map((title) => renderTitle(title, capsById, domainsById))
+    .flatMap((title) =>
+      (title.replaces ?? []).map((trad) =>
+        `<tr><td>${esc(trad)}</td><td><strong>${esc(title.name)}</strong></td></tr>`,
+      ),
+    )
     .join("");
 
+  // Title cards
+  const titleCards = [...titles]
+    .sort((a, b) => (a.reading_order ?? 99) - (b.reading_order ?? 99))
+    .map((title) => {
+      const owns = (title.owns ?? [])
+        .map((ref) => ownsLink(ref, capsById, domainsById))
+        .join(", ");
+      const replaces = (title.replaces ?? []).length
+        ? `<p class="lede">${esc("Replaces: " + title.replaces.join(", "))}</p>`
+        : "";
+      const defaults = (title.default_executes ?? [])
+        .map((d) => {
+          const cap = capsById.get(d.capability);
+          const label = cap ? cap.name : d.capability;
+          return `<li>${esc(label)} @ ${esc(d.level)}</li>`;
+        })
+        .join("");
+      const seats = (title.typical_seats ?? [])
+        .map((s) => esc(s))
+        .join(", ");
+      return `
+    <article class="row" id="title-${esc(title.id)}">
+      <header class="row-head">
+        <h3 class="domain-name">${esc(title.name)}</h3>
+      </header>
+      ${title.why ? `<div class="prose"><p>${esc(oneLine(title.why))}</p></div>` : ""}
+      ${replaces}
+      <div class="kvs">
+        ${kv("Owns (L4)", `<p>${owns}</p>`)}
+        ${defaults ? kv("Default executes", `<ul class="bullets">${defaults}</ul>`) : ""}
+        ${seats ? kv("Typical seats", `<p>${esc(seats)}</p>`) : ""}
+        ${kv("Shape", `<p>${esc(oneLine(title.shape))}</p>`)}
+      </div>
+    </article>`;
+    })
+    .join("");
+
+  // Engagement seats
+  const seatCards = [...roles]
+    .map((role) => {
+      const ownsList = (role.owned_capabilities ?? [])
+        .map((id) => {
+          const cap = capsById.get(id);
+          return cap ? esc(cap.name) : esc(id);
+        })
+        .join(", ");
+      const execList = (role.executable_capabilities ?? [])
+        .map((item) => {
+          const cap = capsById.get(item.id);
+          const label = cap ? cap.name : item.id;
+          return `${esc(label)} @ ${esc(item.required_level)}`;
+        })
+        .join(", ");
+      return `
+    <article class="row" id="seat-${esc(role.id)}">
+      <header class="row-head">
+        <h3 class="domain-name">${esc(role.name)}</h3>
+      </header>
+      <div class="prose"><p>${esc(oneLine(role.description))}</p></div>
+      <div class="kvs">
+        ${ownsList ? kv("Owns", `<p>${ownsList}</p>`) : ""}
+        ${execList ? kv("Executes", `<p>${execList}</p>`) : ""}
+      </div>
+    </article>`;
+    })
+    .join("");
+
+  // RACI matrix from SDLC lifecycle
+  const sdlc = (lifecycles ?? []).find((lc) => lc.id === "ai-native-sdlc");
+  const titlesById = byId(titles);
+  const raciTable = sdlc?.raci
+    ? (() => {
+        const titleOrder = [...titles].sort(
+          (a, b) => (a.reading_order ?? 99) - (b.reading_order ?? 99),
+        );
+        const stages = sdlc.stages ?? [];
+        const headerCells = titleOrder
+          .map((t) => `<th>${esc(t.name)}</th>`)
+          .join("");
+        const rows = (sdlc.raci ?? [])
+          .map((entry) => {
+            const stage = stages.find((s) => s.number === entry.stage);
+            const stageName = stage ? `${stage.number} · ${stage.name}` : String(entry.stage);
+            const cells = titleOrder
+              .map((t) => {
+                const a = (entry.assignments ?? []).find((x) => x.title === t.id);
+                return `<td>${a ? esc(a.designation) : ""}</td>`;
+              })
+              .join("");
+            return `<tr><td><strong>${esc(stageName)}</strong></td>${cells}</tr>`;
+          })
+          .join("");
+        return `
+        <div class="scroll-x">
+        <table class="hairline-table">
+          <thead><tr><th>Stage</th>${headerCells}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        </div>`;
+      })()
+    : "";
+
+  // Key definitions
   const stack = requireDoctrine(model, "commercial-stack");
   const fulfilment = requireDoctrine(model, "seat-fulfilment");
 
@@ -536,43 +647,70 @@ function renderRolesMain(model) {
     return renderLayer(definition);
   };
 
-  // The layers in the order they read: what you group under, what you are
-  // accountable for, how deep, what you are doing now. then how that seat
-  // actually gets a person in it, before who you are at the firm.
-  const layers = [
-    layer("title"),
-    layer("capability-ownership"),
+  const defLayers = [
     layer("level"),
     layer("seat"),
-    renderDoctrine(fulfilment, capsById, { heading: true }),
     layer("consultant-band"),
   ].join("");
 
   return `
       <section id="overview">
-        <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
+        <h1 class="mono uppercase eyebrow">Roles & Titles</h1>
         <p class="lede">Capabilities are the contract. Seats are the fulfillment. Titles are internal coverage.</p>
-        <p class="lede">The SOW sells an outcome, priced from the capabilities-at-levels underneath it, never headcount, and never a title. A title is internal shorthand for a coherent bundle of owned capabilities; it groups coverage, it isn't a thing a client buys.</p>
-        <p class="lede">An L4 is the atomic internal unit, accountable for one capability cluster's maturity. L4s compose into the lines below: common compositions, named for internal coverage, not for the market.</p>
-        <p class="lede">A pair of single-spike L4s and one M-shaped person can fulfil the same commitment. The contract promises capabilities at levels; it doesn't care who covers them.</p>
-        <p class="lede">Five lines cover every capability, so each has a coherent home and none is a grab-bag, now an enforced invariant, not just a claim.</p>
+        <p class="lede">The SOW sells an outcome, priced from the capabilities-at-levels underneath it, never headcount and never a title. A title is internal shorthand for a coherent bundle of owned capabilities. It groups coverage; it is not a thing a client buys.</p>
+        <p class="lede">An L4 is accountable for one capability cluster's maturity. L4s compose into the titles below: common compositions, named for internal coverage, not for the market. Six titles cover every capability, so each has a coherent home and none is a grab-bag, now an enforced invariant, not just a claim.</p>
+        <p class="lede">One person can hold up to 2 engagement seats and execute up to 7 stage capabilities. The title is who they are; the seat is what they do on this engagement.</p>
       </section>
+
+      <section id="traditional-mapping">
+        <h2 class="mono uppercase eyebrow">Traditional to AI-Native</h2>
+        <p class="lede">14 traditional titles compress into 6. Language and platform distinctions collapse in AI-native delivery; what matters is the capability, not the stack.</p>
+        <table class="hairline-table">
+          <thead><tr><th>Traditional title</th><th>AI-Native title</th></tr></thead>
+          <tbody>${mappingRows}</tbody>
+        </table>
+        <p class="lede">Solution Consultants and Delivery Partners remain as pre-engagement commercial roles, working alongside the Product Architect on the commercial envelope.</p>
+      </section>
+
+      <section id="titles">
+        <h2 class="mono uppercase eyebrow">The 6 titles</h2>
+        <div class="stack">
+        ${titleCards}
+        </div>
+      </section>
+
+      <section id="engagement-seats">
+        <h2 class="mono uppercase eyebrow">Engagement seats</h2>
+        <p class="lede">On a lean 2-to-3 person client engagement, you assign seats, not titles. One practitioner can own up to 2 seats and execute up to 7 stage capabilities.</p>
+        <div class="stack">
+        ${seatCards}
+        </div>
+      </section>
+
+      <section id="raci">
+        <h2 class="mono uppercase eyebrow">RACI matrix</h2>
+        <p class="lede">R (Responsible): hands-on driving and producing the artifact. A (Accountable): single point of sign-off for the stage gate. C (Consulted): inputs context, runs sub-agents, or participates. I (Informed): updated on status and output.</p>
+        ${raciTable}
+      </section>
+
       <section id="commercial-stack">
         <h2 class="mono uppercase eyebrow">${esc(stack.name)}</h2>
         <div class="stack">
         ${renderDoctrine(stack, capsById)}
         </div>
       </section>
-      <section id="lines">
-        <h2 class="mono uppercase eyebrow">Lines</h2>
+
+      <section id="how-seats-get-filled">
+        <h2 class="mono uppercase eyebrow">How seats get filled</h2>
         <div class="stack">
-        ${lines}
+        ${renderDoctrine(fulfilment, capsById)}
         </div>
       </section>
-      <section id="title-ownership-seat">
-        <h2 class="mono uppercase eyebrow">Title · Ownership · Seat</h2>
+
+      <section id="key-definitions">
+        <h2 class="mono uppercase eyebrow">Key definitions</h2>
         <div class="stack">
-        ${layers}
+        ${defLayers}
         </div>
       </section>`;
 }
@@ -1770,6 +1908,12 @@ function render(model, pageId = "how-it-all-relates") {
     .prose { margin-bottom: 24px; max-width: 700px; }
     .stack .prose { margin-bottom: 8px; }
     .stack .prose:last-child { margin-bottom: 0; }
+    .scroll-x {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      max-width: 100%;
+    }
+    .scroll-x table { min-width: 640px; }
     .kvs { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
     .kvs:last-child { margin-bottom: 0; }
     .kv {

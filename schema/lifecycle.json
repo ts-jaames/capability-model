@@ -167,6 +167,32 @@
         }
       }
     },
+    "raci": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["stage", "assignments"],
+        "properties": {
+          "stage": { "type": "integer", "minimum": 0 },
+          "assignments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["title", "designation"],
+              "properties": {
+                "title": { "$ref": "common.json#/$defs/kebabId" },
+                "designation": {
+                  "type": "string",
+                  "enum": ["R", "A", "C", "I"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "gaps": {
       "type": "array",
       "items": {

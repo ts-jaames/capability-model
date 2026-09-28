@@ -1,0 +1,36 @@
+id: eval-quality-engineer
+name: Eval & Quality Engineer
+description: >
+  Specialist in non-deterministic quality assurance. Designs benchmark suites,
+  synthetic test data, LLM evaluation pipelines (evals), guardrails, and
+  telemetry scoring to enforce pass/fail thresholds.
+why: >
+  Non-deterministic systems need a fundamentally different kind of testing.
+  This person does not write unit tests for deterministic code; they design
+  eval benchmarks for probabilistic behavior, hallucination detection, safety
+  alignment scoring, and the lock-tests.sh hooks that prevent agents from
+  weakening assertions.
+replaces:
+  - Quality Engineering
+  - Quality Automation Engineering
+owns:
+  - capability: validation-testing
+  - capability: signal-design
+default_executes:
+  - capability: acceptance-proving
+    level: L2
+  - capability: demonstration-evidence-review
+    level: L1
+  - capability: core-systems-engineering
+    level: L1
+typical_seats:
+  - Verification & Operations Lead
+executes: >
+  Eval pipeline design and execution; hallucination and safety testing;
+  benchmark suite maintenance; CI eval thresholds; test-file locking hooks.
+shape: "Deep-T: the quality specialist, owns the proof that things work."
+reading_order: 4
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-28

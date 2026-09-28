@@ -3,10 +3,28 @@ name: Product Architect
 description: >
   Owns whether it's the right thing: framed, priced, and directed honestly.
   Leads presales, because shaping a deal is the same judgment as delivering one.
-reading_order: 1
+  Works alongside Solution Consultants and Delivery Partners who co-own the
+  commercial envelope.
+why: >
+  Someone has to own the question "are we solving the right problem?" and the
+  commercial commitment behind it. In AI-native delivery, this is the person
+  who runs Stage 0 and Stage 1, turning fuzzy client intent into tagged
+  assumptions that survive the Evidence Gate.
+replaces:
+  - Business Analysis
+  - Product Strategy
 owns:
   - domain: commercial
   - domain: framing
+default_executes:
+  - capability: demonstration-evidence-review
+    level: L2
+  - capability: signal-design
+    level: L1
+  - capability: transparent-delivery
+    level: L1
+typical_seats:
+  - Interface Lead
 executes: >
   Frames the ask to one lever; names the hard constraints and collapse risks;
   makes the go / redirect / stop call; shapes and prices the envelope; aligns
@@ -14,7 +32,8 @@ executes: >
 shape: >
   Deep-T to barbell: the judgment core of an engagement, framing and commercial
   in one lane.
+reading_order: 1
 status: draft
 owner: Operating Model
 source: original
-last_updated: 2026-09-09
+last_updated: 2026-09-28

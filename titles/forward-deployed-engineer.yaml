@@ -1,21 +1,48 @@
 id: forward-deployed-engineer
 name: Forward Deployed Engineer
 description: >
-  Owns whether a deterministic system is built and proven: durable, ownable, and
-  visibly true.
-reading_order: 4
+  The flagship AI-native delivery role. Combines deep technical execution with
+  direct client fluency. FDEs live on the frontline: running evidence sprints,
+  prototyping, and turning fuzzy client constraints into working code.
+why: >
+  Language and platform distinctions collapse in AI-native delivery because
+  Claude Code is the primary interface to the codebase. What matters is whether
+  you can build a slice that tests an assumption, instrument it for signal, and
+  ship it to preview.
+replaces:
+  - .NET Fullstack
+  - Java Fullstack
+  - Mobile
+  - Web
 owns:
   - capability: core-systems-engineering
   - capability: production-hardening
   - capability: durable-delivery
   - capability: slice-building
-  - domain: proof
+  - capability: acceptance-proving
+  - capability: demonstration-evidence-review
+  - capability: transparent-delivery
+default_executes:
+  - capability: ai-systems-engineering
+    level: L1
+  - capability: product-interface-building
+    level: L1
+  - capability: signal-design
+    level: L2
+  - capability: validation-testing
+    level: L2
+  - capability: problem-framing
+    level: L1
+typical_seats:
+  - Technical Lead
+  - Verification & Operations Lead
 executes: >
   Instrumented slices to test assumptions early; core systems fit to the
   client's stack; hardened against real load; a clean codebase the client can
   extend; proven against criteria set up front.
-shape: "Deep-T to barbell (build + proof, or build + AI). Highest-volume line."
+shape: "Deep-T to barbell (build + proof). Highest-volume title."
+reading_order: 2
 status: draft
 owner: Operating Model
 source: original
-last_updated: 2026-09-09
+last_updated: 2026-09-28

@@ -1,0 +1,36 @@
+id: ai-interaction-designer
+name: AI Interaction Designer
+description: >
+  Focuses on Human-in-the-Loop (HITL) workflows, agent visibility, dynamic
+  generative UI, and prompt/context ergonomics. Ensures complex AI agent
+  outputs are actionable and intuitive for client end-users.
+why: >
+  The interface layer in AI-native delivery is not just screens; it is HITL
+  workflows, agent disclosure patterns, generative UI, and the surfaces through
+  which humans and agents collaborate. This person owns the part users see and
+  touch.
+replaces:
+  - Design
+  - Data Visualization
+owns:
+  - capability: product-interface-building
+default_executes:
+  - capability: demonstration-evidence-review
+    level: L2
+  - capability: outcome-definition
+    level: L1
+  - capability: stakeholder-alignment
+    level: L1
+typical_seats:
+  - Interface Lead
+  - Technical Lead
+executes: >
+  Assembles from design tokens and a component library; ships increments to live
+  preview; owns HITL workflow design; sets tokens, component contracts, and
+  interaction patterns at depth.
+shape: "Deep-T: the experience layer, evolving from static UX to AI interaction patterns."
+reading_order: 5
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-28

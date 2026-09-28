@@ -1,0 +1,22 @@
+id: verification-ops-lead
+name: Verification & Operations Lead
+description: >
+  Owns eval benchmarks, deployment guardrails, and Stage 6 telemetry
+  monitoring. The person who proves the system holds and keeps it running.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-28
+owned_capabilities:
+  - validation-testing
+executable_capabilities:
+  - id: signal-design
+    required_level: L2
+  - id: production-hardening
+    required_level: L2
+  - id: acceptance-proving
+    required_level: L1
+demand_literacy: >
+  Can tell when an eval suite is testing the right behavior versus testing
+  that the agent generates code that compiles; when a metric band needs
+  widening; and when a deploy needs human sign-off versus automated release.

@@ -1,0 +1,23 @@
+id: technical-lead
+name: Technical Lead
+description: >
+  Owns system design, CLAUDE.md context engineering, spec creation, and code
+  generation loops. The person who builds the thing and proves it works.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-28
+owned_capabilities:
+  - core-systems-engineering
+  - slice-building
+executable_capabilities:
+  - id: ai-systems-engineering
+    required_level: L2
+  - id: production-hardening
+    required_level: L2
+  - id: signal-design
+    required_level: L1
+demand_literacy: >
+  Can tell when a plan needs a spike before code; when worktree isolation is
+  required versus when a single branch suffices; and when the build has
+  outrun the spec.

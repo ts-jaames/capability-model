@@ -30,6 +30,27 @@
       "minItems": 1,
       "items": { "$ref": "common.json#/$defs/modelRef" }
     },
+    "replaces": {
+      "type": "array",
+      "items": { "$ref": "common.json#/$defs/nonEmptyString" }
+    },
+    "why": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "default_executes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capability", "level"],
+        "properties": {
+          "capability": { "$ref": "common.json#/$defs/kebabId" },
+          "level": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    },
+    "typical_seats": {
+      "type": "array",
+      "items": { "$ref": "common.json#/$defs/nonEmptyString" }
+    },
     "executes": { "$ref": "common.json#/$defs/nonEmptyString" },
     "shape": { "$ref": "common.json#/$defs/nonEmptyString" },
     "note": { "$ref": "common.json#/$defs/nonEmptyString" }

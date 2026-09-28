@@ -1,0 +1,39 @@
+id: ai-systems-engineer
+name: AI Systems Engineer
+description: >
+  Owns the AI engineering environment: agent harnesses, context rules
+  (CLAUDE.md), MCP servers, pre-commit hooks, and CI/CD pipelines. Builds the
+  rails that allow FDEs and agents to run safely at high speeds.
+why: >
+  Someone has to own the infrastructure that makes AI-native delivery possible.
+  This is the person who builds the MCP integrations, the eval harnesses, the
+  deploy hooks, and the agent governance layer.
+replaces:
+  - AI & ML
+  - Cloud Engineering
+  - Data Engineering
+owns:
+  - capability: ai-systems-engineering
+  - capability: autonomous-system-governance
+default_executes:
+  - capability: core-systems-engineering
+    level: L2
+  - capability: production-hardening
+    level: L2
+  - capability: validation-testing
+    level: L2
+  - capability: signal-design
+    level: L1
+typical_seats:
+  - Technical Lead
+  - Verification & Operations Lead
+executes: >
+  Evaluation before architecture; models grounded in the client's corpus; deploy
+  gated on eval evidence, not a demo; controls and stop-rules for post-handoff
+  autonomy.
+shape: "Deep-T: the specialist consultant, narrow coverage, full judgment in the lane."
+reading_order: 3
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-09-28
