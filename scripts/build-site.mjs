@@ -563,7 +563,7 @@ function renderRolesMain(model) {
       ${title.why ? `<div class="prose"><p>${esc(oneLine(title.why))}</p></div>` : ""}
       ${replaces}
       <div class="kvs">
-        ${kv("Owns (L4)", `<p>${owns}</p>`)}
+        ${kv("Owns", `<p>${owns}</p>`)}
         ${defaults ? kv("Default executes", `<ul class="bullets">${defaults}</ul>`) : ""}
         ${seats ? kv("Typical seats", `<p>${esc(seats)}</p>`) : ""}
         ${kv("Shape", `<p>${esc(oneLine(title.shape))}</p>`)}
