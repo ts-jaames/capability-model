@@ -116,7 +116,7 @@ stages:
       This is the one place Stage 0 diverges from a conventional build. The
       question is not just "what if this fails," it is "what if this decides
       something we did not intend."
-    artifact: intent.md
+    artifact: raw intent.md
     gate: Facilitator validates assumption tagging including agentic failure modes
     primary_domain: framing
     risk_shapes_hot:
@@ -149,7 +149,7 @@ stages:
       gate carries more weight than in a conventional build, because
       architecture decisions here (tool access, autonomy scope) are expensive
       to unwind once made.
-    artifact: intent.md (cleared) + ESOA
+    artifact: intent.md (cleared, synced) + ESOA
     gate: Promote / Iterate / Pivot / Stop + PO merge
     primary_domain: proof
     secondary_domain: framing
@@ -271,13 +271,13 @@ stages:
       governance: Engineer plan acceptance + evaluation coverage check.
 
   - number: 4
-    name: Testing
+    name: Test
     objective: >
       Validate the system across non-deterministic outputs. A probabilistic
       system can pass every functional test and still fail on tool selection or
       safety alignment. Those need their own verification, not an assumption
       that functional correctness implies behavioral correctness.
-    artifact: evaluation results + execution logs
+    artifact: verification logs + eval results
     gate: Combined threshold on accuracy, safety, and tool-selection
     primary_domain: proof
     secondary_domain: building
@@ -304,12 +304,12 @@ stages:
       governance: Automated CI gate on all three axes.
 
   - number: 5
-    name: Deployment
+    name: Deploy
     objective: >
       Transition a probabilistic system into staging and production safely,
       using tiered autonomy and multi-pass safety verification rather than a
       single go/no-go review.
-    artifact: review findings + release record
+    artifact: REVIEW.md + PR findings + release record
     gate: Named human sign-off on Production actions above threshold
     primary_domain: building
     secondary_domain: continuity
@@ -341,13 +341,13 @@ stages:
       governance: Named human sign-off on Production actions above threshold.
 
   - number: 6
-    name: Continuous Learning & Governance
+    name: Maintain & Governance
     objective: >
       Manage probabilistic drift over time: monitor token consumption, capture
       real-world edge cases the system encounters in production, and feed
       incidents back into intent triage automatically rather than waiting for
       the next planning cycle.
-    artifact: performance bands + incident records
+    artifact: bands.yaml + incident records
     gate: Automated triage feed + quarterly governance review
     primary_domain: continuity
     secondary_domain: enablement
