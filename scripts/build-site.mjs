@@ -1455,27 +1455,30 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   // Proceed with safe execution...
 });</code></pre>`;
 
-  const repoStructure = `<pre><code>.
-CLAUDE.md                     # Central Context Engine & System Instructions
-.claude/
-  settings.json               # Engine permissions, allowed tool boundaries
-  commands/                   # Executable subcommands for development tasks
-  skills/                     # Modular agent skills & domain workflows
-intent.md                     # Stage 0 raw/tagged intent & premortem
-esoa.md                       # Stage 1 Evidence Slice Statement of Alignment
-spec.md                       # Stage 2 Technical architecture spec
-autonomy-matrix.yaml          # Stage 2 Autonomy Authorization Matrix
-plan.md                       # Stage 3 Pre-execution implementation plan
-REVIEW.md                     # Stage 5 Multi-pass safety & deployment review
-bands.yaml                    # Stage 6 Operational drift & token tracking bands
-evals/
-  datasets/                   # 20-50+ core task scenarios (.jsonl / .yaml)
-  runners/                    # Evaluation harness and grader logic
-  baselines/                  # Historical benchmark pass rates
-mcp-servers/                  # Isolated MCP servers for system integration
-  database/                   # DB abstraction layer
-  enterprise-api/             # Wrapped legacy endpoints
-src/                          # Agent runtime logic & deterministic workflows</code></pre>`;
+  const fd = (name) => `<span class="file-ref-dark">${name}</span>`;
+  const repoLines = [
+    [fd("CLAUDE.md"), "Central Context Engine & System Instructions"],
+    [fd(".claude/"), ""],
+    ["&nbsp;&nbsp;" + fd("settings.json"), "Engine permissions, allowed tool boundaries"],
+    ["&nbsp;&nbsp;" + fd("commands/"), "Executable subcommands for development tasks"],
+    ["&nbsp;&nbsp;" + fd("skills/"), "Modular agent skills & domain workflows"],
+    [fd("intent.md"), "Stage 0 raw/tagged intent & premortem"],
+    [fd("esoa.md"), "Stage 1 Evidence Slice Statement of Alignment"],
+    [fd("spec.md"), "Stage 2 Technical architecture spec"],
+    [fd("autonomy-matrix.yaml"), "Stage 2 Autonomy Authorization Matrix"],
+    [fd("plan.md"), "Stage 3 Pre-execution implementation plan"],
+    [fd("REVIEW.md"), "Stage 5 Multi-pass safety & deployment review"],
+    [fd("bands.yaml"), "Stage 6 Operational drift & token tracking bands"],
+    [fd("evals/"), ""],
+    ["&nbsp;&nbsp;" + fd("datasets/"), "20-50+ core task scenarios (.jsonl / .yaml)"],
+    ["&nbsp;&nbsp;" + fd("runners/"), "Evaluation harness and grader logic"],
+    ["&nbsp;&nbsp;" + fd("baselines/"), "Historical benchmark pass rates"],
+    [fd("mcp-servers/"), "Isolated MCP servers for system integration"],
+    ["&nbsp;&nbsp;" + fd("database/"), "DB abstraction layer"],
+    ["&nbsp;&nbsp;" + fd("enterprise-api/"), "Wrapped legacy endpoints"],
+    [fd("src/"), "Agent runtime logic & deterministic workflows"],
+  ].map(([name, desc]) => `<div class="repo-line">${name}${desc ? `<span class="repo-desc">${desc}</span>` : ""}</div>`).join("");
+  const repoStructure = `<div class="repo-tree">${repoLines}</div>`;
 
   return `
       <section id="overview">
@@ -2182,6 +2185,32 @@ function render(model, pageId = "how-it-all-relates") {
       font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
       font-size: 0.88em;
       color: #e8690b;
+      background: rgba(0,0,0,0.04);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 1px 6px;
+    }
+    .repo-tree {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 700px;
+    }
+    .repo-line {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      font-size: 13.5px;
+      line-height: 1.5;
+    }
+    .repo-desc {
+      color: var(--dim);
+      font-size: 12px;
+    }
+    .file-ref-dark {
+      font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
+      font-size: 0.88em;
+      color: var(--ink);
       background: rgba(0,0,0,0.04);
       border: 1px solid var(--line);
       border-radius: 4px;
