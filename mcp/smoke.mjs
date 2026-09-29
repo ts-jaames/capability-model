@@ -237,8 +237,8 @@ async function main() {
   check("ai-native-sdlc has a commercial unit", sdlc.payload?.commercial_unit?.name === "Evidence Sprint");
 
   const adlc = await client.call("get_lifecycle", { lifecycle: "adlc" });
-  check("adlc has 8 stages", (adlc.payload?.stages ?? []).length === 8);
-  check("adlc stage 0 is Preparation & Hypotheses", adlc.payload?.stages?.[0]?.name === "Preparation & Hypotheses");
+  check("adlc has 7 stages", (adlc.payload?.stages ?? []).length === 7);
+  check("adlc stage 0 is Intent Framing", adlc.payload?.stages?.[0]?.name === "Intent Framing");
 
   // Every capability answers, and the levels block stays honest either way.
   for (const id of capIds) {

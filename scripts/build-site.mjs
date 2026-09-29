@@ -196,16 +196,20 @@ const PAGE_TOC = {
   ],
   "adlc": [
     ["#overview", "Overview"],
+    ["#strategic-alignment", "Strategic alignment"],
     ["#core-shifts", "Core shifts"],
-    ["#stages", "The 8 stages"],
-    ["#stage-0", "0 · Preparation"],
-    ["#stage-1", "1 · Scope Framing"],
-    ["#stage-2", "2 · Architecture"],
-    ["#stage-3", "3 · Proof of Value"],
-    ["#stage-4", "4 · Implementation"],
-    ["#stage-5", "5 · Testing"],
-    ["#stage-6", "6 · Deployment"],
-    ["#stage-7", "7 · Learning"],
+    ["#commercial-model", "Commercial model"],
+    ["#pipeline", "Pipeline"],
+    ["#stage-0", "0 · Intent Framing"],
+    ["#stage-1", "1 · Evidence Gate"],
+    ["#stage-2", "2 · Design"],
+    ["#stage-3", "3 · Build"],
+    ["#stage-4", "4 · Testing"],
+    ["#stage-5", "5 · Deployment"],
+    ["#stage-6", "6 · Governance"],
+    ["#domains-across", "Domains across stages"],
+    ["#adaptation", "Adaptation matrix"],
+    ["#gaps", "Known gaps"],
   ],
   "adlc-tactical": [
     ["#overview", "Overview"],
@@ -1047,11 +1051,26 @@ function renderAiSdlcMain(model) {
 function renderAdlcMain(model) {
   const lc = requireLifecycle(model, "adlc");
   const stages = lc.stages ?? [];
+  const riskShapeNames = new Map(
+    (model.riskShapes ?? []).map((s) => [s.id, s.name]),
+  );
+  const domainNames = new Map((model.domains ?? []).map((d) => [d.id, d.name]));
+
+  const alignmentItems = (lc.strategic_alignment ?? [])
+    .map((a) => kv(a.name, `<p>${esc(oneLine(a.description))}</p>`))
+    .join("");
 
   const shiftRows = (lc.core_shifts ?? [])
     .map(
       (s) =>
-        `<tr><td><strong>${esc(s.dimension)}</strong></td><td>${esc(s.sdlc)}</td><td>${esc(s.adlc)}</td></tr>`,
+        `<tr><td><strong>${esc(s.dimension)}</strong></td><td>${esc(s.sdlc ?? "")}</td><td>${esc(s.adlc ?? "")}</td></tr>`,
+    )
+    .join("");
+
+  const constraintRows = (lc.commercial_constraints ?? [])
+    .map(
+      (c) =>
+        `<tr><td><strong>${esc(c.constraint)}</strong></td><td>${esc(oneLine(c.response))}</td></tr>`,
     )
     .join("");
 
@@ -1062,38 +1081,111 @@ function renderAdlcMain(model) {
     )
     .join("");
 
+  const domainRows = stages
+    .map((s) => {
+      const primary = domainNames.get(s.primary_domain) ?? "";
+      const secondary = s.secondary_domain
+        ? domainNames.get(s.secondary_domain) ?? ""
+        : "";
+      const shapes = (s.risk_shapes_hot ?? [])
+        .map((id) => riskShapeNames.get(id) ?? id)
+        .join(", ");
+      return `<tr><td>${s.number} · ${esc(s.name)}</td><td>${esc(primary)}</td><td>${esc(secondary)}</td><td>${esc(shapes)}</td></tr>`;
+    })
+    .join("");
+
+  const adaptationRows = stages
+    .filter((s) => s.adaptation)
+    .map(
+      (s) =>
+        `<tr><td>${s.number} · ${esc(s.name)}</td><td>${esc(oneLine(s.adaptation.approach))}</td><td>${esc(s.artifact)}</td><td>${esc(oneLine(s.adaptation.governance))}</td></tr>`,
+    )
+    .join("");
+
+  const domainNotes = (lc.domain_notes ?? [])
+    .map(
+      (dn) =>
+        `<p class="lede"><strong>${esc(domainNames.get(dn.domain) ?? dn.domain)}</strong> ${esc(oneLine(dn.note))}</p>`,
+    )
+    .join("");
+
+  const gapItems = (lc.gaps ?? [])
+    .map((g) => kv(g.name, `<p>${esc(oneLine(g.description))}</p>`))
+    .join("");
+
   const cu = lc.commercial_unit;
   const cuNote = cu
-    ? `<p class="lede">Commercially, Stages ${cu.stages.join(" through ")} encompass the ${esc(cu.name)}.</p>`
+    ? `<p class="lede">Commercially, Stages ${cu.stages.join(" and ")} together are the ${esc(cu.name)}.</p>`
     : "";
 
-  const stageBlocks = stages.map((s) => renderStageWithTactical(s)).join("");
+  const stageBlocks = stages.map((s) => renderStage(s)).join("");
 
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">${esc(lc.name)}</h1>
         <p class="lede">${esc(oneLine(lc.summary))}</p>
-        <p class="lede">${esc(oneLine(lc.description))}</p>
+        ${lc.description ? lc.description.split(/\n{2,}/).map((p) => `<p class="lede">${fileRefs(esc(p.replace(/\n/g, " ").trim()))}</p>`).join("") : ""}
+        ${lc.pipeline_note ? `<p class="lede"><strong>${esc(oneLine(lc.pipeline_note))}</strong></p>` : ""}
       </section>
 
-      ${shiftRows ? `<section id="core-shifts">
-        <h2 class="mono uppercase eyebrow">Core shifts: SDLC vs ADLC</h2>
-        <table class="hairline-table">
-          <thead><tr><th>Dimension</th><th>SDLC</th><th>ADLC</th></tr></thead>
-          <tbody>${shiftRows}</tbody>
-        </table>
+      ${alignmentItems ? `<section id="strategic-alignment">
+        <h2 class="mono uppercase eyebrow">Strategic alignment</h2>
+        <div class="kvs">${alignmentItems}</div>
       </section>` : ""}
 
-      <section id="stages">
-        <h2 class="mono uppercase eyebrow">The ${stages.length} stages</h2>
+      ${shiftRows ? `<section id="core-shifts">
+        <h2 class="mono uppercase eyebrow">Core operational shifts</h2>
+        <div class="scroll-x">
+        <table class="hairline-table">
+          <thead><tr><th>Dimension</th><th>Conventional</th><th>ADLC</th></tr></thead>
+          <tbody>${shiftRows}</tbody>
+        </table>
+        </div>
+      </section>` : ""}
+
+      ${constraintRows ? `<section id="commercial-model">
+        <h2 class="mono uppercase eyebrow">Commercial model</h2>
+        <div class="scroll-x">
+        <table class="hairline-table">
+          <thead><tr><th>Constraint</th><th>How ADLC addresses it</th></tr></thead>
+          <tbody>${constraintRows}</tbody>
+        </table>
+        </div>
+      </section>` : ""}
+
+      <section id="pipeline">
+        <h2 class="mono uppercase eyebrow">The pipeline</h2>
         ${cuNote}
         <table class="hairline-table">
-          <thead><tr><th>Stage</th><th>Name</th><th>Core question</th></tr></thead>
+          <thead><tr><th>Stage</th><th>Name</th><th>Core objective</th></tr></thead>
           <tbody>${overviewRows}</tbody>
         </table>
       </section>
 
-      ${stageBlocks}`;
+      ${stageBlocks}
+
+      <section id="domains-across">
+        <h2 class="mono uppercase eyebrow">Domains and risk shapes across the pipeline</h2>
+        <div class="scroll-x">
+        <table class="hairline-table">
+          <thead><tr><th>Stage</th><th>Primary domain</th><th>Secondary</th><th>Risk shapes</th></tr></thead>
+          <tbody>${domainRows}</tbody>
+        </table>
+        </div>
+        ${domainNotes}
+      </section>
+
+      ${adaptationRows ? `<section id="adaptation">
+        <h2 class="mono uppercase eyebrow">Adaptation matrix</h2>
+        <div class="scroll-x">
+        <table class="hairline-table">
+          <thead><tr><th>Stage</th><th>ADLC approach</th><th>Artifact</th><th>Governance</th></tr></thead>
+          <tbody>${adaptationRows}</tbody>
+        </table>
+        </div>
+      </section>` : ""}
+
+      ${gapItems ? `<section id="gaps"><h2 class="mono uppercase eyebrow">Known gaps</h2><div class="kvs">${gapItems}</div></section>` : ""}`;
 }
 
 function renderTacticalPlaybookMain() {

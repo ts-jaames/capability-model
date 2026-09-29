@@ -38,16 +38,40 @@
         "description": { "$ref": "common.json#/$defs/nonEmptyString" }
       }
     },
+    "strategic_alignment": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "description"],
+        "properties": {
+          "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    },
     "core_shifts": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["dimension", "sdlc", "adlc"],
+        "required": ["dimension"],
         "properties": {
           "dimension": { "$ref": "common.json#/$defs/nonEmptyString" },
           "sdlc": { "$ref": "common.json#/$defs/nonEmptyString" },
           "adlc": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    },
+    "commercial_constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["constraint", "response"],
+        "properties": {
+          "constraint": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "response": { "$ref": "common.json#/$defs/nonEmptyString" }
         }
       }
     },
