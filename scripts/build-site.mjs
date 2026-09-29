@@ -213,6 +213,18 @@ const PAGE_TOC = {
   ],
   "adlc-tactical": [
     ["#overview", "Overview"],
+    ["#tooling", "Tooling"],
+    ["#repo-structure", "Repo structure"],
+    ["#tactical-0", "0 · Intent Framing"],
+    ["#tactical-1", "1 · Evidence Gate"],
+    ["#tactical-2", "2 · Design"],
+    ["#tactical-3", "3 · Build"],
+    ["#tactical-4", "4 · Test"],
+    ["#tactical-5", "5 · Deploy"],
+    ["#tactical-6", "6 · Maintain"],
+    ["#context-engine", "Context Engine"],
+    ["#mcp-isolation", "MCP isolation"],
+    ["#extensibility", "Extensibility"],
   ],
   "new-discovery": [
     ["#overview", "Overview"],
@@ -1357,11 +1369,218 @@ function renderTacticalPlaybookMain() {
 }
 
 function renderAdlcTacticalMain() {
+  return adlcTacticalContent();
+}
+
+function adlcTacticalContent() {
+  const s0 = [
+    kv("Primary tools", "<p>Cowork / Claude Desktop, Markdown templates.</p>"),
+    kv("1. Assumption dump", "<p>Conduct a silent assumption dump across five lenses: Value, Usability, Feasibility, Viability, Operational.</p>"),
+    kv("2. Agentic Failure Premortem", "<p>Explicitly catalog risks related to dynamic reasoning, open-ended tool calling, and token explosion.</p>"),
+    kv("3. Tag every assertion", `<p>Tag every assertion in ${fileRefs("intent.md")} with: [VALIDATED], [DIRECTIONAL], [ASSUMPTION], or [AGENTIC-RISK]. These tags are an intent-tagging convention distinct from the model confidence markers used in capacity-model.yaml.</p>`),
+  ].join("");
+
+  const s1 = [
+    kv("Primary tools", "<p>Claude Code, MCP mocks, Synthetic Adversarial Simulator.</p>"),
+    kv("1. Evidence Slice or Vision Prototype", "<p>Build a targeted slice or prototype touching the highest-risk assumption.</p>"),
+    kv("2. Adversarial stress tests", "<p>Run multi-persona adversarial stress tests using synthetic inputs (malformed prompts, indirect prompt injections, edge-case tool parameters).</p>"),
+    kv("3. Real-world telemetry", "<p>Connect to a real client touchpoint to collect empirical runtime telemetry.</p>"),
+    kv("4. Gate decision", "<p>Issue an explicit gate status: Promote, Iterate, Pivot, or Stop.</p>"),
+  ].join("");
+
+  const s2 = [
+    kv("Primary tools", "<p>Workbench / Claude Code, JSON/YAML Schema validator.</p>"),
+    kv("1. Orchestrator patterns", "<p>Map orchestrator patterns: prompt chaining, routing, parallelization, or orchestrator-worker.</p>"),
+    kv("2. Autonomy Matrix", "<p>Define autonomy-matrix.yaml assigning every action category to a clear authorization level: Autonomous, Automated with Logging, HITL Approval Required, or Prohibited.</p>"),
+    kv("3. Token budgets", "<p>Set strict token CAPEX/OPEX budgets per execution run and establish MCP boundary specs.</p>"),
+  ].join("");
+
+  const s3 = [
+    kv("Primary tools", `<p>Claude Code CLI (claude --plan), git worktrees, Evaluation Framework.</p>`),
+    kv("1. Plan Mode", `<p>Launch Claude Code and enter Plan Mode to generate ${fileRefs("plan.md")}. Get human sign-off prior to execution.</p>`),
+    kv("2. Worktree isolation", "<p>Create an isolated git worktree for execution.</p>"),
+    kv("3. Parallel eval scenarios", `<p>Construct initial evaluation scenarios (evals/datasets/) in parallel with prompt/code drafting.</p>`),
+    kv("4. Continuous evaluation", "<p>Run continuous local evaluations to monitor hallucination rates, formatting compliance, and tool-selection accuracy.</p>"),
+  ].join("");
+
+  const s4 = [
+    kv("Primary tools", "<p>Internal Eval Pipeline, CI/CD runners (GitHub Actions), Telemetry Parsers.</p>"),
+    kv("1. Evaluation suites", "<p>Execute non-interactive evaluation suites across 20-50+ complex task scenarios.</p>"),
+    kv("2. Test Lockouts", `<p>If a test fails, modify prompts, tool schemas, or context in ${fileRefs("CLAUDE.md")}; do not lower evaluation thresholds.</p>`),
+    kv("3. Combined pass threshold", `<ul class="bullets"><li><strong>Task Completion Accuracy:</strong> >= 90%</li><li><strong>Tool Call Accuracy:</strong> >= 98%</li><li><strong>Safety & Alignment Gate:</strong> 100% (zero authorization breaches)</li></ul>`),
+  ].join("");
+
+  const s5 = [
+    kv("Primary tools", "<p>Enterprise CI/CD, HITL authorization gateways, Claude Code review suite.</p>"),
+    kv("1. Multi-pass review", `<p>Conduct a multi-pass security, alignment, and functional review via ${fileRefs("CLAUDE.md")} deployment commands.</p>`),
+    kv("2. Environment autonomy tiers", `<ul class="bullets"><li><strong>Dev:</strong> Full autonomous execution.</li><li><strong>Staging:</strong> Automated checks + clean CI pipeline.</li><li><strong>Production:</strong> Explicit, named human authorization for any action tagged HITL_APPROVAL_REQUIRED in autonomy-matrix.yaml.</li></ul>`),
+    kv("3. Context-engine correction", `<p>If recurring failure modes surface during staging, update ${fileRefs("CLAUDE.md")} to prevent repeating the pattern.</p>`),
+  ].join("");
+
+  const s6 = [
+    kv("Primary tools", "<p>Telemetry Aggregators (Arize Phoenix / Helicone / LangSmith), Background Triage Automation.</p>"),
+    kv("1. Metric bands", `<p>Track real-time metric bands in ${fileRefs("bands.yaml")}: token consumption per task, reasoning drift / model output distribution shift, tool invocation error rates.</p>`),
+    kv("2. Automated Incident Loop", `<p>When telemetry flags an anomaly (unexpected tool call failure or boundary attempt), run a background pipeline that packages the trace into a permanent regression case in evals/datasets/ and logs a new item in ${fileRefs("intent.md")}.</p>`),
+    kv("3. Quarterly governance", "<p>Conduct quarterly governance reviews using accumulated incident logs and token expenditure reports.</p>"),
+  ].join("");
+
+  const claudeMd = `<pre><code># CLAUDE.md - System Context Engine
+
+## Operational Rules
+1. Always run tests using npm run eval before marking any task as complete.
+2. Under no circumstances modify files under mcp-servers/auth/ without explicit authorization.
+3. Every prompt change MUST be accompanied by an update or additions to evals/datasets/.
+
+## Core Subcommands
+- Build Plan: claude --plan
+- Run Evals: python -m evals.runner --dataset evals/datasets/core_tasks.yaml
+- Check Matrix: python -m adlc.autonomy_checker</code></pre>`;
+
+  const mcpExample = `<pre><code>// Example: Standard MCP Server Boundary Isolation
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+
+const server = new Server({
+  name: "enterprise-db-boundary",
+  version: "1.0.0"
+}, {
+  capabilities: { tools: {} }
+});
+
+// Enforce autonomy check inside tool handler
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  if (request.params.name === "execute_mutation") {
+    await verifyAutonomyLevel("production_db_write");
+  }
+  // Proceed with safe execution...
+});</code></pre>`;
+
+  const repoStructure = `<pre><code>.
+CLAUDE.md                     # Central Context Engine & System Instructions
+.claude/
+  settings.json               # Engine permissions, allowed tool boundaries
+  commands/                   # Executable subcommands for development tasks
+  skills/                     # Modular agent skills & domain workflows
+intent.md                     # Stage 0 raw/tagged intent & premortem
+esoa.md                       # Stage 1 Evidence Slice Statement of Alignment
+spec.md                       # Stage 2 Technical architecture spec
+autonomy-matrix.yaml          # Stage 2 Autonomy Authorization Matrix
+plan.md                       # Stage 3 Pre-execution implementation plan
+REVIEW.md                     # Stage 5 Multi-pass safety & deployment review
+bands.yaml                    # Stage 6 Operational drift & token tracking bands
+evals/
+  datasets/                   # 20-50+ core task scenarios (.jsonl / .yaml)
+  runners/                    # Evaluation harness and grader logic
+  baselines/                  # Historical benchmark pass rates
+mcp-servers/                  # Isolated MCP servers for system integration
+  database/                   # DB abstraction layer
+  enterprise-api/             # Wrapped legacy endpoints
+src/                          # Agent runtime logic & deterministic workflows</code></pre>`;
+
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Agentic Tactical</h1>
-        <p class="lede">The tactical execution details for the Agentic Development Lifecycle. skills, hooks, agents, and file names behind each phase.</p>
-        <p class="lede">Placeholder; content is being authored.</p>
+        <p class="lede">The ADLC Tactical Source of Truth: standard operating mechanics, tooling protocols, repo structures, and execution workflows for engineering engagements where the deliverable is an autonomous or semi-autonomous agentic system.</p>
+        <p class="lede">The <a href="adlc.html">Agentic strategy page</a> is the what and why. This page is the how.</p>
+      </section>
+
+      <section id="tooling">
+        <h2 class="mono uppercase eyebrow">Tooling infrastructure</h2>
+        <p class="lede">The default stack centers on the Anthropic ecosystem. Non-Anthropic tooling slots are standardized to allow plugging in specialized enterprise frameworks where needed.</p>
+        <div class="scroll-x">
+        <table class="hairline-table">
+          <thead>
+            <tr><th>Layer</th><th>Standard stack</th><th>Tactical role</th><th>Extensible alternatives</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Agent CLI & Dev Engine</strong></td><td>Claude Code</td><td>${fileRefs("plan.md")} drafting, worktree-isolated coding, tool invocation, terminal automation</td><td>Cursor, Aider, custom CLI runners</td></tr>
+            <tr><td><strong>Collaborative Ideation</strong></td><td>Claude Desktop / Cowork</td><td>Multi-persona ideation, assumption dumps, raw intent tagging, client workshop facilitation</td><td>ChatGPT Team, Poe Enterprise</td></tr>
+            <tr><td><strong>Repo Context Engine</strong></td><td>${fileRefs("CLAUDE.md")} + .claude/**</td><td>Dynamic repository context, agent instructions, project boundaries, subcommands/skills</td><td>.cursorrules, custom system prompt injectors</td></tr>
+            <tr><td><strong>Tool Integration</strong></td><td>Model Context Protocol (MCP)</td><td>Standardized server/client tool binding, DB wrapping, legacy system isolation</td><td>Custom REST/gRPC wrappers, LangChain/LlamaIndex</td></tr>
+            <tr><td><strong>Model Stack</strong></td><td>Claude 3.5 / 3.7 / Sonnet / Opus</td><td>Strategic reasoning, orchestrator planning, code generation</td><td>OpenAI (GPT-4o/o3), DeepSeek, local LLMs (Ollama/vLLM)</td></tr>
+            <tr><td><strong>Evaluation Framework</strong></td><td>Anthropic Eval Tools / API</td><td>Non-deterministic assertions, multi-scenario bench tests, pass/fail grading (20-50+ scenarios)</td><td>Braintrust, DeepEval, Promptfoo, Ragas, DSPy</td></tr>
+            <tr><td><strong>Observability & Telemetry</strong></td><td>Anthropic Console / API Logs</td><td>Token accounting, prompt cost tracking, runtime latency monitoring</td><td>Arize Phoenix, LangSmith, Helicone, Langfuse</td></tr>
+            <tr><td><strong>Vector & Memory</strong></td><td>In-memory / MCP Context</td><td>Dynamic session context, semantic retrieval</td><td>Pinecone, Qdrant, Chroma, Weaviate</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </section>
+
+      <section id="repo-structure">
+        <h2 class="mono uppercase eyebrow">Repository structure</h2>
+        <p class="lede">Every ADLC deliverable repository conforms to this canonical layout to enable repo-native agent execution via Claude Code and MCP.</p>
+        ${repoStructure}
+      </section>
+
+      <section id="tactical-0">
+        <h2 class="mono uppercase eyebrow">Stage 0 · Intent Framing</h2>
+        <p class="line-note">Evidence Sprint</p>
+        <p class="lede">Establish necessity of agentic architecture; identify agentic failure modes (runaway loops, tool abuse, hallucination chains).</p>
+        <div class="kvs">${s0}</div>
+        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("intent.md")}</span><span>Fully tagged, inert.</span></div></div>
+      </section>
+
+      <section id="tactical-1">
+        <h2 class="mono uppercase eyebrow">Stage 1 · Evidence Gate</h2>
+        <p class="line-note">Evidence Sprint</p>
+        <p class="lede">Verify high-risk assumptions with minimal spend before committing to architecture.</p>
+        <div class="kvs">${s1}</div>
+        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("intent.md")} (cleared) + ${fileRefs("esoa.md")}</span><span>Evidence Slice Statement of Alignment.</span></div></div>
+      </section>
+
+      <section id="tactical-2">
+        <h2 class="mono uppercase eyebrow">Stage 2 · Design</h2>
+        <p class="lede">Define model stack, orchestrator topologies, MCP schemas, token budgets, and runtime authority.</p>
+        <div class="kvs">${s2}</div>
+        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("spec.md")} + autonomy-matrix.yaml</span><span>Technical blueprint with Autonomy Matrix.</span></div></div>
+      </section>
+
+      <section id="tactical-3">
+        <h2 class="mono uppercase eyebrow">Stage 3 · Build</h2>
+        <p class="lede">Implement code and prompts under Evaluation-Driven Development using Plan Mode First.</p>
+        <div class="kvs">${s3}</div>
+        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("plan.md")} + code diffs</span><span>Feature branch diffs, initial baseline eval scores.</span></div></div>
+      </section>
+
+      <section id="tactical-4">
+        <h2 class="mono uppercase eyebrow">Stage 4 · Test</h2>
+        <p class="lede">Validate probabilistic outputs against multi-scenario evaluation suites.</p>
+        <div class="kvs">${s4}</div>
+        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">evals/baselines/latest_results.json</span><span>Verification execution logs and eval pass report.</span></div></div>
+      </section>
+
+      <section id="tactical-5">
+        <h2 class="mono uppercase eyebrow">Stage 5 · Deploy</h2>
+        <p class="lede">Safely transition non-deterministic systems to staging and production using tiered autonomy.</p>
+        <div class="kvs">${s5}</div>
+        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("REVIEW.md")}</span><span>Signed production activation record.</span></div></div>
+      </section>
+
+      <section id="tactical-6">
+        <h2 class="mono uppercase eyebrow">Stage 6 · Maintain & Governance</h2>
+        <p class="lede">Monitor drift, enforce token governance, and route real-world edge cases back into Intent Triage automatically.</p>
+        <div class="kvs">${s6}</div>
+        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("bands.yaml")}</span><span>Updated bands and dynamic incident regression cases.</span></div></div>
+      </section>
+
+      <section id="context-engine">
+        <h2 class="mono uppercase eyebrow">Context Engine mechanics</h2>
+        <p class="lede">The ${fileRefs("CLAUDE.md")} file acts as the repo's central context manager. It must contain concise, deterministic operational guidance for agent execution.</p>
+        ${claudeMd}
+      </section>
+
+      <section id="mcp-isolation">
+        <h2 class="mono uppercase eyebrow">MCP Server isolation</h2>
+        <p class="lede">Agents must never make ad-hoc network requests or direct database calls. All enterprise interactions must be routed through MCP servers using standard input validation.</p>
+        ${mcpExample}
+      </section>
+
+      <section id="extensibility">
+        <h2 class="mono uppercase eyebrow">Open extensibility points</h2>
+        <div class="kvs">
+          ${kv("Eval harnesses", "<p>Keep evaluation datasets format-agnostic (.jsonl or .yaml) so they can be parsed interchangeably by internal scripts, Braintrust, DeepEval, or Promptfoo.</p>")}
+          ${kv("Telemetry wrappers", "<p>Standardize on OpenTelemetry format so traces stream to Arize Phoenix, LangSmith, or Datadog without modifying application code.</p>")}
+        </div>
       </section>`;
 }
 
