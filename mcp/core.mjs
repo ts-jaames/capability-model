@@ -345,8 +345,19 @@ export function listTitles(index) {
       id: title.id,
       name: title.name,
       description: oneLine(title.description),
+      replaces: title.replaces ?? [],
       owns: title.owns ?? [],
       owned_capabilities: ownedCapabilityIds(title, index),
+      // Structured defaults, separate from the prose `executes` summary. The
+      // operating view needs the level on each one; the prose alone cannot say it.
+      default_executes: (title.default_executes ?? []).map((item) => {
+        const cap = index.capabilityById.get(item.capability);
+        return {
+          id: item.capability,
+          name: cap?.name,
+          level: item.level,
+        };
+      }),
       executes: oneLine(title.executes),
       shape: oneLine(title.shape),
       note: title.note ? oneLine(title.note) : undefined,
@@ -414,6 +425,17 @@ export function getLifecycle(index, { lifecycle } = {}) {
         }
       : undefined,
     core_shifts: lc.core_shifts,
+    raci: Array.isArray(lc.raci)
+      ? lc.raci.map((entry) => ({
+          stage: entry.stage,
+          stage_name: (lc.stages ?? []).find((stage) => stage.number === entry.stage)?.name,
+          assignments: (entry.assignments ?? []).map((assignment) => ({
+            title: assignment.title,
+            title_name: index.titleById.get(assignment.title)?.name,
+            designation: assignment.designation,
+          })),
+        }))
+      : undefined,
     stages: (lc.stages ?? []).map((stage) => ({
       number: stage.number,
       name: stage.name,

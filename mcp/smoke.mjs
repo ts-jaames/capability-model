@@ -174,6 +174,19 @@ async function main() {
   for (const title of titleList) {
     check(`title ${title.id} owns something`, (title.owned_capabilities ?? []).length > 0);
     check(`title ${title.id} says what it executes`, Boolean(title.executes));
+    check(`title ${title.id} exposes default_executes`, Array.isArray(title.default_executes));
+    check(`title ${title.id} exposes replaces`, Array.isArray(title.replaces));
+    for (const item of title.default_executes ?? []) {
+      check(
+        `title ${title.id} default-executes a real capability (${item.id})`,
+        capIds.has(item.id),
+      );
+      check(
+        `title ${title.id} default-executes ${item.id} at L1–L3`,
+        ["L1", "L2", "L3"].includes(item.level),
+        String(item.level),
+      );
+    }
     for (const id of title.owned_capabilities ?? []) {
       check(`title ${title.id} owns a real capability (${id})`, capIds.has(id));
       ownedOnce.set(id, (ownedOnce.get(id) ?? 0) + 1);
@@ -235,10 +248,27 @@ async function main() {
   check("ai-native-sdlc stage 0 is Intent Framing", sdlc.payload?.stages?.[0]?.name === "Intent Framing");
   check("ai-native-sdlc stage 1 is Evidence Gate", sdlc.payload?.stages?.[1]?.name === "Evidence Gate");
   check("ai-native-sdlc has a commercial unit", sdlc.payload?.commercial_unit?.name === "Evidence Sprint");
-
+  const raci = sdlc.payload?.raci ?? [];
+  check("ai-native-sdlc returns a RACI row per stage", raci.length === (sdlc.payload?.stages ?? []).length);
+  const titleIds = new Set(titleList.map((title) => title.id));
+  for (const row of raci) {
+    check(`raci stage ${row.stage} names its stage`, Boolean(row.stage_name));
+    for (const assignment of row.assignments ?? []) {
+      check(
+        `raci stage ${row.stage} cites a real title (${assignment.title})`,
+        titleIds.has(assignment.title),
+      );
+      check(
+        `raci stage ${row.stage} uses a RACI designation`,
+        ["R", "A", "C", "I"].includes(assignment.designation),
+        String(assignment.designation),
+      );
+    }
+  }
   const adlc = await client.call("get_lifecycle", { lifecycle: "adlc" });
   check("adlc has 7 stages", (adlc.payload?.stages ?? []).length === 7);
   check("adlc stage 0 is Intent Framing", adlc.payload?.stages?.[0]?.name === "Intent Framing");
+  check("adlc omits raci when the lifecycle has none", adlc.payload?.raci === undefined);
 
   // Every capability answers, and the levels block stays honest either way.
   for (const id of capIds) {

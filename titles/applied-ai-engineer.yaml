@@ -1,5 +1,5 @@
-id: ai-systems-engineer
-name: AI Systems Engineer
+id: applied-ai-engineer
+name: Applied AI Engineer
 description: >
   Owns the AI engineering environment: agent harnesses, context rules
   (CLAUDE.md), MCP servers, pre-commit hooks, and CI/CD pipelines. Builds the
