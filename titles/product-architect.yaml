@@ -1,21 +1,24 @@
 id: product-architect
 name: Product Architect
 description: >
-  Owns whether it's the right thing: framed, priced, and directed honestly.
-  Leads presales, because shaping a deal is the same judgment as delivering one.
-  Works alongside Solution Consultants and Delivery Partners who co-own the
-  commercial envelope.
+  Owns whether it's the right thing and what it looks like: framed, priced,
+  designed, and directed honestly. Leads presales, because shaping a deal is
+  the same judgment as delivering one. Works alongside Solution Consultants
+  and Delivery Partners who co-own the commercial envelope.
 why: >
   Someone has to own the question "are we solving the right problem?" and the
-  commercial commitment behind it. In AI-native delivery, this is the person
-  who runs Stage 0 and Stage 1, turning fuzzy client intent into tagged
-  assumptions that survive the Evidence Gate.
+  interface the answer takes. In AI-native delivery, this is the person who
+  runs Stage 0 and Stage 1, turning fuzzy client intent into tagged
+  assumptions that survive the Evidence Gate, and who owns the product surface
+  users see and touch.
 replaces:
   - Business Analysis
   - Product Strategy
+  - Design
 owns:
   - domain: commercial
   - domain: framing
+  - capability: product-interface-building
 default_executes:
   - capability: demonstration-evidence-review
     level: L2
@@ -23,17 +26,20 @@ default_executes:
     level: L1
   - capability: transparent-delivery
     level: L1
-typical_seats:
-  - Interface Lead
+  - capability: outcome-definition
+    level: L1
+  - capability: stakeholder-alignment
+    level: L1
 executes: >
   Frames the ask to one lever; names the hard constraints and collapse risks;
   makes the go / redirect / stop call; shapes and prices the envelope; aligns
-  the people who can block the work.
+  the people who can block the work; owns HITL workflow design, component
+  contracts, and interaction patterns.
 shape: >
-  Deep-T to barbell: the judgment core of an engagement, framing and commercial
-  in one lane.
+  Barbell: judgment and interface in one lane, from framing through what
+  users see and touch.
 reading_order: 1
 status: draft
 owner: Operating Model
 source: original
-last_updated: 2026-09-28
+last_updated: 2026-09-30

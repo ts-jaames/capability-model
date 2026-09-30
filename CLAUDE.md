@@ -83,13 +83,13 @@ Fail — and reclassify — if the thing is really a capability, a title, a skil
 
 ### Title (`titles/`)
 
-An **internal grouping of owned capabilities** — shorthand for a coherent bundle one person can be accountable for. Product Architect, Experience Architect, AI Architect, Forward Deployed Engineer, Adoption Architect.
+An **internal grouping of owned capabilities** — shorthand for a coherent bundle one person can be accountable for. Product Architect, Forward Deployed Engineer, AI Systems Engineer, Eval & Quality Engineer, Engagement & Autonomy Lead.
 
 A title is **not a commercial artefact**. It never appears on a SOW or a rate card. The client buys the outcome, priced from the capabilities-at-levels underneath. Titles are peer categories, not a ladder; seniority lives on the consultant band and the level.
 
 Pass only if it names a bundle of capabilities that already exist and that someone can own together. Fail — and reclassify — if it is a seat name, a market label with no ownership behind it, or a seniority grade.
 
-`owns` is a list of `{domain}` or `{capability}` refs, the same shape a seam endpoint uses. Owning a domain owns every capability in it. **Every capability must be owned by exactly one title** — that is what stops a title becoming a grab-bag and stops a capability becoming an orphan. Do not add a sixth title without moving ownership to make room for it.
+`owns` is a list of `{domain}` or `{capability}` refs, the same shape a seam endpoint uses. Owning a domain owns every capability in it. **Every capability must be owned by exactly one title** — that is what stops a title becoming a grab-bag and stops a capability becoming an orphan. Do not add a title without moving ownership to make room for it.
 
 Distinct from a staffing bound: a title is who owns what, agency-wide and durable; a bound is what one seat may execute on one engagement.
 

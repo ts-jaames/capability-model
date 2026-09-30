@@ -152,7 +152,7 @@ const PAGE_TOC = {
   "roles-titles": [
     ["#overview", "Overview"],
     ["#traditional-mapping", "Traditional to AI-Native"],
-    ["#titles", "The 6 titles"],
+    ["#titles", "The 5 titles"],
     ["#sensible-defaults", "Sensible defaults"],
     ["#commercial-stack", "The SOW"],
     ["#how-seats-get-filled", "Filling seats"],
@@ -637,22 +637,23 @@ function renderRolesMain(model) {
         <h1 class="mono uppercase eyebrow">Roles & Titles</h1>
         <p class="lede">Capabilities are the contract. Seats are the fulfillment. Titles are internal coverage.</p>
         <p class="lede">The SOW sells an outcome, priced from the capabilities-at-levels underneath it, never headcount and never a title. A title is internal shorthand for a coherent bundle of capabilities that one person typically owns. It groups coverage; it is not a thing a client buys.</p>
-        <p class="lede">An L4 Capability Owner is a named individual practitioner, not a title or a team. One person owns each capability and is accountable for its maturity. The titles below describe common ownership compositions: six groupings that cover every capability, so each has a coherent home and none is a grab-bag. That coverage is an enforced invariant, not just a claim.</p>
+        <p class="lede">An L4 Capability Owner is a named individual practitioner, not a title or a team. One person owns each capability and is accountable for its maturity. The titles below describe common ownership compositions: five groupings that cover every capability, so each has a coherent home and none is a grab-bag. That coverage is an enforced invariant, not just a claim.</p>
         <p class="lede">A seat is a capability at a level on an engagement, not a named role. Seats are filled by people whose L4 ownership and execution profile fit the work. One person can execute up to 7 capabilities and own up to 2 on a given engagement.</p>
       </section>
 
       <section id="traditional-mapping">
         <h2 class="mono uppercase eyebrow">Traditional to AI-Native</h2>
-        <p class="lede">14 traditional titles compress into 6. Language and platform distinctions collapse in AI-native delivery; what matters is the capability, not the stack.</p>
+        <p class="lede">14 traditional titles compress into 5. Language and platform distinctions collapse in AI-native delivery; what matters is the capability, not the stack.</p>
         <table class="hairline-table">
           <thead><tr><th>Traditional title</th><th>AI-Native title</th></tr></thead>
           <tbody>${mappingRows}</tbody>
         </table>
         <p class="lede">Solution Consultants and Delivery Partners remain as pre-engagement commercial roles, working alongside the Product Architect on the commercial envelope.</p>
+        <p class="lede">* <strong>Data Visualization</strong> is not yet mapped. Its current project footprint and capability alignment need to be assessed before assigning it to a title.</p>
       </section>
 
       <section id="titles">
-        <h2 class="mono uppercase eyebrow">The 6 titles</h2>
+        <h2 class="mono uppercase eyebrow">The 5 titles</h2>
         <p class="lede">Each title describes a coherent cluster of capabilities that one practitioner typically owns. The named L4 owner is a person, not the title itself; the title is the grouping that makes the ownership legible.</p>
         <div class="stack">
         ${titleCards}
