@@ -16,9 +16,10 @@ replaces:
   - Product Strategy
   - Design
 owns:
-  - domain: commercial
   - domain: framing
   - capability: product-interface-building
+  - capability: confidence-based-estimation
+  - capability: pricing-under-uncertainty
 default_executes:
   - capability: demonstration-evidence-review
     level: L2

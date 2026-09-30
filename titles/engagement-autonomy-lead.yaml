@@ -17,13 +17,12 @@ owns:
   - domain: enablement
   - capability: client-operating-model-design
   - capability: transition-warranty-design
+  - capability: commercial-scoping-envelope-shaping
 default_executes:
   - capability: stakeholder-alignment
     level: L2
   - capability: transparent-delivery
     level: L2
-  - capability: commercial-scoping-envelope-shaping
-    level: L1
 typical_seats:
   - Interface Lead
 executes: >
