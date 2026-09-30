@@ -153,8 +153,7 @@ const PAGE_TOC = {
     ["#overview", "Overview"],
     ["#traditional-mapping", "Traditional to AI-Native"],
     ["#titles", "The 6 titles"],
-    ["#engagement-seats", "Engagement seats"],
-    ["#raci", "RACI matrix"],
+    ["#sensible-defaults", "Sensible defaults"],
     ["#commercial-stack", "The SOW"],
     ["#how-seats-get-filled", "Filling seats"],
     ["#key-definitions", "Key definitions"],
@@ -534,7 +533,7 @@ function renderSeam(seam, capsById, domainsById) {
 }
 
 function renderRolesMain(model) {
-  const { titles, capabilities, domains, definitions, roles, lifecycles } = model;
+  const { titles, capabilities, domains, definitions, lifecycles } = model;
   const capsById = byId(capabilities);
   const domainsById = byId(domains);
   const definitionsById = byId(definitions);
@@ -566,9 +565,6 @@ function renderRolesMain(model) {
           return `<li>${esc(label)} @ ${esc(d.level)}</li>`;
         })
         .join("");
-      const seats = (title.typical_seats ?? [])
-        .map((s) => esc(s))
-        .join(", ");
       return `
     <article class="row" id="title-${esc(title.id)}">
       <header class="row-head">
@@ -577,40 +573,9 @@ function renderRolesMain(model) {
       ${title.why ? `<div class="prose"><p>${esc(oneLine(title.why))}</p></div>` : ""}
       ${replaces}
       <div class="kvs">
-        ${kv("Owns", `<p>${owns}</p>`)}
-        ${defaults ? kv("Default executes", `<ul class="bullets">${defaults}</ul>`) : ""}
-        ${seats ? kv("Typical seats", `<p>${esc(seats)}</p>`) : ""}
+        ${kv("Typically owns", `<p>${owns}</p>`)}
+        ${defaults ? kv("Also executes by default", `<ul class="bullets">${defaults}</ul>`) : ""}
         ${kv("Shape", `<p>${esc(oneLine(title.shape))}</p>`)}
-      </div>
-    </article>`;
-    })
-    .join("");
-
-  // Engagement seats
-  const seatCards = [...roles]
-    .map((role) => {
-      const ownsList = (role.owned_capabilities ?? [])
-        .map((id) => {
-          const cap = capsById.get(id);
-          return cap ? esc(cap.name) : esc(id);
-        })
-        .join(", ");
-      const execList = (role.executable_capabilities ?? [])
-        .map((item) => {
-          const cap = capsById.get(item.id);
-          const label = cap ? cap.name : item.id;
-          return `${esc(label)} @ ${esc(item.required_level)}`;
-        })
-        .join(", ");
-      return `
-    <article class="row" id="seat-${esc(role.id)}">
-      <header class="row-head">
-        <h3 class="domain-name">${esc(role.name)}</h3>
-      </header>
-      <div class="prose"><p>${esc(oneLine(role.description))}</p></div>
-      <div class="kvs">
-        ${ownsList ? kv("Owns", `<p>${ownsList}</p>`) : ""}
-        ${execList ? kv("Executes", `<p>${execList}</p>`) : ""}
       </div>
     </article>`;
     })
@@ -671,9 +636,9 @@ function renderRolesMain(model) {
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Roles & Titles</h1>
         <p class="lede">Capabilities are the contract. Seats are the fulfillment. Titles are internal coverage.</p>
-        <p class="lede">The SOW sells an outcome, priced from the capabilities-at-levels underneath it, never headcount and never a title. A title is internal shorthand for a coherent bundle of owned capabilities. It groups coverage; it is not a thing a client buys.</p>
-        <p class="lede">An L4 Capability Owner is a named individual practitioner, not a title or a team. One person owns each capability cluster and is accountable for its maturity. L4s compose into the titles below: common compositions, named for internal coverage, not for the market. Six titles cover every capability, so each has a coherent home and none is a grab-bag, now an enforced invariant, not just a claim.</p>
-        <p class="lede">One person can hold up to 2 engagement seats and execute up to 7 stage capabilities. The title is who they are; the seat is what they do on this engagement.</p>
+        <p class="lede">The SOW sells an outcome, priced from the capabilities-at-levels underneath it, never headcount and never a title. A title is internal shorthand for a coherent bundle of capabilities that one person typically owns. It groups coverage; it is not a thing a client buys.</p>
+        <p class="lede">An L4 Capability Owner is a named individual practitioner, not a title or a team. One person owns each capability and is accountable for its maturity. The titles below describe common ownership compositions: six groupings that cover every capability, so each has a coherent home and none is a grab-bag. That coverage is an enforced invariant, not just a claim.</p>
+        <p class="lede">A seat is a capability at a level on an engagement, not a named role. Seats are filled by people whose L4 ownership and execution profile fit the work. One person can execute up to 7 capabilities and own up to 2 on a given engagement.</p>
       </section>
 
       <section id="traditional-mapping">
@@ -688,22 +653,16 @@ function renderRolesMain(model) {
 
       <section id="titles">
         <h2 class="mono uppercase eyebrow">The 6 titles</h2>
+        <p class="lede">Each title describes a coherent cluster of capabilities that one practitioner typically owns. The named L4 owner is a person, not the title itself; the title is the grouping that makes the ownership legible.</p>
         <div class="stack">
         ${titleCards}
         </div>
       </section>
 
-      <section id="engagement-seats">
-        <h2 class="mono uppercase eyebrow">Engagement seats</h2>
-        <p class="lede">On a lean 2-to-3 person client engagement, you assign seats, not titles. One practitioner can own up to 2 seats and execute up to 7 stage capabilities.</p>
-        <div class="stack">
-        ${seatCards}
-        </div>
-      </section>
-
-      <section id="raci">
-        <h2 class="mono uppercase eyebrow">RACI matrix</h2>
-        <p class="lede">R (Responsible): hands-on driving and producing the artifact. A (Accountable): single point of sign-off for the stage gate. C (Consulted): inputs context, runs sub-agents, or participates. I (Informed): updated on status and output.</p>
+      <section id="sensible-defaults">
+        <h2 class="mono uppercase eyebrow">Sensible defaults by stage</h2>
+        <p class="lede">The matrix below shows where each title typically leads, contributes, or is informed, derived from which capabilities are primary at each stage. These are sensible defaults, not fixed assignments. Actual responsibility follows from capability ownership: whoever is the named L4 for the capabilities that fire in a stage is accountable for that stage's output, regardless of title.</p>
+        <p class="lede">R: typically drives and produces. A: typically signs off. C: typically contributes context. I: typically informed on output.</p>
         ${raciTable}
       </section>
 
@@ -1630,7 +1589,7 @@ function renderHowItRelatesMain(model) {
         <h2 class="mono uppercase eyebrow">Three verbs</h2>
         <p class="lede">Title, ownership, and seat are not three more lists. They are three verbs on the same capability: grouped under, keeps fit, executes.</p>
         <p class="lede">Title is grouped under. a bundle of owned capabilities, internal shorthand for coverage. L4 Capability Ownership is keeps fit. the capability you author guardrails for, internal and permanent. Seat is executes. one capability at one level, this squad, internal and dynamic. All three are internal; none of them is what the client buys.</p>
-        ${to("roles-titles.html#title-ownership-seat", "Roles & Titles")}
+        ${to("roles-titles.html#titles", "Roles & Titles")}
       </section>
       <section id="seats">
         <h2 class="mono uppercase eyebrow">A seat is runtime</h2>
