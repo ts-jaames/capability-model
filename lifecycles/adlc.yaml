@@ -149,7 +149,7 @@ stages:
       gate carries more weight than in a conventional build, because
       architecture decisions here (tool access, autonomy scope) are expensive
       to unwind once made.
-    artifact: intent.md (cleared, synced) + ESOA
+    artifact: intent.md (cleared, synced)
     gate: Promote / Iterate / Pivot / Stop + PO merge
     primary_domain: proof
     secondary_domain: framing
@@ -176,8 +176,8 @@ stages:
           On Promote, close the gate: sync to the enterprise tracker and clear
           the intent for Design.
     output: >
-      intent.md (cleared) plus an Evidence Slice Statement of Alignment and,
-      where built, a Vision Prototype demonstrating future-state value.
+      intent.md (cleared and synced to the enterprise tracker) and, where
+      built, a Vision Prototype demonstrating future-state value.
     note: Evidence Sprint
     adaptation:
       approach: >

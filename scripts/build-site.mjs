@@ -1159,7 +1159,14 @@ function renderAdlcMain(model) {
 }
 
 function renderTacticalPlaybookMain() {
-  return `
+  // Same output card as the strategy page: an "Output" label over the file
+  // reference and a one-line description.
+  const output = (file, text) =>
+    `<div class="stage-output"><span class="stage-output-label">Output</span><div class="stage-output-body"><span class="stage-output-file">${file}</span><span>${text}</span></div></div>`;
+  const sprintTag = `<span class="stage-tag">Evidence Sprint</span>`;
+  // fileRefs wraps every intent.md / spec.md / plan.md style reference in the
+  // rendered page, so the file-name styling matches the strategy page.
+  return fileRefs(`
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Tactical Playbook</h1>
         <p class="lede">The reconciled tactical execution behind the AI-Native SDLC: the exact skills, hooks, agents, and file names behind each stage, checked against Anthropic's published playbook.</p>
@@ -1187,8 +1194,7 @@ function renderTacticalPlaybookMain() {
       </section>
 
       <section id="tactical-0">
-        <h2 class="mono uppercase eyebrow">Stage 0 · Intent Framing. Tactical</h2>
-        <p class="line-note">First half of the Evidence Sprint.</p>
+        <h2 class="mono uppercase eyebrow">Stage 0 · Intent Framing. Tactical${sprintTag}</h2>
         <div class="kvs">
           ${kv("Practice", "<p>A 2–4 hour structured workshop. 10 min silent assumption dump sorted into Value / Usability / Feasibility / Viability / Operational → failure premortem → architecture exposure with engineering. No untagged claims survive the file.</p>")}
           ${kv("Tooling", "<p>Meeting-transcription MCP (Whisper/Fathom/Recall.ai) for live capture, plus Miro/Mural/Slack MCP for stickies and threads.</p>")}
@@ -1199,15 +1205,14 @@ function renderTacticalPlaybookMain() {
           ${kv("premortem-adversary subagent", "<p>Red-teams the room on technical constraints and unstated dependencies.</p>")}
           ${kv("assumption-linter hook", "<p>Pre-commit. Rejects the commit if any claim lacks an [ASSUMPTION: Category] tag.</p>")}
         </div>
-        <p class="line-note">Artifact: raw intent.md, 100% tagged. Facilitator validates tagging before it moves.</p>
+        ${output("raw intent.md", "100% tagged. Facilitator validates tagging before it moves.")}
       </section>
 
       <section id="tactical-1">
-        <h2 class="mono uppercase eyebrow">Stage 1 · Evidence Gate. Tactical</h2>
-        <p class="line-note">Second half of the Evidence Sprint, the execution part of discovery.</p>
+        <h2 class="mono uppercase eyebrow">Stage 1 · Evidence Gate. Tactical${sprintTag}</h2>
         <div class="kvs">
           ${kv("Practice", "<p>Pull the highest-risk Value/Usability assumption. Frame a minimal external-facing slice. Attach it to a real client touchpoint; synthetic-only validation is disallowed without a logged exception. Record signal. Product + Delivery decide: Promote / Iterate / Pivot / Stop. On a Promote, close by merging cleared intent.md into /intent/, mapping scope blocks into the enterprise tracker, and defining hard boundary markers.</p>")}
-          ${kv("Repo home", "<p>Evidence Work skills and the resulting evidence-of-signal live in a per-project repo. That's also where the ESOA lives, transitioning from a solutions-side version into the delivery-side version rather than being recreated.</p>")}
+          ${kv("Repo home", "<p>Evidence Work skills and the resulting evidence-of-signal live in a per-project repo.</p>")}
           ${kv("Vision Prototype", "<p>Distinct from the narrow Evidence Slice. Where an Evidence Slice tests one assumption, a Vision Prototype is a holistic build, full breadth, selective depth, meant to show the client the future-state value, not validate a single risk. Optional per engagement, but when built, it sits alongside the Promote decision and the costed Build proposal.</p>")}
           ${kv("Tooling", "<p>Conversation Intelligence MCP (Gong/Zoom/Teams/Chorus) for signal capture; Enterprise Tracker MCP (Jira/Azure DevOps/ServiceNow) and a non-interactive Claude CI runner for the close.</p>")}
         </div>
@@ -1218,7 +1223,7 @@ function renderTacticalPlaybookMain() {
           ${kv("tracker-sync skill", "<p>Automates mapping between Markdown scope blocks and enterprise epic/story schemas.</p>")}
           ${kv("cleared-intent-trigger", "<p>GitHub Action that fires only when the intent.md frontmatter reads gate_status: cleared, instantiating Stage 2 (Design).</p>")}
         </div>
-        <p class="line-note">Artifact: intent.md (cleared, synced, merged to main) + per-project ESOA (carried forward) + optional Vision Prototype.</p>
+        ${output("cleared intent.md", "Synced and merged to main, with an optional Vision Prototype.")}
       </section>
 
       <section id="tactical-2">
@@ -1234,7 +1239,7 @@ function renderTacticalPlaybookMain() {
           ${kv(".claude/skills/adlc-agent-guardrails", "<p>Agent behavioral guardrails skill.</p>")}
           ${kv("spec-compliance-linter", "<p>Verifies spec.md has every required section (API specs, failure modes, data models) before the stage can transition.</p>")}
         </div>
-        <p class="line-note">Artifact: spec.md. Design/Tech Lead review.</p>
+        ${output("spec.md", "Design/Tech Lead review.")}
       </section>
 
       <section id="tactical-3">
@@ -1249,7 +1254,7 @@ function renderTacticalPlaybookMain() {
           ${kv(".claude/agents/prompt-evaluator.md", "<p>For builds with embedded AI agents. evaluates prompt responses for safety/hallucination/tool-calling accuracy.</p>")}
           ${kv("path-blocking-hook", "<p>Intercepts file edits outside the scope defined in plan.md.</p>")}
         </div>
-        <p class="line-note">Artifact: plan.md and verified code diffs, in isolated branches. Engineer plan acceptance.</p>
+        ${output("plan.md + code diffs", "Verified code in isolated branches. Engineer plan acceptance.")}
       </section>
 
       <section id="tactical-4">
@@ -1262,7 +1267,7 @@ function renderTacticalPlaybookMain() {
           ${kv("lock-tests.sh hook", "<p>Blocks Edit/Write on tests/** during bug-fix tasks.</p>")}
           ${kv("eval-pass-checker", "<p>Blocks PR merge if task accuracy falls below the threshold.</p>")}
         </div>
-        <p class="line-note">Artifact: verification logs and CI evaluation pass results. Automated CI pass threshold.</p>
+        ${output("Verification logs + CI eval results", "Automated CI pass threshold.")}
       </section>
 
       <section id="tactical-5">
@@ -1276,7 +1281,7 @@ function renderTacticalPlaybookMain() {
           ${kv("Managed-settings engine", "<p>allowManagedHooksOnly, permissions.deny, sandboxed shell, disableSideloadFlags, allowManagedMcpServersOnly, matching Anthropic's reference settings.json.</p>")}
           ${kv("network-egress-blocker hook", "<p>Its own named control rather than folded into managed settings generically.</p>")}
         </div>
-        <p class="line-note">Artifact: REVIEW.md, PR findings, release log. Human Release Manager sign-off on Production only.</p>
+        ${output("REVIEW.md", "PR findings and release log. Human Release Manager sign-off on Production only.")}
       </section>
 
       <section id="tactical-6">
@@ -1290,7 +1295,7 @@ function renderTacticalPlaybookMain() {
           ${kv("incident-to-eval-compiler", "<p>Turns post-mortem logs into permanent regression tests.</p>")}
           ${kv("Claude Tag", "<p>ChatOps bot for on-call. Anthropic's actual Claude Tag product, not a generic ChatOps MCP Bot.</p>")}
         </div>
-        <p class="line-note">Artifact: bands.yaml updates, incident records, new regression cases added to Stage 4. Service Owner / on-call triage.</p>
+        ${output("bands.yaml", "Updated bands, incident records, and new regression cases added to Stage 4. Service Owner / on-call triage.")}
       </section>
 
       <section id="reconciliation">
@@ -1304,7 +1309,7 @@ function renderTacticalPlaybookMain() {
             <tr><td>0</td><td>assumption-extractor (A) vs intent-elicitor + assumption-linter (B)</td><td>Not a conflict. different functions. Keep all three.</td></tr>
             <tr><td>0</td><td>Workshop length: 60–90 min (both docs)</td><td>Extended to 2–4 hrs to reflect real client kickoffs.</td></tr>
             <tr><td>1</td><td>Skill named evidence-signal-check (A) vs evidence-synthesizer (B)</td><td>Canonicalize as evidence-synthesizer.</td></tr>
-            <tr><td>1</td><td>Separate confidence-decision.md (A) vs updated intent.md (B)</td><td>Canonicalize as intent.md updated in place, in the per-project repo alongside the ESOA.</td></tr>
+            <tr><td>1</td><td>Separate confidence-decision.md (A) vs updated intent.md (B)</td><td>Canonicalize as intent.md updated in place, in the per-project repo.</td></tr>
             <tr><td>1</td><td>Old Stage 2 (tracker sync) as its own numbered stage</td><td>Folded into Stage 1 as a closing action. automatic result of a Promote.</td></tr>
             <tr><td>2</td><td>4 compliance skills (A) vs 2 (B)</td><td>Keep A's full 4; add B's spec-compliance-linter on top.</td></tr>
             <tr><td>2</td><td>Figma-only tooling (both docs)</td><td>Added repo-native design as an equal path, not a fallback.</td></tr>
@@ -1323,7 +1328,7 @@ function renderTacticalPlaybookMain() {
           ${kv("Scheduled security scanning", "<p>Anthropic's Deploy stage includes scheduled, model-driven security scanning (Claude Security) running independently of PR review, a recurring scan, not point-in-time, with findings fed back as fresh intent.md. Sparq's only security coverage at Deploy is currently the PR review pass.</p>")}
           ${kv("Leading/lagging metrics per stage", "<p>Anthropic's playbook defines explicit metrics per stage (e.g., time from intent.md commit to spec.md commit; first-pass CI success rate; time from band breach to intent.md in triage). Neither internal doc names how Sparq will measure whether the pipeline itself is working.</p>")}
         </div>
-      </section>`;
+      </section>`);
 }
 
 function renderAdlcTacticalMain() {
@@ -1338,7 +1343,6 @@ CLAUDE.md                     # Central Context Engine & System Instructions
   commands/                   # Executable subcommands for development tasks
   skills/                     # Modular agent skills & domain workflows
 intent.md                     # Stage 0 raw/tagged intent & premortem
-esoa.md                       # Stage 1 Evidence Slice Statement of Alignment
 spec.md                       # Stage 2 Technical architecture spec
 autonomy-matrix.yaml          # Stage 2 Autonomy Authorization Matrix
 plan.md                       # Stage 3 Pre-execution implementation plan
@@ -1437,7 +1441,7 @@ src/                          # Agent runtime logic & deterministic workflows</c
         <p class="line-note">Evidence Sprint</p>
         <p class="lede">Verify high-risk assumptions with minimal spend before committing to architecture. For agentic systems this gate carries more weight because architecture decisions (tool access, autonomy scope) are expensive to unwind once made.</p>
         <div class="kvs">${s1}</div>
-        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("intent.md")} (cleared) + ${fileRefs("esoa.md")}</span><span>Evidence Slice Statement of Alignment.</span></div></div>
+        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("intent.md")} (cleared)</span><span>Cleared and synced to the enterprise tracker, with a Vision Prototype where built.</span></div></div>
       </section>
 
       <section id="tactical-2">
