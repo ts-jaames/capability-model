@@ -60,11 +60,11 @@ rows:
     name: Capability Model
     items:
       - name: Domains
-        position: thinking
+        position: mapping
       - name: Capabilities
-        position: thinking
+        position: mapping
       - name: Capability Levels
-        position: thinking
+        position: mapping
 
   - id: roles-titles
     name: Roles & Titles

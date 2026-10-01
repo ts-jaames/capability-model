@@ -2326,17 +2326,16 @@ function render(model, pageId = "how-it-all-relates") {
     }
     .cm-back { margin: 0 0 32px; }
     .cm-scroll { overflow-x: auto; margin-top: 32px; }
-    /* The table is sized to its content, not stretched: 180 + 3 x 232 + 3 x 16
-       fits inside the 960px page with room over, so it only scrolls sideways
-       on screens narrower than the table itself. */
-    .cm { min-width: 924px; }
+    /* Each evidence column is as wide as its own header plus the same gap, so
+       the white space between "Thinking Time", "Current engagement mapping"
+       and "Pilot use" is equal. The columns are not equal width on purpose.
+       Header widths (text + info icon): 112, 215, 75. Gap wanted: 72, less the
+       16px column-gap. The last column only needs room for its header. */
+    .cm { min-width: 800px; }
     .cm-head,
     .cm-row {
       display: grid;
-      /* Three identical evidence columns, each just wider than the longest
-         header ("Current engagement mapping" and its info icon). The first
-         column takes whatever is left. */
-      grid-template-columns: minmax(180px, 1fr) repeat(3, 232px);
+      grid-template-columns: minmax(200px, 260px) 168px 271px 110px;
       column-gap: 16px;
       align-items: center;
     }
