@@ -1,0 +1,100 @@
+{
+  "$id": "https://capability-model.local/schema/confidence-map.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Confidence map",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "description",
+    "owner",
+    "source",
+    "last_updated",
+    "positions_reviewed",
+    "columns",
+    "rows"
+  ],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/kebabId" },
+    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "description": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "status": { "$ref": "common.json#/$defs/status" },
+    "visibility": { "$ref": "common.json#/$defs/visibility" },
+    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "source": { "$ref": "common.json#/$defs/source" },
+    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
+    "positions_reviewed": { "type": "boolean" },
+    "today": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["updated", "text"],
+      "properties": {
+        "updated": { "$ref": "common.json#/$defs/isoDateTime" },
+        "text": { "$ref": "common.json#/$defs/nonEmptyString" }
+      }
+    },
+    "note": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "columns": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "meaning"],
+        "properties": {
+          "id": { "$ref": "#/$defs/position" },
+          "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "meaning": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/row" }
+    }
+  },
+  "$defs": {
+    "position": { "type": "string", "enum": ["thinking", "mapping", "pilot"] },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/kebabId" },
+        "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "lifecycle": { "$ref": "common.json#/$defs/kebabId" },
+        "position": { "$ref": "#/$defs/position" },
+        "moves_when": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "last_moved": { "$ref": "common.json#/$defs/isoDate" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/item" }
+        }
+      },
+      "oneOf": [
+        { "type": "object", "properties": { "position": {} }, "required": ["position"] },
+        { "type": "object", "properties": { "items": {} }, "required": ["items"] }
+      ]
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["position"],
+      "properties": {
+        "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "stage": { "type": "integer", "minimum": 0 },
+        "position": { "$ref": "#/$defs/position" },
+        "moves_when": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "last_moved": { "$ref": "common.json#/$defs/isoDate" }
+      },
+      "oneOf": [
+        { "type": "object", "properties": { "name": {} }, "required": ["name"] },
+        { "type": "object", "properties": { "stage": {} }, "required": ["stage"] }
+      ]
+    }
+  }
+}

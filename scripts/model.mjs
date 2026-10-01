@@ -34,6 +34,7 @@ export const LEGEND_FILES = {
   intensity: "intensity.yaml",
   profiles: "capability-profiles.yaml",
   capacityModel: "capacity-model.yaml",
+  confidenceMap: "confidence-map.yaml",
 };
 
 export const DOMAIN_ORDER = [
@@ -201,6 +202,7 @@ export function modelView(loaded) {
     intensity: loaded.legends.intensity?.data ?? null,
     profiles: loaded.legends.profiles?.data ?? null,
     capacityModel: loaded.legends.capacityModel?.data ?? null,
+    confidenceMap: loaded.legends.confidenceMap?.data ?? null,
     domains: plain("domain"),
     capabilities: loaded.records.capability.map(capabilityView),
     skills: plain("skill"),
@@ -262,6 +264,7 @@ export function scopeView(view, scope = PUBLIC_SCOPE) {
     levels: legend(view.levels),
     intensity: legend(view.intensity),
     capacityModel: legend(view.capacityModel),
+    confidenceMap: legend(view.confidenceMap),
     profiles: profiles && {
       ...profiles,
       people: (profiles.people ?? []).map((person) => ({

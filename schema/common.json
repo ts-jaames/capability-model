@@ -21,6 +21,10 @@
     },
     "source": { "type": "string", "enum": ["sfia", "adapted", "original"] },
     "isoDate": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "isoDateTime": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2})?(Z|[+-]\\d{2}:\\d{2})$"
+    },
     "levelId": { "type": "string", "enum": ["L1", "L2", "L3"] },
     "dialId": { "type": "string", "enum": ["dormant", "low", "active", "peak"] },
     "modelRef": {

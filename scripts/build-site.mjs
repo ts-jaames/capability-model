@@ -107,6 +107,16 @@ const PAGES = [
       },
     ],
   },
+  // Standalone pages sit apart from the model: no sidebar, no page list, one
+  // link back. They are reached from a single link pinned at the foot of the
+  // sidebar rather than from the page list above it.
+  {
+    id: "confidence-map",
+    title: "Confidence Map",
+    file: "confidence-map.html",
+    main: renderConfidenceMapMain,
+    standalone: true,
+  },
 ];
 
 // Flat list of every renderable page for build output, render lookup, and TOC.
@@ -235,8 +245,16 @@ function pageToc(pageId) {
   return links.map(([href, label]) => tocLink(href, label)).join("\n        ");
 }
 
+// The links pinned at the foot of the sidebar: pages that live apart from the
+// model rather than inside it.
+function renderFootLinks() {
+  return PAGES.filter((item) => item.standalone)
+    .map((item) => `<a class="page-link" href="${esc(item.file)}">${esc(item.title)}</a>`)
+    .join("\n        ");
+}
+
 function renderPageLinks(pageId) {
-  return PAGES.map((item) => {
+  return PAGES.filter((item) => !item.standalone).map((item) => {
     const kids = item.children ?? [];
     const selfActive = item.id === pageId;
     const childActive = kids.some((kid) => kid.id === pageId);
@@ -1158,6 +1176,152 @@ function renderAdlcMain(model) {
       ${gapItems ? `<section id="gaps"><h2 class="mono uppercase eyebrow">Known gaps</h2><div class="kvs">${gapItems}</div></section>` : ""}`;
 }
 
+// The Confidence Map reads confidence-map.yaml and nothing else is authored
+// here. Positions are a human's call, so this only lays them out: it never
+// infers one. A row with parts shows where its weakest part sits, plus how many
+// parts sit in each column.
+function renderConfidenceMapMain(model) {
+  const map = model.confidenceMap;
+  if (!map) throw new Error("Missing confidence-map.yaml. Run npm run validate.");
+
+  const columns = map.columns ?? [];
+  const columnIndex = new Map(columns.map((column, index) => [column.id, index]));
+  const nameOf = (id) => columns[columnIndex.get(id)]?.name ?? id;
+
+  // Parts get a lighter dot than the group or row they belong to, so the eye
+  // reads the group's position first and the parts' positions second.
+  const dot = (id, part = false) =>
+    `<span class="cm-dot${part ? " cm-dot-part" : ""}" role="img" aria-label="Sits in ${esc(nameOf(id))}"></span>`;
+
+  const notes = (entry) =>
+    [
+      entry.moves_when ? `Moves right when: ${entry.moves_when}` : "",
+      entry.last_moved ? `Last moved ${entry.last_moved}` : "",
+    ]
+      .filter(Boolean)
+      .map((text) => `<span class="cm-note">${esc(oneLine(text))}</span>`)
+      .join("");
+
+  // A part with a stage takes its name from the lifecycle, so the map cannot
+  // drift from the stage names the lifecycle pages show.
+  const partName = (row, item) => {
+    if (item.stage === undefined) return item.name;
+    const lifecycle = (model.lifecycles ?? []).find((lc) => lc.id === row.lifecycle);
+    const stage = (lifecycle?.stages ?? []).find((s) => s.number === item.stage);
+    if (!stage) {
+      throw new Error(`confidence-map: ${row.id} cites missing stage ${item.stage}`);
+    }
+    return `Stage ${stage.number} · ${stage.name}`;
+  };
+
+  const cells = (renderCell) =>
+    columns.map((column, index) => `<div class="cm-cell">${renderCell(column, index)}</div>`).join("");
+
+  const caret = `<svg class="cm-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  const rows = (map.rows ?? [])
+    .map((row) => {
+      const items = row.items ?? [];
+
+      if (!items.length) {
+        return `
+        <div class="cm-single">
+          <div class="cm-row">
+            <div class="cm-name"><span class="cm-name-line"><span class="cm-spacer"></span>${esc(row.name)}</span>${notes(row)}</div>
+            ${cells((column) => (column.id === row.position ? dot(column.id) : ""))}
+          </div>
+        </div>`;
+      }
+
+      // The leftmost column any part sits in. Anything not yet tested keeps the
+      // whole group there, which is the honest reading of "weakest part".
+      const weakest = Math.min(
+        ...items.map((item) => columnIndex.get(item.position) ?? columns.length),
+      );
+
+      const children = items
+        .map(
+          (item) => `
+          <div class="cm-row cm-child">
+            <div class="cm-name"><span>${esc(partName(row, item))}</span>${notes(item)}</div>
+            ${cells((column) => (column.id === item.position ? dot(column.id, true) : ""))}
+          </div>`,
+        )
+        .join("");
+
+      return `
+        <details class="cm-group">
+          <summary class="cm-row">
+            <div class="cm-name"><span class="cm-name-line">${caret}${esc(row.name)}<span class="cm-count">(${items.length})</span></span>${notes(row)}</div>
+            ${cells((column, index) => (index === weakest ? dot(column.id) : ""))}
+          </summary>${children}
+        </details>`;
+    })
+    .join("");
+
+  // A column's definition, on hover or keyboard focus beside its name. Every
+  // column but the first opens its tooltip leftwards so it cannot run off the
+  // right edge of the grid.
+  const infoTip = (column, index) =>
+    `<span class="skill-tip cm-info" tabindex="0" aria-label="${esc(column.name)}: ${esc(oneLine(column.meaning))}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="4.9" r="0.9" fill="currentColor"/></svg><span class="tip${index > 0 ? " tip-end" : ""}" role="tooltip">${esc(oneLine(column.meaning))}</span></span>`;
+
+  // The description is authored as short paragraphs in the YAML. In a folded
+  // (>) block a blank line between paragraphs arrives as a single newline, so
+  // that is what separates them here.
+  const explanation = String(map.description ?? "")
+    .trim()
+    .split(/\n+/)
+    .map((block) => `<p class="lede">${esc(oneLine(block))}</p>`)
+    .join("");
+
+  // The stamp is written with an offset ("2026-10-01T10:25:11-05:00"). Read as
+  // written, it gives the same absolute time for every reader and no script.
+  const stamped = (value) => {
+    const match = String(value).match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})(?::\d{2})?(Z|[+-]\d{2}:\d{2})$/);
+    return match ? `${match[1]} ${match[2]} ${match[3] === "Z" ? "UTC" : `UTC${match[3]}`}` : String(value);
+  };
+
+  // A short note on what is being worked on right now. It is history-facing
+  // (what is happening, as of a moment), never a forecast. The page script
+  // turns the stamp into a running "4 mins ago"; without it the absolute time
+  // is shown instead, so the note is never left without a time.
+  const today = map.today
+    ? `<div class="cm-today">
+          <div class="cm-today-head">
+            <p class="mono uppercase cm-today-title">What's happening today</p>
+            <p class="mono cm-today-date">Updated <time class="cm-ago" datetime="${esc(map.today.updated)}" data-since="${esc(map.today.updated)}">${esc(stamped(map.today.updated))}</time></p>
+          </div>
+          ${String(map.today.text)
+            .trim()
+            .split(/\n+/)
+            .map((block) => `<p>${esc(oneLine(block))}</p>`)
+            .join("")}
+        </div>`
+    : "";
+
+  return `
+      <section id="overview">
+        <p class="cm-back"><a href="index.html">← Back to the model</a></p>
+        <h1 class="mono uppercase eyebrow">${esc(map.name)}</h1>
+        <div class="cm-explainer">${explanation}</div>
+        ${today}
+        <div class="cm-scroll">
+          <div class="cm">
+            <div class="cm-head">
+              <div class="cm-hcell">Part of the model</div>
+              ${columns
+                .map(
+                  (column, index) =>
+                    `<div class="cm-hcell">${esc(column.name)}${infoTip(column, index)}</div>`,
+                )
+                .join("")}
+            </div>
+            ${rows}
+          </div>
+        </div>
+      </section>`;
+}
+
 function renderTacticalPlaybookMain() {
   // Same output card as the strategy page: an "Output" label over the file
   // reference and a one-line description.
@@ -1869,6 +2033,17 @@ function render(model, pageId = "how-it-all-relates") {
       position: sticky;
       top: 48px;
       align-self: start;
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 96px);
+    }
+    .side-foot {
+      margin-top: auto;
+      padding-top: 16px;
+    }
+    .shell.shell-standalone {
+      grid-template-columns: minmax(0, 960px);
+      justify-content: center;
     }
     .pages {
       display: flex;
@@ -2149,6 +2324,90 @@ function render(model, pageId = "how-it-all-relates") {
       flex-shrink: 0;
       white-space: nowrap;
     }
+    .cm-back { margin: 0 0 32px; }
+    .cm-scroll { overflow-x: auto; margin-top: 32px; }
+    /* The table is sized to its content, not stretched: 180 + 3 x 232 + 3 x 16
+       fits inside the 960px page with room over, so it only scrolls sideways
+       on screens narrower than the table itself. */
+    .cm { min-width: 924px; }
+    .cm-head,
+    .cm-row {
+      display: grid;
+      /* Three identical evidence columns, each just wider than the longest
+         header ("Current engagement mapping" and its info icon). The first
+         column takes whatever is left. */
+      grid-template-columns: minmax(180px, 1fr) repeat(3, 232px);
+      column-gap: 16px;
+      align-items: center;
+    }
+    .cm-explainer { max-width: 700px; }
+    .cm-today {
+      margin: 32px 0 0;
+      padding: 16px 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #FAFAFA;
+      max-width: 700px;
+    }
+    .cm-today p { margin: 0; }
+    .cm-today p + p { margin-top: 8px; }
+    .cm-today-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 4px 16px;
+      margin-bottom: 8px;
+    }
+    .cm-today .cm-today-head p { margin: 0; }
+    .cm-today .cm-today-date { font-size: 11px; text-align: right; }
+    .cm-head {
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: #FAFAFA;
+    }
+    .cm-hcell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13.5px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .cm-info { gap: 0; opacity: 0.55; transition: opacity 150ms ease; }
+    .cm-info:hover,
+    .cm-info:focus-within { opacity: 1; }
+    .cm-info .tip {
+      white-space: normal;
+      width: 260px;
+      font-weight: 400;
+    }
+    .cm-info .tip-end { left: auto; right: 0; }
+    .cm-group,
+    .cm-single { border-bottom: 1px solid var(--line); }
+    .cm-group > summary { list-style: none; cursor: pointer; }
+    .cm-group > summary::-webkit-details-marker { display: none; }
+    .cm-row { padding: 12px 0; }
+    .cm-child { padding: 8px 0; border-top: 1px solid var(--line); }
+    .cm-name { display: flex; flex-direction: column; gap: 2px; font-weight: 600; }
+    .cm-child .cm-name { font-weight: 400; padding-left: 18px; }
+    .cm-name-line { display: flex; align-items: center; gap: 8px; }
+    .cm-caret { flex-shrink: 0; transition: transform 180ms ease; }
+    .cm-group[open] > summary .cm-caret { transform: rotate(90deg); }
+    .cm-spacer { width: 10px; flex-shrink: 0; }
+    .cm-note { font-size: 12.5px; font-weight: 400; padding-left: 18px; }
+    .cm-child .cm-note { padding-left: 0; }
+    .cm-cell { display: flex; align-items: center; gap: 8px; min-height: 18px; }
+    .cm-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 99px;
+      background: #e8690b;
+      flex-shrink: 0;
+    }
+    .cm-dot-part { background: #f2b88e; }
+    .cm-count { font-size: 12.5px; font-weight: 400; }
     .prose { margin-bottom: 24px; max-width: 700px; }
     .stack .prose { margin-bottom: 8px; }
     .stack .prose:last-child { margin-bottom: 0; }
@@ -2286,7 +2545,8 @@ function render(model, pageId = "how-it-all-relates") {
         gap: 32px;
         padding: 32px 16px 64px;
       }
-      .side { position: static; }
+      .side { position: static; min-height: 0; }
+      .side-foot { margin-top: 16px; }
       .side .toc { flex-direction: row; flex-wrap: wrap; gap: 8px 16px; }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -2296,21 +2556,52 @@ function render(model, pageId = "how-it-all-relates") {
   </style>
 </head>
 <body>
-  <div class="shell">
-    <aside class="side">
+  <div class="shell${page.standalone ? " shell-standalone" : ""}">
+    ${
+      page.standalone
+        ? ""
+        : `<aside class="side">
       <nav class="pages" aria-label="Pages">
         ${renderPageLinks(pageId)}
       </nav>
       <nav class="toc" aria-label="On this page">
         ${pageToc(pageId)}
       </nav>
-    </aside>
+      <nav class="side-foot" aria-label="Apart from the model">
+        ${renderFootLinks()}
+      </nav>
+    </aside>`
+    }
     <div class="doc">
       ${main}
       <footer>Generated <span class="mono">${esc(generated)}</span> from the YAML source of truth. Read-only.</footer>
     </div>
   </div>
   <script>
+    // Running clock for the Confidence Map note: "4 mins ago". The absolute
+    // time inside the element is the fallback when this script does not run.
+    (function() {
+      var els = document.querySelectorAll('.cm-ago');
+      if (!els.length) return;
+      function unit(n, word) { return n + ' ' + word + (n === 1 ? '' : 's'); }
+      function ago(ms) {
+        var m = Math.max(0, Math.floor(ms / 60000));
+        if (m < 1) return 'just now';
+        if (m < 60) return unit(m, 'min') + ' ago';
+        var h = Math.floor(m / 60);
+        if (h < 24) return unit(h, 'hr') + (m % 60 ? ' ' + unit(m % 60, 'min') : '') + ' ago';
+        return unit(Math.floor(h / 24), 'day') + (h % 24 ? ' ' + unit(h % 24, 'hr') : '') + ' ago';
+      }
+      function tick() {
+        els.forEach(function(el) {
+          var since = Date.parse(el.getAttribute('data-since'));
+          if (isNaN(since)) return;
+          el.textContent = ago(Date.now() - since);
+        });
+      }
+      tick();
+      setInterval(tick, 30000);
+    })();
     document.querySelectorAll('.page-toggle').forEach(function(el) {
       el.addEventListener('click', function() {
         var group = el.closest('.page-group');

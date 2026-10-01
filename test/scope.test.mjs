@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { PUBLIC_SCOPE, scopeView } from "../scripts/model.mjs";
 
-function view({ domainVisibility, capVisibility, capacityVisibility } = {}) {
+function view({ domainVisibility, capVisibility, capacityVisibility, mapVisibility } = {}) {
   return {
     levels: null,
     intensity: null,
@@ -77,6 +77,11 @@ function view({ domainVisibility, capVisibility, capacityVisibility } = {}) {
       id: "capacity-model",
       values_reviewed: false,
       visibility: capacityVisibility,
+    },
+    confidenceMap: {
+      id: "confidence-map",
+      positions_reviewed: false,
+      visibility: mapVisibility,
     },
     profiles: {
       id: "capability-profiles",
@@ -187,6 +192,14 @@ test("the capacity model is scoped like any other legend", () => {
   assert.equal(hidden.capacityModel, null);
   const wide = scopeView(view({ capacityVisibility: "internal" }), ["public", "internal"]);
   assert.equal(wide.capacityModel.id, "capacity-model");
+});
+
+test("the confidence map is scoped like any other legend", () => {
+  assert.equal(scopeView(view(), PUBLIC_SCOPE).confidenceMap.id, "confidence-map");
+  const hidden = scopeView(view({ mapVisibility: "internal" }), PUBLIC_SCOPE);
+  assert.equal(hidden.confidenceMap, null);
+  const wide = scopeView(view({ mapVisibility: "internal" }), ["public", "internal"]);
+  assert.equal(wide.confidenceMap.id, "confidence-map");
 });
 
 test("a visible profile still drops certifications for hidden capabilities", () => {

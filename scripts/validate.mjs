@@ -29,6 +29,7 @@ const SCHEMA_NAMES = [
   "doctrine",
   "capability-profiles",
   "capacity-model",
+  "confidence-map",
   "lifecycle",
 ];
 
@@ -713,6 +714,86 @@ async function main() {
               legend.file,
               `${path} is marked [VALIDATED] while values_reviewed is false — no human has reviewed these figures`,
             );
+          }
+        }
+      }
+    },
+  );
+
+  // The confidence map is a human's judgment about how tested each part of the
+  // model is, so the validator does not try to judge positions. It only makes
+  // sure the shape is honest: three fixed columns in order, no part named
+  // twice, and every stage it names actually exists in the lifecycle it cites.
+  checkLegend(
+    ajv,
+    loaded.legends.confidenceMap,
+    "confidence-map",
+    "confidence-map",
+    (legend) => {
+      const map = legend.data;
+      const COLUMN_IDS = ["thinking", "mapping", "pilot"];
+
+      const columnIds = (map.columns ?? []).map((column) => column.id);
+      if (columnIds.join(",") !== COLUMN_IDS.join(",")) {
+        add(
+          "constraints",
+          legend.file,
+          `columns must be exactly ${COLUMN_IDS.join(", ")} in that order`,
+        );
+      }
+
+      // The note's clock runs from this stamp, so it has to be a real moment
+      // that has already happened. Five minutes of slack covers clock skew.
+      if (map.today) {
+        const stamp = Date.parse(map.today.updated);
+        if (Number.isNaN(stamp)) {
+          add("constraints", legend.file, `today.updated "${map.today.updated}" is not a real date and time`);
+        } else if (stamp > Date.now() + 5 * 60 * 1000) {
+          add("constraints", legend.file, `today.updated "${map.today.updated}" is in the future`);
+        }
+      }
+
+      const rows = map.rows ?? [];
+      uniqueIds(
+        rows.map((row) => row.id),
+        legend.file,
+        "rows",
+      );
+
+      for (const row of rows) {
+        const where = `row "${row.id}"`;
+        const items = row.items ?? [];
+
+        if (row.lifecycle && !loaded.byId.lifecycle.has(row.lifecycle)) {
+          add("refs", legend.file, `${where} cites lifecycle "${row.lifecycle}" which does not exist`);
+        }
+
+        const names = items.filter((item) => item.name).map((item) => item.name);
+        uniqueIds(names, legend.file, `${where} part names`);
+        const stages = items
+          .filter((item) => item.stage !== undefined)
+          .map((item) => String(item.stage));
+        uniqueIds(stages, legend.file, `${where} stages`);
+
+        if (stages.length) {
+          if (!row.lifecycle) {
+            add(
+              "constraints",
+              legend.file,
+              `${where} names stages but cites no lifecycle to take their names from`,
+            );
+            continue;
+          }
+          const lifecycle = loaded.byId.lifecycle.get(row.lifecycle)?.data;
+          const numbers = new Set((lifecycle?.stages ?? []).map((stage) => stage.number));
+          for (const stage of stages) {
+            if (!numbers.has(Number(stage))) {
+              add(
+                "refs",
+                legend.file,
+                `${where} cites stage ${stage} which does not exist in lifecycle "${row.lifecycle}"`,
+              );
+            }
           }
         }
       }
