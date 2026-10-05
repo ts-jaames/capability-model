@@ -47,10 +47,10 @@ function badge(status) {
 // added in a single place. The render functions are hoisted declarations.
 const PAGES = [
   {
-    id: "how-it-all-relates",
-    title: "How it all relates",
+    id: "core-philosophy",
+    title: "Core Philosophy",
     file: "index.html",
-    main: renderHowItRelatesMain,
+    main: renderCorePhilosophyMain,
   },
   {
     id: "capability-model",
@@ -144,14 +144,14 @@ function tocLink(href, label) {
 }
 
 const PAGE_TOC = {
-  "how-it-all-relates": [
-    ["#overview", "One list"],
-    ["#the-spine", "The spine"],
-    ["#two-questions", "Two questions"],
-    ["#surface-area", "Surface area"],
-    ["#three-verbs", "Three verbs"],
-    ["#seats", "Seats"],
-    ["#the-sow", "The SOW"],
+  "core-philosophy": [
+    ["#overview", "What this is"],
+    ["#the-spine", "The one list"],
+    ["#what-the-work-needs", "What an engagement needs"],
+    ["#seams", "Seams"],
+    ["#people", "How people attach"],
+    ["#the-sow", "What the client buys"],
+    ["#confidence", "How settled this is"],
   ],
   "capability-model": [
     ["#overview", "Overview"],
@@ -1708,7 +1708,7 @@ function renderNewDiscoveryMain(model) {
       </section>`;
 }
 
-function renderHowItRelatesMain(model) {
+function renderCorePhilosophyMain(model) {
   const stack = requireDoctrine(model, "commercial-stack");
   const layers = (stack.steps ?? [])
     .map(
@@ -1716,6 +1716,23 @@ function renderHowItRelatesMain(model) {
         `<li><strong>${esc(oneLine(step.name))}.</strong> ${esc(oneLine(step.description))}</li>`,
     )
     .join("");
+
+  // Counts and names come from the model so the page cannot drift from it.
+  const domainNames = [...model.domains]
+    .sort((a, b) => domainRank(a.id) - domainRank(b.id))
+    .map((domain) => domain.name)
+    .join(", ");
+  const domainCount = model.domains.length;
+  const capabilityCount = model.capabilities.length;
+  const shapeCount = model.riskShapes.length;
+  const seamCount = model.seams.length;
+  const titleCount = model.titles.length;
+
+  const dials = model.intensity?.dials ?? [];
+  const dialNames = dials.map((dial) => dial.name).join(", ");
+  const sampleShape = [...model.riskShapes].sort(
+    (a, b) => (a.reading_order ?? 0) - (b.reading_order ?? 0),
+  )[0];
 
   const capacity = model.capacityModel;
   const capacityShape = confidenceMarker(
@@ -1728,48 +1745,49 @@ function renderHowItRelatesMain(model) {
 
   return `
       <section id="overview">
-        <h1 class="mono uppercase eyebrow">How it all relates</h1>
-        <p class="lede">Domains, capabilities, levels, roles, titles, seats. That looks like six lists. It is one list. Everything else is a way of pointing at it.</p>
-        <p class="lede">The convolution comes from treating those six words as six things to keep. Domains and capabilities are the list. Levels are how a capability is executed. Roles, titles, and seats are people pointing at it, not parallel inventories.</p>
-        <p class="lede">The count we now attach to a seat is not a seventh list. It's a quantity on one entry, not a new inventory to keep.</p>
-        ${figure("01-one-list.png", "One list, not several lists")}
+        <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
+        <p class="lede">Most firms describe themselves with job titles. Titles drift, mean different things at different companies, and tell a client nothing about what they are buying. This model describes the firm by what it promises instead.</p>
+        <p class="lede">A capability is a named outcome a client would pay for as a result. Not a task, not a tool, not a job title. There are ${capabilityCount} of them, grouped into ${domainCount} types of work. That list is the model. Everything else on this site points at it: how deeply a capability is run, how hard it is running on a given engagement, who keeps it fit, and what the client is charged for.</p>
+        <p class="lede">The reason to work this way is that the list outlasts the labels. Job names churn every couple of years; "prove it works before we build it" does not.</p>
       </section>
       <section id="the-spine">
-        <h2 class="mono uppercase eyebrow">The spine</h2>
-        <p class="lede">Domain contains capability. A capability is the named outcome we promise. It can be executed at L1, L2, L3, or L4, same promise, different depth of judgment and accountability.</p>
-        <p class="lede">The capability is the whole piece. The level is which piece you slot in to assemble it. Same promise either way. Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.</p>
-        ${figure("02-the-spine.png", "Capability assembled at a level")}
+        <h2 class="mono uppercase eyebrow">The one list</h2>
+        <p class="lede">Three words in order: a <strong>domain</strong> contains <strong>capabilities</strong>, and a capability is executed at a <strong>level</strong>.</p>
+        <p class="lede"><strong>Domains</strong> are types of work. There are ${domainCount} and the set is closed: ${esc(domainNames)}. They never carry levels.</p>
+        <p class="lede"><strong>Capabilities</strong> are the promises inside a domain.</p>
+        <p class="lede"><strong>Levels</strong> are how deeply a capability is executed. L1 to L3 are depth of judgment against the same promise, so the client gets the same outcome with more or less supervision behind it. L4 is different in kind: it is owning the capability for the whole firm, keeping it fit, rather than executing it harder.</p>
+        ${figure("02-the-spine.png", "A capability sits inside a domain and is delivered at a level")}
         ${to("capability-model.html", "Capability Model")}
       </section>
-      <section id="two-questions">
-        <h2 class="mono uppercase eyebrow">Two questions, not one</h2>
-        <p class="lede">A seat is set by two questions that do different jobs. How much rides on this sets the level. How much of it there is sets the count. Neither answers the other.</p>
-        <p class="lede">Level is depth of judgment, fixed by collapse risk. Count is volume, fixed by how much of the work there is. A bigger project does not raise the level; it raises the count at whatever level the risk already fixed. This is the answer to whether scale changes the level: it doesn't. Scale is a count question; level is a risk question. They're orthogonal.</p>
-        <p class="lede">L3×1, L1×5, and L2×3 are all coherent seats: one deep expert on the thing that can't fail, many hands on routine surface, or moderate stakes with more of it than one seat can carry.</p>
-      </section>
-      <section id="surface-area">
-        <h2 class="mono uppercase eyebrow">Surface area</h2>
-        <p class="lede">Count comes from surface area: how much of a capability-at-level the work demands, divided by how much one seat can hold.</p>
-        <p class="lede">Surface area is the number of independently attention-demanding units at a capability×level, units that can't share one operator's attention without one of them degrading. It's a concurrency measure, set by the timeline: two things on separate critical paths are two units; the same work done serially is fewer.</p>
-        <p class="lede">What one seat holds depends on the level and on who's in it. Nominal capacity falls as the level rises. higher stakes tax attention per unit ${esc(capacityShape)}. And an overqualified operator covers more, up to a hard ceiling, because the work is easy for them.</p>
-        <p class="lede">One flag stays open: surface area counts cleanly in engineering (services, streams), but whether the same unit survives in the judgment-heavy domains (Framing, Proof, Commercial, Enablement, Continuity) is ${esc(countability)}. Named and unresolved, not assumed closed.</p>
-      </section>
-      <section id="three-verbs">
-        <h2 class="mono uppercase eyebrow">Three verbs</h2>
-        <p class="lede">Title, ownership, and seat are not three more lists. They are three verbs on the same capability: grouped under, keeps fit, executes.</p>
-        <p class="lede">Title is grouped under. a bundle of owned capabilities, internal shorthand for coverage. L4 Capability Ownership is keeps fit. the capability you author guardrails for, internal and permanent. Seat is executes. one capability at one level, this squad, internal and dynamic. All three are internal; none of them is what the client buys.</p>
-        ${to("roles-titles.html#titles", "Roles & Titles")}
-      </section>
-      <section id="seats">
-        <h2 class="mono uppercase eyebrow">A seat is runtime</h2>
-        <p class="lede">A seat is a capability at a level, with a count, filled by a person or people, on this engagement. That's a runtime instance. and the count isn't a new list, it's how many times we instantiate one entry.</p>
-        <p class="lede">The count is confidence-gated, same as everything else. Before the work can prove the load, the count is assumed, a demanded ceiling estimated at intake, the least-validated moment we have, when we don't yet know what we don't know. As surface area validates during the work, a committed floor emerges.</p>
-        <p class="lede">We stand behind the floor and watch the ceiling; a surface-area update re-derives the count mid-engagement. One person can hold the seat, or several people who each clear the bar can make up the count together. Seat names churn. The capability underneath does not.</p>
-        ${figure("04-seat-is-runtime.png", "One capability, staffed one or several ways")}
+      <section id="what-the-work-needs">
+        <h2 class="mono uppercase eyebrow">What an engagement needs</h2>
+        <p class="lede">The list says what the firm can do. It does not say what this engagement needs this week. That is the other half of the model.</p>
+        <p class="lede">A <strong>risk shape</strong> is a recurring kind of riskiest unknown. One of the ${shapeCount} asks "${esc(oneLine(sampleShape?.question))}" A shape is not a phase: several are live at once, they recur, and each one turns a set of capabilities up or down.</p>
+        <p class="lede">How hard a capability is running is its <strong>dial</strong>: ${esc(dialNames)}. Every capability sits somewhere on the dial at all times. Dormant means idle, not absent.</p>
+        <p class="lede">Two questions get confused and shouldn't. <em>How much rides on this?</em> sets the level, and it stops moving once the work is scoped. <em>How sure are we?</em> sets the dial, and it keeps moving as the work proves things out.</p>
         ${to("operating-view.html", "Operating View")}
       </section>
+      <section id="seams">
+        <h2 class="mono uppercase eyebrow">Where work changes hands</h2>
+        <p class="lede">Delivery fails at handoffs more often than inside them. A <strong>seam</strong> names one load-bearing handoff: what has to cross between two capabilities or two domains, and in what form.</p>
+        <p class="lede">A seam is a floor, not a ceremony: not a meeting, a template, or a phase gate. It says what must arrive for the next capability to start honestly, and how you would know it hadn't. There are ${seamCount}.</p>
+        ${to("operating-view.html#seams", "Operating View")}
+      </section>
+      <section id="people">
+        <h2 class="mono uppercase eyebrow">How people attach</h2>
+        <p class="lede">Title, ownership, and seat are not three more lists. They are three ways a person attaches to the same capabilities, and all three stay internal.</p>
+        <ul class="bullets">
+          <li><strong>Title.</strong> A bundle of capabilities one person is accountable for. There are ${titleCount}, and between them they cover every capability exactly once. Shorthand for coverage, never a line on a contract.</li>
+          <li><strong>Ownership.</strong> L4 on a single capability: the person who keeps it fit and writes its guardrails. Permanent.</li>
+          <li><strong>Seat.</strong> One capability at one level on one engagement. Seats shift as the work shifts, so the same person may hold different ones in consecutive sprints.</li>
+        </ul>
+        <p class="lede">How many seats is a separate question from how deep. Level is set by what happens if the work is wrong; count is set by how much of the work there is. A bigger project does not raise the level, it raises the count at the level the risk already fixed.</p>
+        <p class="lede">What one seat can hold is modelled rather than measured: capacity is expected to fall as the level rises ${esc(capacityShape)}, and whether the unit of work counts the same way outside engineering is ${esc(countability)}.</p>
+        ${figure("04-seat-is-runtime.png", "One capability at a level, staffed by one person or several")}
+        ${to("roles-titles.html", "Roles & Titles")}
+      </section>
       <section id="the-sow">
-        <h2 class="mono uppercase eyebrow">What the SOW shows</h2>
+        <h2 class="mono uppercase eyebrow">What the client buys</h2>
         <p class="lede">${esc(oneLine(stack.summary))}</p>
         <ul class="bullets sow">
           ${layers}
@@ -1778,8 +1796,13 @@ function renderHowItRelatesMain(model) {
           .filter(Boolean)
           .map((note) => `<p class="lede">${esc(oneLine(note))}</p>`)
           .join("\n        ")}
-        <p class="lede">Rule of thumb: the client buys an outcome, the firm fulfils it with people in seats, and the shorthand we use between the two stays on our side of the table.</p>
         ${to("roles-titles.html#commercial-stack", "Roles & Titles")}
+      </section>
+      <section id="confidence">
+        <h2 class="mono uppercase eyebrow">How settled this is</h2>
+        <p class="lede">The model is drafted, not proven. Every entry is at draft status, the numbers behind seat counts are placeholders no one has checked against real delivery, and the dial settings on the risk shapes are judgment calls rather than observations.</p>
+        <p class="lede">The Confidence Map records where each part sits, from thinking time through mapping against a current engagement to actual pilot use. Parts move right when real work holds them up, and back left when real work breaks them.</p>
+        ${to("confidence-map.html", "Confidence Map")}
       </section>`;
 }
 
@@ -1865,7 +1888,7 @@ function renderCapabilityModelMain(model) {
 
   return `
       <section id="overview">
-        <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
+        <h1 class="mono uppercase eyebrow">Capability Model</h1>
         <p class="lede">Domains are types of work. They do not change and they do not have levels. Capabilities are the named outcomes we promise inside a domain.</p>
         <p class="lede">How a capability is executed is a separate scale. L1 Guided Execution, L2 Practitioner, L3 Advanced Lead, and L4 Capability Ownership. That scale lives with capabilities, not with domains.</p>
       </section>
@@ -1904,7 +1927,7 @@ function renderCapabilityModelMain(model) {
       </section>`;
 }
 
-function render(model, pageId = "how-it-all-relates") {
+function render(model, pageId = "core-philosophy") {
   const page = ALL_PAGES.find((item) => item.id === pageId);
   if (!page) throw new Error(`Unknown page: ${pageId}`);
   const main = page.main(model);

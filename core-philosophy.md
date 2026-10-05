@@ -1,56 +1,63 @@
-# How it all relates — the one-page map
+# Core Philosophy
 
-The site's snapshot landing page. Published as `index.html` by `npm run build`. This file is the same argument, for editing.
+The site's landing page. Published as `index.html` by `npm run build`.
 
-Domains, capabilities, levels, roles, titles, seats. That looks like six lists. It is one list. Everything else is a way of pointing at it.
-
-The convolution comes from treating those six words as six things to keep. Domains and capabilities are the list. Levels are how a capability is executed. Roles, titles, and seats are people pointing at it — not parallel inventories.
-
-The count we now attach to a seat is not a seventh list. It's a quantity on one entry, not a new inventory to keep.
-
-![One list](assets/how-it-all-relates-illustrations/01-one-list.png)
+The page itself is rendered by `renderCorePhilosophyMain` in `scripts/build-site.mjs`, and its counts (domains, capabilities, risk shapes, seams, titles) are read from the YAML at build time. This file is the same argument in prose, for editing and discussion. If the two disagree, the renderer is what ships.
 
 ---
 
-## The only real list (source of truth)
+Most firms describe themselves with job titles. Titles drift, mean different things at different companies, and tell a client nothing about what they are buying. This model describes the firm by what it promises instead.
+
+A capability is a named outcome a client would pay for as a result — not a task, not a tool, not a job title. There are 26 of them, grouped into 6 types of work. That list is the model. Everything else on the site points at it: how deeply a capability is run, how hard it is running on a given engagement, who keeps it fit, and what the client is charged for.
+
+The reason to work this way is that the list outlasts the labels. Job names churn every couple of years; "prove it works before we build it" does not.
+
+---
+
+## The one list
 
 ```
 DOMAIN  ──contains──▸  CAPABILITY  ──executed at──▸  LEVEL (L1–L4)
 ```
 
-This is the model. A capability is the named outcome we promise. It can be executed at L1, L2, L3, or L4 — same promise, different depth of judgment and accountability. The capability is the whole piece; the level is which piece you slot in to assemble it. Domains and capabilities are fixed; capabilities carry levels. Nothing else below is its own list.
+**Domains** are types of work. There are six and the set is closed: Commercial, Framing, Building, Proof, Enablement, Continuity. They never carry levels.
+
+**Capabilities** are the promises inside a domain. Each one answers what we commit to and what the client walks away with.
+
+**Levels** are how deeply a capability is executed. L1 to L3 are depth of judgment against the same promise — the client gets the same outcome with more or less supervision behind it. L4 is different in kind: owning the capability for the whole firm, keeping it fit, rather than executing it harder.
 
 ![The spine](assets/how-it-all-relates-illustrations/02-the-spine.png)
 
 ---
 
-## Two questions, not one
+## What an engagement needs
 
-A seat is set by two questions that do different jobs. **How much rides on this** sets the level. **How much of it there is** sets the count. Neither answers the other.
+The list says what the firm can do. It does not say what this engagement needs this week. That is the other half of the model.
 
-Level is depth of judgment, fixed by collapse risk. Count is volume, fixed by how much of the work there is. A bigger project does not raise the level — it raises the count at whatever level the risk already fixed. This is the answer to whether scale changes the level: it doesn't. Scale is a count question; level is a risk question. They're orthogonal.
+A **risk shape** is a recurring kind of riskiest unknown. One of the eight asks "Are we solving the right thing?" A shape is not a phase: several are live at once, they recur, and each one turns a set of capabilities up or down.
 
-L3×1, L1×5, and L2×3 are all coherent seats — one deep expert on the thing that can't fail, many hands on routine surface, or moderate stakes with more of it than one seat can carry.
+How hard a capability is running is its **dial**: Dormant, Low, Active, Peak. Every capability sits somewhere on the dial at all times. Dormant means idle, not absent.
 
----
+Two questions get confused and shouldn't:
 
-## Surface area
-
-Count comes from surface area — how much of a capability-at-level the work demands, divided by how much one seat can hold.
-
-Surface area is the number of independently attention-demanding units at a capability×level — units that can't share one operator's attention without one of them degrading. It's a concurrency measure, set by the timeline: two things on separate critical paths are two units; the same work done serially is fewer.
-
-What one seat holds depends on the level and on who's in it. Nominal capacity falls as the level rises — higher stakes tax attention per unit [UNTESTED; to be calibrated from a real engagement]. And an overqualified operator covers more, up to a hard ceiling, because the work is easy for them.
-
-One flag stays open: surface area counts cleanly in engineering (services, streams), but whether the same unit survives in the judgment-heavy domains — Framing, Proof, Commercial, Enablement, Continuity — is [UNTESTED]. Named and unresolved, not assumed closed.
-
-The markers above are read from `capacity-model.yaml`, which records the confidence for each claim. The page never states more confidence than the model does.
+| Question | Sets | Behaviour |
+|---|---|---|
+| How much rides on this? | the **level** | stops moving once the work is scoped |
+| How sure are we? | the **dial** | keeps moving as the work proves things out |
 
 ---
 
-## Three verbs
+## Where work changes hands
 
-Title, ownership, and seat are **not three more lists** — they're three verbs on the same capabilities. Same noun, three relationships, all three internal:
+Delivery fails at handoffs more often than inside them. A **seam** names one load-bearing handoff: what has to cross between two capabilities or two domains, and in what form.
+
+A seam is a floor, not a ceremony. It is not a meeting, a document template, or a phase gate. It says what must arrive for the next capability to start honestly, and how you would know it hadn't. There are five.
+
+---
+
+## How people attach
+
+Title, ownership, and seat are **not three more lists** — they are three ways a person attaches to the same capabilities, and all three stay internal.
 
 ```
                         CAPABILITY (@ level)
@@ -60,27 +67,23 @@ Title, ownership, and seat are **not three more lists** — they're three verbs 
                        TITLE  OWNERSHIP  SEAT
 ```
 
-| Binding | Verb | What it points at | Scope |
-|---|---|---|---|
-| **Title** | grouped under | a *bundle* of owned capabilities | internal · coarse · stable |
-| **Ownership** | keeps fit | the *capabilities* you author guardrails for | internal · permanent |
-| **Seat** | executes | *one capability at one level*, this squad | internal · dynamic |
+| Binding | What it points at | Scope |
+|---|---|---|
+| **Title** | a *bundle* of capabilities one person is accountable for | internal · coarse · stable |
+| **Ownership** | the *capability* you keep fit and write guardrails for (L4) | internal · permanent |
+| **Seat** | *one capability at one level*, this engagement | internal · dynamic |
 
-**The unlock:** a **seat is a capability at a level, with a count, filled by a person or people, on this engagement.** That's a runtime instance — and the count isn't a new list, it's how many times we instantiate one entry.
+There are five titles, and between them they cover every capability exactly once. That is what stops a title becoming a grab-bag and a capability becoming an orphan.
 
-The count is confidence-gated, same as everything else. Before the work can prove the load, the count is assumed — a demanded ceiling estimated at intake, the least-validated moment we have, when we don't yet know what we don't know. As surface area validates during the work, a committed floor emerges. We stand behind the floor and watch the ceiling; a surface-area update re-derives the count mid-engagement.
+How many seats is a separate question from how deep. **Level is set by what happens if the work is wrong; count is set by how much of the work there is.** A bigger project does not raise the level — it raises the count at the level the risk already fixed. L3×1, L1×5, and L2×3 are all coherent.
 
-"Eval Harness Engineer" = someone executing *Validation & testing @ L2* on this engagement. That's why seats "pertain to a capability at a level" — that's literally their definition. Likewise: ownership = a capability + a person (permanent); title = a bundle of owned capabilities (internal coverage).
-
-One person can hold the seat, or several people who each clear the bar can make up the count together. So seats and capabilities aren't two parallel lists to reconcile. Seat names churn (Context Engineer, Red Teamer). The capability underneath does not.
+What one seat can hold is modelled rather than measured. Capacity is expected to fall as the level rises `[UNTESTED; to be calibrated from a real engagement]`, and whether the unit of work counts the same way outside engineering is `[UNTESTED]`. Both markers are read from `capacity-model.yaml`; the page never claims more confidence than the model records.
 
 ![Seat is runtime](assets/how-it-all-relates-illustrations/04-seat-is-runtime.png)
 
 ---
 
-## What the SOW shows
-
-Three layers, one of them hidden.
+## What the client buys
 
 ```
 SOW  ──sells──────────▸  OUTCOME
@@ -89,32 +92,17 @@ SOW  ──sells──────────▸  OUTCOME
 ```
 
 - ✅ **Outcome** — what's sold and priced. "We'll build the integration hub."
-- ✅ **Capabilities at levels, with counts** — the price justification, surfaced if the client asks how the number was reached ("core systems engineering at L2, ×3"). The count lives here because load drives price. But it's the demanded shape, a capability at a level with a quantity, not named bodies.
-- ❌ **Seats** — how we assemble the count: three L2s, or one L3 absorbing it. Internal. Never on the SOW.
+- ✅ **Capabilities at levels, with counts** — the price justification, surfaced if the client asks how the number was reached. The demanded shape, not named bodies.
+- ❌ **Seats and titles** — how we assemble the count. Internal. Never on the SOW.
 
-The title never appears here. The level carries the seniority a title used to imply — and carries it precisely.
+The level carries the seniority a title used to imply, and carries it precisely. The client buys an outcome, the firm fulfils it with people in seats, and the shorthand between the two stays on our side of the table.
 
-"Capabilities at levels, with counts" is the same person-agnostic shape we can put in front of a client; the moment it resolves to named people, it drops below the line.
-
-**Rule of thumb:** the client buys an outcome · the firm fulfils it with people in seats · the shorthand between the two stays on our side of the table.
+The layers are authored in `doctrine/commercial-stack.yaml` and rendered from it.
 
 ---
 
-## The whole thing in one read
+## How settled this is
 
-```
-              ┌──────────────── SOURCE OF TRUTH ────────────────┐
-              │  DOMAIN ▸ CAPABILITY ▸ LEVEL                     │
-              └──────────────────────┬──────────────────────────┘
-                                     │  (everything points here)
-        ┌────────────────────────────┼────────────────────────────┐
-      TITLE                       OWNERSHIP                        SEAT
-  bundle, grouped            capabilities, kept fit     capability@level×count, staffed
-   (internal)                  (permanent)                    (dynamic)
-        │                                                          │
-        └───────── SOW sells an OUTCOME, priced from ──────────────┘
-                     CAPABILITIES@LEVELS × COUNT
-             (titles and seats = never shown)
-```
+The model is drafted, not proven. Every entry is at draft status, the numbers behind seat counts are placeholders no one has checked against real delivery, and the dial settings on the risk shapes are judgment calls rather than observations.
 
-Six words that were blurring together, three of them are just people-to-capability bindings, and the SOW only ever sells an outcome priced from the capability spine. Nothing else is a list you have to maintain.
+`confidence-map.yaml` records where each part sits, from thinking time through mapping against a current engagement to actual pilot use. Parts move right when real work holds them up, and back left when real work breaks them.
