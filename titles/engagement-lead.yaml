@@ -1,5 +1,5 @@
-id: engagement-autonomy-lead
-name: Engagement & Autonomy Lead
+id: engagement-lead
+name: Engagement Lead
 description: >
   Manages delivery velocity, risk exposure, client alignment, and autonomy
   tiers. Instead of tracking manual JIRA tickets, they govern stage gates,
@@ -34,4 +34,4 @@ reading_order: 5
 status: draft
 owner: Operating Model
 source: original
-last_updated: 2026-09-28
+last_updated: 2026-10-01

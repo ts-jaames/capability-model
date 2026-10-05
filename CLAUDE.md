@@ -83,7 +83,7 @@ Fail — and reclassify — if the thing is really a capability, a title, a skil
 
 ### Title (`titles/`)
 
-An **internal grouping of owned capabilities** — shorthand for a coherent bundle one person can be accountable for. Product Architect, Forward Deployed Engineer, Applied AI Engineer, Eval & Quality Engineer, Engagement & Autonomy Lead.
+An **internal grouping of owned capabilities** — shorthand for a coherent bundle one person can be accountable for. Product Architect, Forward Deployed Engineer, Applied AI Engineer, Eval & Quality Engineer, Engagement Lead.
 
 A title is **not a commercial artefact**. It never appears on a SOW or a rate card. The client buys the outcome, priced from the capabilities-at-levels underneath. Titles are peer categories, not a ladder; seniority lives on the consultant band and the level.
 

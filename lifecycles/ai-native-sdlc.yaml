@@ -361,7 +361,7 @@ raci:
         designation: C
       - title: eval-quality-engineer
         designation: I
-      - title: engagement-autonomy-lead
+      - title: engagement-lead
         designation: C
   - stage: 1
     assignments:
@@ -373,7 +373,7 @@ raci:
         designation: C
       - title: eval-quality-engineer
         designation: C
-      - title: engagement-autonomy-lead
+      - title: engagement-lead
         designation: C
   - stage: 2
     assignments:
@@ -385,7 +385,7 @@ raci:
         designation: C
       - title: eval-quality-engineer
         designation: I
-      - title: engagement-autonomy-lead
+      - title: engagement-lead
         designation: I
   - stage: 3
     assignments:
@@ -397,7 +397,7 @@ raci:
         designation: R
       - title: eval-quality-engineer
         designation: I
-      - title: engagement-autonomy-lead
+      - title: engagement-lead
         designation: C
   - stage: 4
     assignments:
@@ -409,7 +409,7 @@ raci:
         designation: C
       - title: eval-quality-engineer
         designation: A
-      - title: engagement-autonomy-lead
+      - title: engagement-lead
         designation: I
   - stage: 5
     assignments:
@@ -421,7 +421,7 @@ raci:
         designation: R
       - title: eval-quality-engineer
         designation: C
-      - title: engagement-autonomy-lead
+      - title: engagement-lead
         designation: A
   - stage: 6
     assignments:
@@ -433,7 +433,7 @@ raci:
         designation: R
       - title: eval-quality-engineer
         designation: C
-      - title: engagement-autonomy-lead
+      - title: engagement-lead
         designation: I
 
 gaps:
