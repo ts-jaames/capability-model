@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, join, resolve } from "node:path";
 import {
@@ -124,8 +124,6 @@ const PAGES = [
 const ALL_PAGES = PAGES.flatMap((page) =>
   page.toggleOnly ? (page.children ?? []) : [page, ...(page.children ?? [])],
 );
-
-const ILLUSTRATIONS = "assets/how-it-all-relates-illustrations";
 
 function pagesBase() {
   return String(process.env.PAGES_BASE ?? "").replace(/\/+$/, "");
@@ -757,7 +755,6 @@ function renderOperatingMain(model) {
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Operating View</h1>
         <p class="lede">Risk decides which capabilities run and how hot. Contracts decide how their work flows on. This page defines both.</p>
-        ${figure("06-operating-view.png", "Risk turns intensity dials; work flows across seams.")}
       </section>
       <section id="intensity">
         <h2 class="mono uppercase eyebrow">Intensity</h2>
@@ -810,13 +807,6 @@ function renderOperatingMain(model) {
         ${renderDoctrine(change, capsById)}
         </div>
       </section>`;
-}
-
-function figure(file, caption) {
-  const src = sitePath(`${ILLUSTRATIONS}/${file}`);
-  return `<figure class="figure">
-        <img src="${esc(src)}" alt="${esc(caption)}" width="1536" height="1024">
-      </figure>`;
 }
 
 function to(href, label) {
@@ -1756,7 +1746,6 @@ function renderCorePhilosophyMain(model) {
         <p class="lede"><strong>Domains</strong> are types of work. There are ${domainCount} and the set is closed: ${esc(domainNames)}. They never carry levels.</p>
         <p class="lede"><strong>Capabilities</strong> are the promises inside a domain.</p>
         <p class="lede"><strong>Levels</strong> are how deeply a capability is executed. L1 to L3 are depth of judgment against the same promise, so the client gets the same outcome with more or less supervision behind it. L4 is different in kind: it is owning the capability for the whole firm, keeping it fit, rather than executing it harder.</p>
-        ${figure("02-the-spine.png", "A capability sits inside a domain and is delivered at a level")}
         ${to("capability-model.html", "Capability Model")}
       </section>
       <section id="what-the-work-needs">
@@ -1783,7 +1772,6 @@ function renderCorePhilosophyMain(model) {
         </ul>
         <p class="lede">How many seats is a separate question from how deep. Level is set by what happens if the work is wrong; count is set by how much of the work there is. A bigger project does not raise the level, it raises the count at the level the risk already fixed.</p>
         <p class="lede">What one seat can hold is modelled rather than measured: capacity is expected to fall as the level rises ${esc(capacityShape)}, and whether the unit of work counts the same way outside engineering is ${esc(countability)}.</p>
-        ${figure("04-seat-is-runtime.png", "One capability at a level, staffed by one person or several")}
         ${to("roles-titles.html", "Roles & Titles")}
       </section>
       <section id="the-sow">
@@ -2159,18 +2147,6 @@ function render(model, pageId = "core-philosophy") {
       color: var(--ink);
       margin: 0 0 16px;
       max-width: 760px;
-    }
-    .figure {
-      margin: 24px 0 32px;
-      background: #fff;
-      border: 1px solid var(--line);
-    }
-    .figure img {
-      display: block;
-      width: 100%;
-      max-width: 100%;
-      height: auto;
-      background: #fff;
     }
     .to {
       margin: 0 0 8px;
@@ -2648,17 +2624,6 @@ async function build() {
   const outDir = join(ROOT, "site");
   await mkdir(outDir, { recursive: true });
   await writeFile(join(outDir, ".nojekyll"), "");
-  await cp(join(ROOT, ILLUSTRATIONS), join(outDir, ILLUSTRATIONS), { recursive: true });
-  const firstDrawing = join(outDir, ILLUSTRATIONS, "01-one-list.png");
-  const boardDrawing = join(outDir, ILLUSTRATIONS, "06-operating-view.png");
-  const drawn = await readFile(firstDrawing).catch(() => null);
-  const board = await readFile(boardDrawing).catch(() => null);
-  if (!drawn?.length) {
-    throw new Error(`Missing ${firstDrawing}. Drawings must copy into site/ on build.`);
-  }
-  if (!board?.length) {
-    throw new Error(`Missing ${boardDrawing}. Drawings must copy into site/ on build.`);
-  }
   for (const page of ALL_PAGES) {
     await writeFile(join(outDir, page.file), render(model, page.id));
   }

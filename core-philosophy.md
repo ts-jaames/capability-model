@@ -26,8 +26,6 @@ DOMAIN  ──contains──▸  CAPABILITY  ──executed at──▸  LEVEL (
 
 **Levels** are how deeply a capability is executed. L1 to L3 are depth of judgment against the same promise — the client gets the same outcome with more or less supervision behind it. L4 is different in kind: owning the capability for the whole firm, keeping it fit, rather than executing it harder.
 
-![The spine](assets/how-it-all-relates-illustrations/02-the-spine.png)
-
 ---
 
 ## What an engagement needs
@@ -78,8 +76,6 @@ There are five titles, and between them they cover every capability exactly once
 How many seats is a separate question from how deep. **Level is set by what happens if the work is wrong; count is set by how much of the work there is.** A bigger project does not raise the level — it raises the count at the level the risk already fixed. L3×1, L1×5, and L2×3 are all coherent.
 
 What one seat can hold is modelled rather than measured. Capacity is expected to fall as the level rises `[UNTESTED; to be calibrated from a real engagement]`, and whether the unit of work counts the same way outside engineering is `[UNTESTED]`. Both markers are read from `capacity-model.yaml`; the page never claims more confidence than the model records.
-
-![Seat is runtime](assets/how-it-all-relates-illustrations/04-seat-is-runtime.png)
 
 ---
 
