@@ -132,15 +132,8 @@ function tocLink(href, label) {
 const PAGE_TOC = {
   "core-philosophy": [
     ["#overview", "What this is"],
-    ["#principle-1", "1 · Confidence over dates"],
-    ["#principle-2", "2 · Evidence first"],
-    ["#principle-3", "3 · Promoted as earned"],
-    ["#principle-4", "4 · Domains run throughout"],
-    ["#the-spine", "The one list"],
-    ["#what-the-work-needs", "What an engagement needs"],
-    ["#seams", "Seams"],
-    ["#people", "How people attach"],
-    ["#the-sow", "What the client buys"],
+    ["#principles", "Four principles"],
+    ["#where-it-lives", "Where it lives"],
     ["#confidence", "How settled this is"],
   ],
   "capability-model": [
@@ -764,19 +757,6 @@ function to(href, label) {
   return `<p class="to"><a href="${esc(href)}">${esc(label)} →</a></p>`;
 }
 
-// A page may never claim more confidence than the model records, so the bracket
-// marker is read from capacity-model.yaml rather than written into the prose.
-function confidenceMarker(value, qualifier) {
-  const token = String(value ?? "")
-    .replace(/^\[|\]$/g, "")
-    .trim();
-  if (!token) {
-    throw new Error(
-      "Missing confidence marker in capacity-model.yaml. Run npm run validate.",
-    );
-  }
-  return qualifier ? `[${token}; ${qualifier}]` : `[${token}]`;
-}
 
 function requireLifecycle(model, id) {
   const found = (model.lifecycles ?? []).find((lc) => lc.id === id);
@@ -1686,23 +1666,17 @@ function renderNewDiscoveryMain(model) {
       </section>` : ""}`;
 }
 
+// Core Philosophy is the argument, kept short enough to read in a minute. The
+// detail it points at lives on the other pages, so nothing here restates the
+// model: counts, domain names, dial names and stage names are read from it, and
+// only the four claims are authored.
 function renderCorePhilosophyMain(model) {
-  const stack = requireDoctrine(model, "commercial-stack");
   const lifecycle = requireLifecycle(model, "ai-native-sdlc");
-  const stageLabel = (n) => {
+  const stageLink = (n) => {
     const st = (lifecycle.stages ?? []).find((x) => x.number === n);
-    return `${esc(lifecycle.name)}, Stage ${n}${st ? ` · ${esc(st.name)}` : ""}`;
+    return to(`ai-sdlc.html#stage-${n}`, `${lifecycle.name}, Stage ${n}${st ? ` · ${st.name}` : ""}`);
   };
-  const stageLink = (n) => `<a href="ai-sdlc.html#stage-${n}">${stageLabel(n)}</a>`;
-  const gateName = esc((lifecycle.stages ?? []).find((x) => x.number === 1)?.name ?? "Evidence Gate");
-  const layers = (stack.steps ?? [])
-    .map(
-      (step) =>
-        `<li><strong>${esc(oneLine(step.name))}.</strong> ${esc(oneLine(step.description))}</li>`,
-    )
-    .join("");
 
-  // Counts and names come from the model so the page cannot drift from it.
   const domainNames = [...model.domains]
     .sort((a, b) => domainRank(a.id) - domainRank(b.id))
     .map((domain) => domain.name)
@@ -1712,127 +1686,64 @@ function renderCorePhilosophyMain(model) {
   const shapeCount = model.riskShapes.length;
   const seamCount = model.seams.length;
   const titleCount = model.titles.length;
+  const idle = model.intensity?.dials?.[0]?.name ?? "Dormant";
 
-  const dials = model.intensity?.dials ?? [];
-  const dialNames = dials.map((dial) => dial.name).join(", ");
-  const sampleShape = [...model.riskShapes].sort(
-    (a, b) => (a.reading_order ?? 0) - (b.reading_order ?? 0),
-  )[0];
-
-  const capacity = model.capacityModel;
-  const capacityShape = confidenceMarker(
-    capacity?.nominal_capacity?.shape_hypothesis?.confidence,
-    "to be calibrated from a real engagement",
-  );
-  const countability = confidenceMarker(
-    capacity?.surface_area?.cross_domain_countability?.confidence,
-  );
-
-  // The four principles are essays, not model data: friction, shift, and where
-  // the model handles it. Anything the model owns (the domain list and count, the
-  // dial steps, stage names) is read from it above, so only the argument is
-  // authored here.
-  const principle = (n, title, friction, shift, approach) => `
+  const principle = (n, title, body, links) => `
         <article class="principle" id="principle-${n}">
           <h3>${n}. ${esc(title)}</h3>
-          <p class="lede"><strong>The friction.</strong> ${friction}</p>
-          <p class="lede"><strong>The shift.</strong> ${shift}</p>
-          <p class="lede"><strong>Sparq approach.</strong> ${approach}</p>
+          <p class="lede">${body}</p>
+          ${links}
         </article>`;
 
   const principles = [
     principle(
       1,
-      "Confidence governs what gets committed, dates alone don't force it",
-      "Traditional delivery treats the calendar as the trigger. Week four means the roadmap exists, whether or not anyone has tested the assumptions underneath it. Week six means the backlog gets estimated, whether or not the architecture has been proven feasible. Nobody intends this. It is what a fixed-length engagement optimizes for by default when the date is the only thing forcing the decision. The team isn't dishonest. The system rewards calendar completion over validated belief, so that is what it produces. The quiet cost shows up later, when a decision made in week four turns out to rest on an assumption nobody tested, and the rework lands in week ten.",
-      "The timebox stays. Sparq is a consultancy, and a client buying an eight-week engagement needs to know what they get in eight weeks. What changes is what happens inside that window. A date can still require a decision; it cannot manufacture the evidence behind it. So the question at each checkpoint is not \"is this done because the date arrived,\" it is \"what does the evidence support saying, as of this date.\" If a critical assumption is still unresolved at week six, the output at week six says so explicitly, instead of papering over it with confident language because the calendar demanded a confident-sounding deliverable. A capability that has earned confidence early can start hardening ahead of schedule. One still under test stays honestly provisional, on the same engagement, under the same deadline.",
-      `This is the ${gateName}: a checkpoint that still sits on the engagement's fixed timeline, but closes on an explicit Promote, Iterate, Pivot, or Stop that reflects actual evidence, never a default Promote because the date arrived and something had to be delivered. Full mechanics live in ${stageLink(1)}.`,
+      "Confidence governs what gets committed, not the calendar",
+      "The timebox stays, but a date can require a decision; it cannot manufacture the evidence behind it. Each checkpoint says what the evidence supports as of that date. It closes on Promote, Iterate, Pivot, or Stop, never on a default Promote because time ran out.",
+      stageLink(1),
     ),
     principle(
       2,
-      "Evidence is the primary artifact, documents are a view of it",
-      "Discovery has historically been sold and judged by its documents: a strategy deck, a roadmap, a backlog, a set of wireframes. That incentive is dangerous in a specific way. It rewards artifact completeness, not artifact honesty. A clean, confident-sounding roadmap looks like progress whether or not the assumptions underneath it were ever tested. Polish and good formatting get mistaken for technical readiness. The team can walk out of a workshop with something that photographs well and means almost nothing.",
-      "Evidence becomes the thing that is produced and tracked. Documents become generated views of that evidence: expressions of current confidence, not sources of truth in their own right. A roadmap does not get written from synthesis and intuition. It gets generated from what has actually been validated, and it says so explicitly where something has not been. High confidence reads as definitive language. Low confidence reads as an explicit hypothesis. Nothing gets padded to look complete when the evidence underneath it is not there yet.",
-      `Every assumption that enters the pipeline gets tagged, not left as atmosphere in a workshop room. It is captured in ${fileRefs("intent.md")} as a structured inventory of claims, not settled facts, and reviewed before it is trusted enough to become a spec. Full mechanics live in ${stageLink(0)}.`,
+      "Evidence is the artifact, documents are a view of it",
+      `Roadmaps and decks are generated from what has been validated, and they say so where something has not been. Every assumption is tagged in ${fileRefs("intent.md")} as a claim, not a fact, and reviewed before it can become a spec.`,
+      stageLink(0),
     ),
     principle(
       3,
-      "Capabilities are promoted as they earn it, the system isn't defined all at once upfront",
-      "The traditional instinct is to define the whole system before building any of it: the full MVP, the full roadmap, the full architecture, the full backlog, on the theory that defining more reduces risk. In practice, it does the opposite. Assumptions get locked into static documents before anyone has tested them. Unrelated capabilities get artificially synchronized around the same phase boundary, so a stalled assumption in one area holds up progress everywhere else. And because the definition happened before any real signal came back, the plan is wrong in places nobody has found yet, which means the rework arrives exactly when it is most expensive to absorb.",
-      "Capabilities move independently. One capability can be production-hardened while another, on the same engagement, is still being tested at the thinnest possible slice. The system does not advance as a single block waiting on its slowest-moving part. The MVP is not specified in a workshop on day one. It emerges through which capabilities actually earn their way to commitment, and in what order.",
-      `This is the three Commitment States, Concept, Validation, and Commitment, applied per capability rather than per engagement, with promotion between them requiring a recorded decision, never an assumed one. The capabilities these states attach to are on the <a href="capability-model.html">Capability Model</a> page. The model does not record the states per capability yet; today they appear only in how seat counts and levels promote.`,
+      "Capabilities are promoted as they earn it",
+      "The system is not defined all at once. Each capability moves from Concept to Validation to Commitment on its own, with a recorded decision at each step. The MVP emerges from which capabilities earn commitment, and in what order.",
+      to("capability-model.html", "Capability Model"),
     ),
     principle(
       4,
-      "Capabilities are contributed to across the whole lifecycle, not owned by a phase",
-      "Phase-based delivery assigns ownership sequentially: strategy defines, design frames, engineering builds what it is handed. Each handoff is a point where context gets lost and where the people best positioned to catch a problem early are structurally prevented from seeing it until it is already expensive. Engineering, in particular, ends up validating feasibility only after the decisions that depended on feasibility have already been made.",
-      `All ${domainCount} capability domains (${esc(domainNames)}) run across the whole lifecycle at once, from the first conversation. A domain that is not needed yet sits at ${esc(dials[0]?.name ?? "Dormant")}, which means idle, not absent. What changes as commitment deepens is intensity within each domain, not which domain gets to speak. Engineering validates feasibility from day one, not after definition. Design shapes test artifacts before there is anything polished to hand off. Nobody exits after their phase ends, because there is no phase that is theirs alone to begin with.`,
-      `This is the capability-domain model running underneath every stage of delivery: the same ${domainCount} domains present at Concept, Validation, and Commitment, with their relative weight shifting rather than their presence starting or stopping. Full mechanics live in the <a href="operating-view.html">Operating View</a> and <a href="roles-titles.html">Roles &amp; Titles</a>.`,
+      "Every domain contributes throughout, no phase owns the work",
+      `All ${domainCount} domains (${esc(domainNames)}) run across the whole lifecycle from the first conversation. A domain not needed yet sits at ${esc(idle)}: idle, not absent. As commitment deepens, intensity changes, not who gets to speak.`,
+      to("operating-view.html", "Operating View"),
     ),
   ].join("");
 
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
-        <p class="lede">Most firms describe themselves with job titles. Titles drift, mean different things at different companies, and tell a client nothing about what they are buying. This model describes the firm by what it promises instead.</p>
-        <p class="lede">A capability is a named outcome a client would pay for as a result. Not a task, not a tool, not a job title. There are ${capabilityCount} of them, grouped into ${domainCount} types of work. That list is the model. Everything else on this site points at it: how deeply a capability is run, how hard it is running on a given engagement, who keeps it fit, and what the client is charged for.</p>
-        <p class="lede">The reason to work this way is that the list outlasts the labels. Job names churn every couple of years; "prove it works before we build it" does not.</p>
+        <p class="lede">We commit to what the evidence supports, not to what the calendar demands. A client buys a named outcome, not a job title, and each outcome moves forward only as fast as the proof behind it.</p>
       </section>
       <section id="principles">
         <h2 class="mono uppercase eyebrow">Four principles</h2>
-        <p class="lede">Each one starts from a way conventional delivery fails, says what changes, and points to where the model handles it.</p>
         ${principles}
       </section>
-      <section id="the-spine">
-        <h2 class="mono uppercase eyebrow">The one list</h2>
-        <p class="lede">Three words in order: a <strong>domain</strong> contains <strong>capabilities</strong>, and a capability is executed at a <strong>level</strong>.</p>
-        <p class="lede"><strong>Domains</strong> are types of work. There are ${domainCount} and the set is closed: ${esc(domainNames)}. They never carry levels.</p>
-        <p class="lede"><strong>Capabilities</strong> are the promises inside a domain.</p>
-        <p class="lede"><strong>Levels</strong> are how deeply a capability is executed. L1 to L3 are depth of judgment against the same promise, so the client gets the same outcome with more or less supervision behind it. L4 is different in kind: it is owning the capability for the whole firm, keeping it fit, rather than executing it harder.</p>
-        ${to("capability-model.html", "Capability Model")}
-      </section>
-      <section id="what-the-work-needs">
-        <h2 class="mono uppercase eyebrow">What an engagement needs</h2>
-        <p class="lede">The list says what the firm can do. It does not say what this engagement needs this week. That is the other half of the model.</p>
-        <p class="lede">A <strong>risk shape</strong> is a recurring kind of riskiest unknown. One of the ${shapeCount} asks "${esc(oneLine(sampleShape?.question))}" A shape is not a phase: several are live at once, they recur, and each one turns a set of capabilities up or down.</p>
-        <p class="lede">How hard a capability is running is its <strong>dial</strong>: ${esc(dialNames)}. Every capability sits somewhere on the dial at all times. Dormant means idle, not absent.</p>
-        <p class="lede">Two questions get confused and shouldn't. <em>How much rides on this?</em> sets the level, and it stops moving once the work is scoped. <em>How sure are we?</em> sets the dial, and it keeps moving as the work proves things out.</p>
-        ${to("operating-view.html", "Operating View")}
-      </section>
-      <section id="seams">
-        <h2 class="mono uppercase eyebrow">Where work changes hands</h2>
-        <p class="lede">Delivery fails at handoffs more often than inside them. A <strong>seam</strong> names one load-bearing handoff: what has to cross between two capabilities or two domains, and in what form.</p>
-        <p class="lede">A seam is a floor, not a ceremony: not a meeting, a template, or a phase gate. It says what must arrive for the next capability to start honestly, and how you would know it hadn't. There are ${seamCount}.</p>
-        ${to("operating-view.html#seams", "Operating View")}
-      </section>
-      <section id="people">
-        <h2 class="mono uppercase eyebrow">How people attach</h2>
-        <p class="lede">Title, ownership, and seat are not three more lists. They are three ways a person attaches to the same capabilities, and all three stay internal.</p>
+      <section id="where-it-lives">
+        <h2 class="mono uppercase eyebrow">Where it lives</h2>
         <ul class="bullets">
-          <li><strong>Title.</strong> A bundle of capabilities one person is accountable for. There are ${titleCount}, and between them they cover every capability exactly once. Shorthand for coverage, never a line on a contract.</li>
-          <li><strong>Ownership.</strong> L4 on a single capability: the person who keeps it fit and writes its guardrails. Permanent.</li>
-          <li><strong>Seat.</strong> One capability at one level on one engagement. Seats shift as the work shifts, so the same person may hold different ones in consecutive sprints.</li>
+          <li><strong>Outcomes.</strong> ${capabilityCount} capabilities in ${domainCount} domains. <a href="capability-model.html">Capability Model</a></li>
+          <li><strong>How hard they run.</strong> ${shapeCount} risk shapes and ${seamCount} seams decide what is turned up and what must hand off. <a href="operating-view.html">Operating View</a></li>
+          <li><strong>Who holds them, and what is sold.</strong> ${titleCount} titles bundle the capabilities. The client is charged for capabilities at levels, never for titles. <a href="roles-titles.html">Roles &amp; Titles</a></li>
+          <li><strong>How delivery runs.</strong> One lifecycle, with discovery as its first two stages. <a href="ai-sdlc.html">${esc(lifecycle.name)}</a> and <a href="new-discovery.html">New Discovery</a></li>
         </ul>
-        <p class="lede">How many seats is a separate question from how deep. Level is set by what happens if the work is wrong; count is set by how much of the work there is. A bigger project does not raise the level, it raises the count at the level the risk already fixed.</p>
-        <p class="lede">What one seat can hold is modelled rather than measured: capacity is expected to fall as the level rises ${esc(capacityShape)}, and whether the unit of work counts the same way outside engineering is ${esc(countability)}.</p>
-        ${to("roles-titles.html", "Roles & Titles")}
-      </section>
-      <section id="the-sow">
-        <h2 class="mono uppercase eyebrow">What the client buys</h2>
-        <p class="lede">${esc(oneLine(stack.summary))}</p>
-        <ul class="bullets sow">
-          ${layers}
-        </ul>
-        ${[stack.rule, stack.closing_note]
-          .filter(Boolean)
-          .map((note) => `<p class="lede">${esc(oneLine(note))}</p>`)
-          .join("\n        ")}
-        ${to("roles-titles.html#commercial-stack", "Roles & Titles")}
       </section>
       <section id="confidence">
         <h2 class="mono uppercase eyebrow">How settled this is</h2>
-        <p class="lede">The model is drafted, not proven. Every entry is at draft status, the numbers behind seat counts are placeholders no one has checked against real delivery, and the dial settings on the risk shapes are judgment calls rather than observations.</p>
-        <p class="lede">The Confidence Map records where each part sits, from thinking time through mapping against a current engagement to actual pilot use. Parts move right when real work holds them up, and back left when real work breaks them.</p>
+        <p class="lede">The model is drafted, not proven. Every entry is at draft status, the numbers behind seat counts are placeholders no one has checked against real delivery, and the dial settings on the risk shapes are judgment calls rather than observations. The three Commitment States are not recorded per capability yet; today they appear only in how seat counts and levels promote.</p>
+        <p class="lede">The Confidence Map records where each part sits. Parts move right when real work holds them up, and back left when real work breaks them.</p>
         ${to("confidence-map.html", "Confidence Map")}
       </section>`;
 }
@@ -2321,10 +2232,11 @@ function render(model, pageId = "core-philosophy") {
       border-radius: 4px;
       padding: 1px 6px;
     }
-    /* The four principles on Core Philosophy read as a run of short essays. */
-    .principle + .principle { margin-top: 56px; }
-    .principle h3 { margin: 0 0 16px; }
-    .principle .lede:last-child { margin-bottom: 0; }
+    /* The four principles on Core Philosophy: a title, one paragraph, one link. */
+    .principle + .principle { margin-top: 40px; }
+    .principle h3 { margin: 0 0 8px; }
+    .principle .lede { margin-bottom: 8px; }
+    .principle .to { margin-bottom: 0; }
     /* A stage heading that follows a group of steps needs room above it, or it
        reads as the end of the group before it instead of the start of its own. */
     .kvs + .process-stage { margin-top: 56px; }
