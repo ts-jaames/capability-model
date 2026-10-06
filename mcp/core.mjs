@@ -424,7 +424,25 @@ export function getLifecycle(index, { lifecycle } = {}) {
           description: oneLine(lc.commercial_unit.description),
         }
       : undefined,
-    core_shifts: lc.core_shifts,
+    // Agentic mode (ADLC) is the same pipeline with a fork, so it is carried on
+    // the lifecycle itself: the mode-level story here, the per-stage changes on
+    // each stage's `agentic` overlay below.
+    agentic_mode: lc.agentic_mode
+      ? {
+          name: lc.agentic_mode.name,
+          summary: oneLine(lc.agentic_mode.summary),
+          description: oneLine(lc.agentic_mode.description),
+          question: oneLine(lc.agentic_mode.question),
+          asked_at: lc.agentic_mode.asked_at,
+          decided_at: lc.agentic_mode.decided_at,
+          pipeline_note: lc.agentic_mode.pipeline_note ? oneLine(lc.agentic_mode.pipeline_note) : undefined,
+          strategic_alignment: lc.agentic_mode.strategic_alignment,
+          core_shifts: lc.agentic_mode.core_shifts,
+          commercial_constraints: lc.agentic_mode.commercial_constraints,
+          domain_notes: lc.agentic_mode.domain_notes,
+          gaps: lc.agentic_mode.gaps,
+        }
+      : undefined,
     raci: Array.isArray(lc.raci)
       ? lc.raci.map((entry) => ({
           stage: entry.stage,
@@ -454,6 +472,22 @@ export function getLifecycle(index, { lifecycle } = {}) {
       })),
       output: stage.output ? oneLine(stage.output) : undefined,
       note: stage.note ? oneLine(stage.note) : undefined,
+      agentic: stage.agentic
+        ? {
+            divergence: stage.agentic.divergence,
+            name: stage.agentic.name,
+            objective: stage.agentic.objective ? oneLine(stage.agentic.objective) : undefined,
+            framing: stage.agentic.framing ? oneLine(stage.agentic.framing) : undefined,
+            artifact: stage.agentic.artifact,
+            gate: stage.agentic.gate,
+            risk_shapes_hot: stage.agentic.risk_shapes_hot,
+            procedures: (stage.agentic.procedures ?? []).map((p) => ({
+              name: p.name,
+              description: oneLine(p.description),
+            })),
+            output: stage.agentic.output ? oneLine(stage.agentic.output) : undefined,
+          }
+        : undefined,
     })),
     domain_notes: lc.domain_notes,
     gaps: lc.gaps,

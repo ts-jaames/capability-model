@@ -573,6 +573,60 @@ async function main() {
         add("refs", rec.file, `domain_notes cites domain "${dn.domain}" which does not exist`);
       }
     }
+
+    // Agentic mode is one pipeline with a fork, not a second lifecycle. The mode
+    // block carries what is true of the whole mode; each stage's `agentic`
+    // overlay carries only what changes at that stage. The overlay may not
+    // repeat a procedure the stage already has, so nothing is authored twice.
+    const mode = lc.agentic_mode;
+    const overlaid = stages.filter((stage) => stage?.agentic);
+    if (overlaid.length && !mode) {
+      add("constraints", rec.file, "stages carry an agentic overlay but the lifecycle has no agentic_mode");
+    }
+    if (mode) {
+      const stageNumbers = new Set(numbers);
+      for (const field of ["asked_at", "decided_at"]) {
+        if (!stageNumbers.has(mode[field])) {
+          add("refs", rec.file, `agentic_mode.${field} cites stage ${mode[field]} which does not exist`);
+        }
+      }
+      if (
+        stageNumbers.has(mode.asked_at) &&
+        stageNumbers.has(mode.decided_at) &&
+        mode.asked_at > mode.decided_at
+      ) {
+        add("constraints", rec.file, "agentic_mode.asked_at cannot come after decided_at");
+      }
+      for (const dn of mode.domain_notes ?? []) {
+        if (dn.domain && !domains.has(dn.domain)) {
+          add("refs", rec.file, `agentic_mode.domain_notes cites domain "${dn.domain}" which does not exist`);
+        }
+      }
+      if (!overlaid.some((stage) => stage.agentic.divergence === "fork")) {
+        add("constraints", rec.file, "agentic_mode names no stage where the modes fork; at least one stage must set divergence: fork");
+      }
+    }
+    for (const stage of overlaid) {
+      const overlay = stage.agentic;
+      const where = `stage ${stage.number} "${stage.name}" agentic overlay`;
+      for (const shapeId of overlay.risk_shapes_hot ?? []) {
+        if (!riskShapes.has(shapeId)) {
+          add("refs", rec.file, `${where} cites risk shape "${shapeId}" which does not exist`);
+        }
+        if ((stage.risk_shapes_hot ?? []).includes(shapeId)) {
+          add("constraints", rec.file, `${where} repeats risk shape "${shapeId}" the stage already has; list only the ones it adds`);
+        }
+      }
+      const baseNames = new Set((stage.procedures ?? []).map((p) => p.name));
+      const overlayNames = (overlay.procedures ?? []).map((p) => p.name);
+      uniqueIds(overlayNames, rec.file, `${where} procedures`);
+      for (const name of overlayNames) {
+        if (baseNames.has(name)) {
+          add("constraints", rec.file, `${where} repeats procedure "${name}" the stage already has`);
+        }
+      }
+    }
+
     const numberSet = new Set(numbers);
     for (const entry of lc.raci ?? []) {
       if (!numberSet.has(entry.stage)) {
@@ -843,7 +897,7 @@ async function main() {
     `${definitions.size} definitions`,
     `${loaded.byId.title.size} titles`,
     `${loaded.byId.doctrine.size} doctrine`,
-    `${loaded.byId.lifecycle.size} lifecycles`,
+    `${loaded.byId.lifecycle.size} ${loaded.byId.lifecycle.size === 1 ? "lifecycle" : "lifecycles"}`,
   ].join(", ");
   const overlays = loaded.roots.slice(1);
   const from = overlays.length

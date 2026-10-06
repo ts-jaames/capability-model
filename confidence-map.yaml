@@ -98,22 +98,9 @@ rows:
         position: thinking
       - stage: 6
         position: thinking
-
-  - id: adlc
-    name: ADLC
-    lifecycle: adlc
-    items:
-      - stage: 0
+      # The two stages where agentic mode forks in kind, not just adds checks.
+      # They are tested on their own, so the shared stages can sit further right.
+      - name: Agentic mode, Design (Autonomy Matrix)
         position: thinking
-      - stage: 1
-        position: thinking
-      - stage: 2
-        position: thinking
-      - stage: 3
-        position: thinking
-      - stage: 4
-        position: thinking
-      - stage: 5
-        position: thinking
-      - stage: 6
+      - name: Agentic mode, Test (combined threshold)
         position: thinking

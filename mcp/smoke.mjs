@@ -265,10 +265,29 @@ async function main() {
       );
     }
   }
-  const adlc = await client.call("get_lifecycle", { lifecycle: "adlc" });
-  check("adlc has 7 stages", (adlc.payload?.stages ?? []).length === 7);
-  check("adlc stage 0 is Intent Framing", adlc.payload?.stages?.[0]?.name === "Intent Framing");
-  check("adlc omits raci when the lifecycle has none", adlc.payload?.raci === undefined);
+
+  // ADLC is the agentic mode of the one lifecycle, not a second lifecycle.
+  check("there is one lifecycle", lifecycles.payload?.count === 1);
+  const retired = await client.call("get_lifecycle", { lifecycle: "adlc" });
+  check("adlc is no longer a separate lifecycle", Boolean(retired.isError));
+  const mode = sdlc.payload?.agentic_mode;
+  check("the lifecycle carries an agentic mode", Boolean(mode));
+  check("the agentic mode is named ADLC", mode?.name === "ADLC");
+  check("the mode question is asked before it is decided", mode?.asked_at <= mode?.decided_at);
+  const forks = (sdlc.payload?.stages ?? []).filter((stage) => stage.agentic?.divergence === "fork");
+  check(
+    "agentic mode forks at Design and Test",
+    forks.map((stage) => stage.name).join(",") === "Design,Test",
+    forks.map((stage) => stage.name).join(","),
+  );
+  check(
+    "every stage carries an agentic overlay",
+    (sdlc.payload?.stages ?? []).every((stage) => stage.agentic),
+  );
+  check(
+    "the Autonomy Matrix sits on the Design overlay",
+    (sdlc.payload?.stages?.[2]?.agentic?.procedures ?? []).some((p) => p.name === "Autonomy Matrix"),
+  );
 
   // Every capability answers, and the levels block stays honest either way.
   for (const id of capIds) {

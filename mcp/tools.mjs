@@ -149,17 +149,17 @@ export const TOOLS = [
   {
     name: "list_lifecycles",
     description:
-      "List the delivery lifecycles: the AI-Native SDLC and the ADLC. Each lifecycle has ordered stages with artifacts, gates, domain mappings, and risk shape hotspots.",
+      "List the delivery lifecycles. Today that is the AI-Native SDLC, which also carries the ADLC as its agentic mode. Each lifecycle has ordered stages with artifacts, gates, domain mappings, and risk shape hotspots.",
     inputSchema: noArgs,
     run: (index) => listLifecycles(index),
   },
   {
     name: "get_lifecycle",
     description:
-      "One lifecycle in full: its ordered stages, each with objective, artifact, gate, primary/secondary domain, risk shapes typically hot, and procedures. The machine-readable SOP for delivery.",
+      "One lifecycle in full: its ordered stages, each with objective, artifact, gate, primary/secondary domain, risk shapes typically hot, and procedures. Each stage may carry an `agentic` overlay (what changes when the deliverable is itself agentic, and whether that stage is an additive check or a fork), and the lifecycle carries the `agentic_mode` block (the mode question, where it is asked and decided, and the mode-level story). The machine-readable SOP for delivery.",
     inputSchema: oneArg(
       "lifecycle",
-      "Lifecycle id: ai-native-sdlc, adlc.",
+      "Lifecycle id: ai-native-sdlc.",
     ),
     run: (index, args) => getLifecycle(index, args),
   },

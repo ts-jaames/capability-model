@@ -70,42 +70,25 @@ const PAGES = [
     file: "operating-view.html",
     main: renderOperatingMain,
   },
+  // One SDLC. The strategy page is the what and why, the tactical page is the
+  // how. The agentic mode (ADLC) lives inside both rather than beside them.
   {
-    id: "delivery-lifecycles",
-    title: "Delivery Lifecycles",
-    toggleOnly: true,
-    children: [
-      {
-        id: "ai-sdlc",
-        title: "AI-Native Strategy",
-        file: "ai-sdlc.html",
-        main: renderAiSdlcMain,
-      },
-      {
-        id: "tactical-playbook",
-        title: "AI-Native Tactical",
-        file: "tactical-playbook.html",
-        main: renderTacticalPlaybookMain,
-      },
-      {
-        id: "adlc",
-        title: "Agentic",
-        file: "adlc.html",
-        main: renderAdlcMain,
-      },
-      {
-        id: "adlc-tactical",
-        title: "Agentic Tactical",
-        file: "adlc-tactical.html",
-        main: renderAdlcTacticalMain,
-      },
-      {
-        id: "new-discovery",
-        title: "New Discovery",
-        file: "new-discovery.html",
-        main: renderNewDiscoveryMain,
-      },
-    ],
+    id: "ai-sdlc",
+    title: "AI-Native SDLC",
+    file: "ai-sdlc.html",
+    main: renderAiSdlcMain,
+  },
+  {
+    id: "tactical-playbook",
+    title: "AI-Native SDLC Tactical",
+    file: "tactical-playbook.html",
+    main: renderTacticalPlaybookMain,
+  },
+  {
+    id: "new-discovery",
+    title: "New Discovery",
+    file: "new-discovery.html",
+    main: renderNewDiscoveryMain,
   },
   // Standalone pages sit apart from the model: no sidebar, no page list, one
   // link back. They are reached from a single link pinned at the foot of the
@@ -119,11 +102,16 @@ const PAGES = [
   },
 ];
 
-// Flat list of every renderable page for build output, render lookup, and TOC.
-// Toggle-only parents (no file/main) are excluded. they exist only in the nav.
-const ALL_PAGES = PAGES.flatMap((page) =>
-  page.toggleOnly ? (page.children ?? []) : [page, ...(page.children ?? [])],
-);
+// Every renderable page, for build output, render lookup, and TOC.
+const ALL_PAGES = PAGES;
+
+// Pages that used to exist. The ADLC was folded into the AI-Native SDLC as its
+// agentic mode, so the old addresses forward to where that content now lives
+// instead of going dead for anyone who bookmarked or linked them.
+const REDIRECTS = {
+  "adlc.html": "ai-sdlc.html#agentic-mode",
+  "adlc-tactical.html": "tactical-playbook.html#agentic-mode",
+};
 
 function pagesBase() {
   return String(process.env.PAGES_BASE ?? "").replace(/\/+$/, "");
@@ -175,6 +163,7 @@ const PAGE_TOC = {
   ],
   "ai-sdlc": [
     ["#overview", "Overview"],
+    ["#agentic-mode", "One pipeline, one fork"],
     ["#pipeline", "Pipeline"],
     ["#how-stages-and-risk-work", "Stages vs risk shapes"],
     ["#stage-0", "0 · Intent Framing"],
@@ -184,12 +173,16 @@ const PAGE_TOC = {
     ["#stage-4", "4 · Test"],
     ["#stage-5", "5 · Deploy"],
     ["#stage-6", "6 · Maintain"],
+    ["#agentic-alignment", "Agentic · Strategic alignment"],
+    ["#agentic-shifts", "Agentic · Core shifts"],
+    ["#agentic-commercial", "Agentic · Commercial model"],
     ["#domains-across", "Domains across stages"],
     ["#adaptation", "Adaptation matrix"],
     ["#gaps", "Known gaps"],
   ],
   "tactical-playbook": [
     ["#overview", "Overview"],
+    ["#agentic-mode", "Agentic mode"],
     ["#anthropic-mapping", "Anthropic mapping"],
     ["#tactical-0", "0 · Intent Framing"],
     ["#tactical-1", "1 · Evidence Gate"],
@@ -198,43 +191,16 @@ const PAGE_TOC = {
     ["#tactical-4", "4 · Test"],
     ["#tactical-5", "5 · Deploy"],
     ["#tactical-6", "6 · Maintain"],
+    ["#agentic-tooling", "Agentic · Tooling layers"],
+    ["#agentic-repo", "Agentic · Repo structure"],
+    ["#agentic-principles", "Agentic · Operating principles"],
     ["#reconciliation", "Reconciliation log"],
     ["#open-gaps", "Open gaps"],
   ],
-  "adlc": [
-    ["#overview", "Overview"],
-    ["#strategic-alignment", "Strategic alignment"],
-    ["#core-shifts", "Core shifts"],
-    ["#commercial-model", "Commercial model"],
-    ["#pipeline", "Pipeline"],
-    ["#stage-0", "0 · Intent Framing"],
-    ["#stage-1", "1 · Evidence Gate"],
-    ["#stage-2", "2 · Design"],
-    ["#stage-3", "3 · Build"],
-    ["#stage-4", "4 · Test"],
-    ["#stage-5", "5 · Deploy"],
-    ["#stage-6", "6 · Maintain & Governance"],
-    ["#domains-across", "Domains across stages"],
-    ["#adaptation", "Adaptation matrix"],
-    ["#gaps", "Known gaps"],
-  ],
-  "adlc-tactical": [
-    ["#overview", "Overview"],
-    ["#tooling", "Tooling layers"],
-    ["#repo-structure", "Repo structure"],
-    ["#tactical-0", "0 · Intent Framing"],
-    ["#tactical-1", "1 · Evidence Gate"],
-    ["#tactical-2", "2 · Design"],
-    ["#tactical-3", "3 · Build"],
-    ["#tactical-4", "4 · Test"],
-    ["#tactical-5", "5 · Deploy"],
-    ["#tactical-6", "6 · Maintain"],
-    ["#principles", "Operating principles"],
-  ],
   "new-discovery": [
     ["#overview", "Overview"],
-    ["#sdlc-stages", "AI-Native SDLC stages"],
-    ["#adlc-stages", "Agentic stages"],
+    ["#sdlc-stages", "Stages involved"],
+    ["#agentic-additions", "What agentic mode adds"],
   ],
 };
 
@@ -252,41 +218,14 @@ function renderFootLinks() {
 }
 
 function renderPageLinks(pageId) {
-  return PAGES.filter((item) => !item.standalone).map((item) => {
-    const kids = item.children ?? [];
-    const selfActive = item.id === pageId;
-    const childActive = kids.some((kid) => kid.id === pageId);
-    const groupOpen = selfActive || childActive;
-
-    const href = selfActive ? "#overview" : item.file;
-    const current = selfActive ? ' aria-current="page"' : "";
-
-    if (!kids.length) {
+  return PAGES.filter((item) => !item.standalone)
+    .map((item) => {
+      const active = item.id === pageId;
+      const href = active ? "#overview" : item.file;
+      const current = active ? ' aria-current="page"' : "";
       return `<a class="page-link"${current} href="${esc(href)}">${esc(item.title)}</a>`;
-    }
-
-    const childLinks = kids
-      .map((kid) => {
-        const kidActive = kid.id === pageId;
-        const kidHref = kidActive ? "#overview" : kid.file;
-        const kidCurrent = kidActive ? ' aria-current="page"' : "";
-        return `<a class="page-link page-child"${kidCurrent} href="${esc(kidHref)}">${esc(kid.title)}</a>`;
-      })
-      .join("\n            ");
-
-    const caret = `<svg class="page-caret${groupOpen ? " open" : ""}" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
-    const parentEl = item.toggleOnly
-      ? `<span class="page-link page-toggle">${esc(item.title)}${caret}</span>`
-      : `<a class="page-link"${current} href="${esc(href)}">${esc(item.title)}${caret}</a>`;
-
-    return `<div class="page-group${groupOpen ? " open" : ""}">
-          ${parentEl}
-          <div class="page-children">
-            ${childLinks}
-          </div>
-        </div>`;
-  }).join("\n        ");
+    })
+    .join("\n        ");
 }
 
 function sortDomains(items) {
@@ -841,7 +780,7 @@ function fileRefs(html) {
   );
 }
 
-function renderStage(stage) {
+function renderStage(stage, ctx = {}) {
   const framingLabel = stage.framing
     ? `<p class="lede"><strong>The artifact: ${fileRefs(esc(stage.artifact))}</strong></p>`
     : "";
@@ -888,6 +827,7 @@ function renderStage(stage) {
         ${infra || procedures ? `<div class="kvs">${infra}${procedures}</div>` : ""}
         ${practices ? `<div class="kvs">${practices}</div>` : ""}
         ${outputBlock}
+        ${renderAgenticOverlay(stage, ctx)}
       </section>`;
 }
 
@@ -923,18 +863,89 @@ function renderStageWithTactical(stage) {
       </section>`;
 }
 
+// Splits a YAML folded block into paragraphs. A blank line arrives as a single
+// newline, so that is the separator (see paragraphs() above).
+function ledeParagraphs(value) {
+  return String(value ?? "")
+    .trim()
+    .split(/\n+/)
+    .filter(Boolean)
+    .map((block) => `<p class="lede">${fileRefs(esc(oneLine(block)))}</p>`)
+    .join("");
+}
+
+// What changes at one stage when the deliverable is itself agentic. It sits
+// inside the stage, under the standard content, so the two modes read as one
+// pipeline. A fork (Design, Test) is marked and given an orange rule so it
+// cannot be skimmed past as a footnote on a shared stage.
+function renderAgenticOverlay(stage, ctx = {}) {
+  const a = stage.agentic;
+  if (!a) return "";
+  const fork = a.divergence === "fork";
+  const shapeNames = ctx.riskShapeNames ?? new Map();
+
+  const label = `<p class="mono uppercase agentic-label">Agentic mode${a.name && a.name !== stage.name ? `<span class="agentic-name">${esc(a.name)}</span>` : ""}${
+    fork ? `<span class="stage-tag">Where the modes fork</span>` : ""
+  }</p>`;
+
+  const objective = a.objective ? `<p class="lede">${fileRefs(esc(oneLine(a.objective)))}</p>` : "";
+  const framing = a.framing ? ledeParagraphs(a.framing) : "";
+
+  const facts = [
+    a.gate ? `<strong>Gate:</strong> ${esc(a.gate)}` : "",
+    a.artifact ? `<strong>Artifact:</strong> ${fileRefs(esc(a.artifact))}` : "",
+    (a.risk_shapes_hot ?? []).length
+      ? `<strong>Adds risk shape:</strong> ${esc(a.risk_shapes_hot.map((id) => shapeNames.get(id) ?? id).join(", "))}`
+      : "",
+  ].filter(Boolean);
+  const factsLine = facts.length
+    ? `<p class="agentic-facts">${facts.join(" &nbsp;·&nbsp; ")}</p>`
+    : "";
+
+  const procedures = (a.procedures ?? [])
+    .map((p) => kv(p.name, `<p>${fileRefs(esc(oneLine(p.description)))}</p>`))
+    .join("");
+
+  const outputBlock = a.output
+    ? `<div class="stage-output"><span class="stage-output-label">Output</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs(esc(a.artifact ?? stage.artifact))}</span><span>${fileRefs(esc(oneLine(a.output)))}</span></div></div>`
+    : "";
+
+  return `
+        <div class="agentic${fork ? " agentic-fork" : ""}">
+          ${label}
+          ${objective}
+          ${framing}
+          ${factsLine}
+          ${procedures ? `<div class="kvs">${procedures}</div>` : ""}
+          ${outputBlock}
+        </div>`;
+}
+
 function renderAiSdlcMain(model) {
   const lc = requireLifecycle(model, "ai-native-sdlc");
+  const mode = lc.agentic_mode;
   const stages = lc.stages ?? [];
   const riskShapeNames = new Map(
     (model.riskShapes ?? []).map((s) => [s.id, s.name]),
   );
   const domainNames = new Map((model.domains ?? []).map((d) => [d.id, d.name]));
+  const stageName = (n) => stages.find((s) => s.number === n)?.name ?? String(n);
+
+  // How each stage reads in agentic mode, in one cell: whether it only adds
+  // checks or forks, and anything that changes about the gate or artifact.
+  const agenticCell = (s) => {
+    const a = s.agentic;
+    if (!a) return "";
+    const parts = [a.divergence === "fork" ? "<strong>Forks.</strong>" : "Adds checks."];
+    parts.push(a.gate ? `Gate: ${esc(a.gate)}.` : "Same gate.");
+    if (a.artifact) parts.push(`Artifact: ${fileRefs(esc(a.artifact))}.`);
+    return parts.join(" ");
+  };
 
   const pipelineRows = stages
     .map(
       (s) =>
-        `<tr><td><strong>${s.number} · ${esc(s.name)}</strong></td><td>${esc(s.artifact)}</td><td>${esc(s.gate)}</td></tr>`,
+        `<tr><td><strong>${s.number} · ${esc(s.name)}</strong></td><td>${esc(s.artifact)}</td><td>${esc(s.gate)}</td><td>${agenticCell(s)}</td></tr>`,
     )
     .join("");
 
@@ -947,7 +958,10 @@ function renderAiSdlcMain(model) {
       const shapes = (s.risk_shapes_hot ?? [])
         .map((id) => riskShapeNames.get(id) ?? id)
         .join(", ");
-      return `<tr><td>${s.number} · ${esc(s.name)}</td><td>${esc(primary)}</td><td>${esc(secondary)}</td><td>${esc(shapes)}</td></tr>`;
+      const added = (s.agentic?.risk_shapes_hot ?? [])
+        .map((id) => riskShapeNames.get(id) ?? id)
+        .join(", ");
+      return `<tr><td>${s.number} · ${esc(s.name)}</td><td>${esc(primary)}</td><td>${esc(secondary)}</td><td>${esc(shapes)}</td><td>${esc(added || "—")}</td></tr>`;
     })
     .join("");
 
@@ -959,18 +973,68 @@ function renderAiSdlcMain(model) {
     )
     .join("");
 
-  const domainNotes = (lc.domain_notes ?? [])
+  const agenticAdaptationRows = stages
+    .filter((s) => s.agentic?.adaptation)
     .map(
-      (dn) =>
-        `<p class="lede"><strong>${esc(domainNames.get(dn.domain) ?? dn.domain)}</strong> ${esc(oneLine(dn.note))}</p>`,
+      (s) =>
+        `<tr><td>${s.number} · ${esc(s.agentic.name ?? s.name)}</td><td>${esc(oneLine(s.agentic.adaptation.approach))}</td><td>${fileRefs(esc(s.agentic.artifact ?? s.artifact))}</td><td>${esc(oneLine(s.agentic.adaptation.governance))}</td></tr>`,
     )
+    .join("");
+
+  const domainNote = (dn, prefix = "") =>
+    `<p class="lede"><strong>${prefix}${esc(domainNames.get(dn.domain) ?? dn.domain)}</strong> ${esc(oneLine(dn.note))}</p>`;
+  const domainNotes = (lc.domain_notes ?? []).map((dn) => domainNote(dn)).join("");
+  const agenticDomainNotes = (mode?.domain_notes ?? [])
+    .map((dn) => domainNote(dn, "In agentic mode, "))
     .join("");
 
   const gapItems = (lc.gaps ?? [])
     .map((g) => kv(g.name, `<p>${esc(oneLine(g.description))}</p>`))
     .join("");
+  const agenticGapItems = (mode?.gaps ?? [])
+    .map((g) => kv(g.name, `<p>${esc(oneLine(g.description))}</p>`))
+    .join("");
 
-  const stageBlocks = stages.map((s) => renderStage(s)).join("");
+  const stageBlocks = stages.map((s) => renderStage(s, { riskShapeNames })).join("");
+
+  // The fork: one question, asked once at the front, that decides whether the
+  // later stages run plain or in agentic mode.
+  const forks = stages.filter((s) => s.agentic?.divergence === "fork");
+  const additive = stages.filter((s) => s.agentic?.divergence === "additive");
+  const forkLinks = forks
+    .map((s) => `<a href="#stage-${s.number}">${esc(s.name)}</a>`)
+    .join(" and ");
+  const modeSection = mode
+    ? `
+      <section id="agentic-mode">
+        <h2 class="mono uppercase eyebrow">One pipeline, one fork</h2>
+        <p class="lede">${esc(oneLine(mode.summary))}</p>
+        <div class="agentic agentic-fork">
+          <p class="mono uppercase agentic-label">The mode question</p>
+          <p class="lede"><strong>${esc(oneLine(mode.question))}</strong></p>
+          <p class="agentic-facts">Asked at <a href="#stage-${mode.asked_at}">Stage ${mode.asked_at} · ${esc(stageName(mode.asked_at))}</a>. Recorded at <a href="#stage-${mode.decided_at}">Stage ${mode.decided_at} · ${esc(stageName(mode.decided_at))}</a>, in the cleared ${fileRefs("intent.md")}. Not re-argued stage by stage.</p>
+          <p class="lede">A fixed answer keeps the pipeline in its standard mode. A runtime answer puts it in agentic mode (${esc(mode.name)}). ${additive.length} of ${stages.length} stages keep the same gate and artifact and take on extra checks. ${forkLinks ? `${forkLinks} change in kind, so each carries its own marked block below.` : ""}</p>
+        </div>
+        ${ledeParagraphs(mode.description)}
+        ${mode.pipeline_note ? `<p class="lede"><strong>${esc(oneLine(mode.pipeline_note))}</strong></p>` : ""}
+      </section>`
+    : "";
+
+  const alignmentItems = (mode?.strategic_alignment ?? [])
+    .map((a) => kv(a.name, `<p>${esc(oneLine(a.description))}</p>`))
+    .join("");
+  const shiftRows = (mode?.core_shifts ?? [])
+    .map(
+      (s) =>
+        `<tr><td><strong>${esc(s.dimension)}</strong></td><td>${esc(s.conventional ?? "")}</td><td>${esc(s.agentic ?? "")}</td></tr>`,
+    )
+    .join("");
+  const constraintRows = (mode?.commercial_constraints ?? [])
+    .map(
+      (c) =>
+        `<tr><td><strong>${esc(c.constraint)}</strong></td><td>${esc(oneLine(c.response))}</td></tr>`,
+    )
+    .join("");
 
   return `
       <section id="overview">
@@ -978,16 +1042,20 @@ function renderAiSdlcMain(model) {
         <p class="lede">${esc(oneLine(lc.summary))}</p>
         <p class="lede">${esc(oneLine(lc.description))}</p>
         ${lc.pipeline_note ? `<p class="lede"><strong>${esc(oneLine(lc.pipeline_note))}</strong></p>` : ""}
+        ${lc.companion ? `<p class="lede">This page is the what and why. The <a href="${esc(lc.companion)}">tactical page</a> is the how.</p>` : ""}
       </section>
+      ${modeSection}
 
       <section id="pipeline">
         <h2 class="mono uppercase eyebrow">The pipeline</h2>
+        <div class="scroll-x">
         <table class="hairline-table">
           <thead>
-            <tr><th>Stage</th><th>Core artifact</th><th>Gate</th></tr>
+            <tr><th>Stage</th><th>Core artifact</th><th>Gate</th>${mode ? `<th>In agentic mode</th>` : ""}</tr>
           </thead>
           <tbody>${pipelineRows}</tbody>
         </table>
+        </div>
       </section>
 
       <section id="how-stages-and-risk-work">
@@ -1000,170 +1068,75 @@ function renderAiSdlcMain(model) {
 
       ${stageBlocks}
 
+      ${alignmentItems ? `<section id="agentic-alignment">
+        <h2 class="mono uppercase eyebrow">Agentic mode · Strategic alignment</h2>
+        <p class="lede">What holds across every stage once the pipeline is in agentic mode. The stage-level changes sit on each stage above.</p>
+        <div class="kvs">${alignmentItems}</div>
+      </section>` : ""}
+
+      ${shiftRows ? `<section id="agentic-shifts">
+        <h2 class="mono uppercase eyebrow">Agentic mode · Core operational shifts</h2>
+        <div class="scroll-x">
+        <table class="hairline-table">
+          <thead><tr><th>Dimension</th><th>Conventional</th><th>Agentic mode (${esc(mode.name)})</th></tr></thead>
+          <tbody>${shiftRows}</tbody>
+        </table>
+        </div>
+      </section>` : ""}
+
+      ${constraintRows ? `<section id="agentic-commercial">
+        <h2 class="mono uppercase eyebrow">Agentic mode · Commercial model</h2>
+        ${lc.commercial_unit?.agentic_note ? `<p class="lede">${esc(oneLine(lc.commercial_unit.agentic_note))}</p>` : ""}
+        <div class="scroll-x">
+        <table class="hairline-table">
+          <thead><tr><th>Constraint</th><th>How ${esc(mode.name)} addresses it</th></tr></thead>
+          <tbody>${constraintRows}</tbody>
+        </table>
+        </div>
+      </section>` : ""}
+
       <section id="domains-across">
         <h2 class="mono uppercase eyebrow">Domains and risk shapes across the pipeline</h2>
         <p class="lede">Each stage has a primary domain driving the work and risk shapes that are typically hottest at that point. Framing tapers over time but does not hard-stop at the Evidence Gate. Proof runs at the Gate, Test, and Maintain stages, handling distinct but related evaluation tasks.</p>
+        <div class="scroll-x">
         <table class="hairline-table">
           <thead>
-            <tr><th>Stage</th><th>Primary domain</th><th>Secondary</th><th>Risk shapes typically hot</th></tr>
+            <tr><th>Stage</th><th>Primary domain</th><th>Secondary</th><th>Risk shapes typically hot</th>${mode ? `<th>Added in agentic mode</th>` : ""}</tr>
           </thead>
           <tbody>${domainRows}</tbody>
         </table>
+        </div>
         <p class="lede">Risk shapes are listed where they are typically hottest, not where they only fire. Any shape can spike at any stage.</p>
         ${domainNotes}
+        ${agenticDomainNotes}
       </section>
 
       <section id="adaptation">
         <h2 class="mono uppercase eyebrow">Adaptation matrix</h2>
+        <div class="scroll-x">
         <table class="hairline-table">
           <thead>
             <tr><th>Stage</th><th>AI-Native approach</th><th>Artifact</th><th>Governance</th></tr>
           </thead>
           <tbody>${adaptationRows}</tbody>
         </table>
-      </section>
-
-      ${gapItems ? `<section id="gaps"><h2 class="mono uppercase eyebrow">Known gaps</h2><div class="kvs">${gapItems}</div></section>` : ""}`;
-}
-
-function renderAdlcMain(model) {
-  const lc = requireLifecycle(model, "adlc");
-  const stages = lc.stages ?? [];
-  const riskShapeNames = new Map(
-    (model.riskShapes ?? []).map((s) => [s.id, s.name]),
-  );
-  const domainNames = new Map((model.domains ?? []).map((d) => [d.id, d.name]));
-
-  const alignmentItems = (lc.strategic_alignment ?? [])
-    .map((a) => kv(a.name, `<p>${esc(oneLine(a.description))}</p>`))
-    .join("");
-
-  const shiftRows = (lc.core_shifts ?? [])
-    .map(
-      (s) =>
-        `<tr><td><strong>${esc(s.dimension)}</strong></td><td>${esc(s.sdlc ?? "")}</td><td>${esc(s.adlc ?? "")}</td></tr>`,
-    )
-    .join("");
-
-  const constraintRows = (lc.commercial_constraints ?? [])
-    .map(
-      (c) =>
-        `<tr><td><strong>${esc(c.constraint)}</strong></td><td>${esc(oneLine(c.response))}</td></tr>`,
-    )
-    .join("");
-
-  const overviewRows = stages
-    .map(
-      (s) =>
-        `<tr><td><strong>${s.number}</strong></td><td>${esc(s.name)}</td><td>${esc(oneLine(s.objective))}</td></tr>`,
-    )
-    .join("");
-
-  const domainRows = stages
-    .map((s) => {
-      const primary = domainNames.get(s.primary_domain) ?? "";
-      const secondary = s.secondary_domain
-        ? domainNames.get(s.secondary_domain) ?? ""
-        : "";
-      const shapes = (s.risk_shapes_hot ?? [])
-        .map((id) => riskShapeNames.get(id) ?? id)
-        .join(", ");
-      return `<tr><td>${s.number} · ${esc(s.name)}</td><td>${esc(primary)}</td><td>${esc(secondary)}</td><td>${esc(shapes)}</td></tr>`;
-    })
-    .join("");
-
-  const adaptationRows = stages
-    .filter((s) => s.adaptation)
-    .map(
-      (s) =>
-        `<tr><td>${s.number} · ${esc(s.name)}</td><td>${esc(oneLine(s.adaptation.approach))}</td><td>${esc(s.artifact)}</td><td>${esc(oneLine(s.adaptation.governance))}</td></tr>`,
-    )
-    .join("");
-
-  const domainNotes = (lc.domain_notes ?? [])
-    .map(
-      (dn) =>
-        `<p class="lede"><strong>${esc(domainNames.get(dn.domain) ?? dn.domain)}</strong> ${esc(oneLine(dn.note))}</p>`,
-    )
-    .join("");
-
-  const gapItems = (lc.gaps ?? [])
-    .map((g) => kv(g.name, `<p>${esc(oneLine(g.description))}</p>`))
-    .join("");
-
-  const cu = lc.commercial_unit;
-  const cuNote = cu
-    ? `<p class="lede">Commercially, Stages ${cu.stages.join(" and ")} together are the ${esc(cu.name)}.</p>`
-    : "";
-
-  const stageBlocks = stages.map((s) => renderStage(s)).join("");
-
-  return `
-      <section id="overview">
-        <h1 class="mono uppercase eyebrow">${esc(lc.name)}</h1>
-        <p class="lede">${esc(oneLine(lc.summary))}</p>
-        ${lc.description ? lc.description.split(/\n{2,}/).map((p) => `<p class="lede">${fileRefs(esc(p.replace(/\n/g, " ").trim()))}</p>`).join("") : ""}
-        ${lc.pipeline_note ? `<p class="lede"><strong>${esc(oneLine(lc.pipeline_note))}</strong></p>` : ""}
-      </section>
-
-      ${alignmentItems ? `<section id="strategic-alignment">
-        <h2 class="mono uppercase eyebrow">Strategic alignment</h2>
-        <div class="kvs">${alignmentItems}</div>
-      </section>` : ""}
-
-      ${shiftRows ? `<section id="core-shifts">
-        <h2 class="mono uppercase eyebrow">Core operational shifts</h2>
+        </div>
+        ${agenticAdaptationRows ? `<p class="mono uppercase agentic-label">In agentic mode</p>
         <div class="scroll-x">
         <table class="hairline-table">
-          <thead><tr><th>Dimension</th><th>Conventional</th><th>ADLC</th></tr></thead>
-          <tbody>${shiftRows}</tbody>
+          <thead>
+            <tr><th>Stage</th><th>Agentic approach</th><th>Artifact</th><th>Governance</th></tr>
+          </thead>
+          <tbody>${agenticAdaptationRows}</tbody>
         </table>
-        </div>
-      </section>` : ""}
-
-      ${constraintRows ? `<section id="commercial-model">
-        <h2 class="mono uppercase eyebrow">Commercial model</h2>
-        <div class="scroll-x">
-        <table class="hairline-table">
-          <thead><tr><th>Constraint</th><th>How ADLC addresses it</th></tr></thead>
-          <tbody>${constraintRows}</tbody>
-        </table>
-        </div>
-      </section>` : ""}
-
-      <section id="pipeline">
-        <h2 class="mono uppercase eyebrow">The pipeline</h2>
-        ${cuNote}
-        <table class="hairline-table">
-          <thead><tr><th>Stage</th><th>Name</th><th>Core objective</th></tr></thead>
-          <tbody>${overviewRows}</tbody>
-        </table>
+        </div>` : ""}
       </section>
 
-      ${stageBlocks}
-
-      <section id="domains-across">
-        <h2 class="mono uppercase eyebrow">Domains and risk shapes across the pipeline</h2>
-        <div class="scroll-x">
-        <table class="hairline-table">
-          <thead><tr><th>Stage</th><th>Primary domain</th><th>Secondary</th><th>Risk shapes</th></tr></thead>
-          <tbody>${domainRows}</tbody>
-        </table>
-        </div>
-        ${domainNotes}
-      </section>
-
-      ${adaptationRows ? `<section id="adaptation">
-        <h2 class="mono uppercase eyebrow">Adaptation matrix</h2>
-        <div class="scroll-x">
-        <table class="hairline-table">
-          <thead><tr><th>Stage</th><th>ADLC approach</th><th>Artifact</th><th>Governance</th></tr></thead>
-          <tbody>${adaptationRows}</tbody>
-        </table>
-        </div>
-      </section>` : ""}
-
-      ${gapItems ? `<section id="gaps"><h2 class="mono uppercase eyebrow">Known gaps</h2><div class="kvs">${gapItems}</div></section>` : ""}`;
+      ${gapItems || agenticGapItems ? `<section id="gaps">
+        <h2 class="mono uppercase eyebrow">Known gaps</h2>
+        ${gapItems ? `<div class="kvs">${gapItems}</div>` : ""}
+        ${agenticGapItems ? `<p class="mono uppercase agentic-label">In agentic mode</p><div class="kvs">${agenticGapItems}</div>` : ""}
+      </section>` : ""}`;
 }
 
 // The Confidence Map reads confidence-map.yaml and nothing else is authored
@@ -1312,7 +1285,18 @@ function renderConfidenceMapMain(model) {
       </section>`;
 }
 
-function renderTacticalPlaybookMain() {
+function renderTacticalPlaybookMain(model) {
+  const lc = requireLifecycle(model, "ai-native-sdlc");
+  const mode = lc.agentic_mode;
+  const parts = agenticTacticalParts();
+  // Each stage's agentic block, marked as a fork where the lifecycle says the
+  // modes diverge in kind. The repo layout is a code block, so it is slotted in
+  // after the page-wide file-reference styling rather than inside it.
+  const agentic = (n) =>
+    agenticTacticalBlock(
+      parts.stages[n],
+      lc.stages.find((stage) => stage.number === n)?.agentic?.divergence === "fork",
+    );
   // Same output card as the strategy page: an "Output" label over the file
   // reference and a one-line description.
   const output = (file, text) =>
@@ -1322,9 +1306,15 @@ function renderTacticalPlaybookMain() {
   // rendered page, so the file-name styling matches the strategy page.
   return fileRefs(`
       <section id="overview">
-        <h1 class="mono uppercase eyebrow">Tactical Playbook</h1>
+        <h1 class="mono uppercase eyebrow">AI-Native SDLC Tactical</h1>
         <p class="lede">The reconciled tactical execution behind the AI-Native SDLC: the exact skills, hooks, agents, and file names behind each stage, checked against Anthropic's published playbook.</p>
         <p class="lede">The <a href="ai-sdlc.html">AI-Native SDLC</a> is the what and why. This page is the how.</p>
+      </section>
+
+      <section id="agentic-mode">
+        <h2 class="mono uppercase eyebrow">Agentic mode</h2>
+        <p class="lede">When the deliverable is itself an agentic system, the same pipeline runs in agentic mode (the ${mode ? esc(mode.name) : "ADLC"}). Each stage below carries a marked agentic block with what changes. Design and Test are where the modes fork in kind, so those two blocks are marked and carry their own detail.</p>
+        <p class="lede">${mode ? `<strong>${esc(oneLine(mode.question))}</strong> Asked once at Stage ${mode.asked_at}, recorded at Stage ${mode.decided_at}. ` : ""}These are the operating principles, repo structure, and execution patterns for agentic-mode engagements. They describe the shape of the work, not the specific tools used to do it. Tool choices belong in each project's context engine and change with the landscape.</p>
       </section>
 
       <section id="anthropic-mapping">
@@ -1360,6 +1350,7 @@ function renderTacticalPlaybookMain() {
           ${kv("assumption-linter hook", "<p>Pre-commit. Rejects the commit if any claim lacks an [ASSUMPTION: Category] tag.</p>")}
         </div>
         ${output("raw intent.md", "100% tagged. Facilitator validates tagging before it moves.")}
+        ${agentic(0)}
       </section>
 
       <section id="tactical-1">
@@ -1378,6 +1369,7 @@ function renderTacticalPlaybookMain() {
           ${kv("cleared-intent-trigger", "<p>GitHub Action that fires only when the intent.md frontmatter reads gate_status: cleared, instantiating Stage 2 (Design).</p>")}
         </div>
         ${output("cleared intent.md", "Synced and merged to main, with an optional Vision Prototype.")}
+        ${agentic(1)}
       </section>
 
       <section id="tactical-2">
@@ -1394,6 +1386,7 @@ function renderTacticalPlaybookMain() {
           ${kv("spec-compliance-linter", "<p>Verifies spec.md has every required section (API specs, failure modes, data models) before the stage can transition.</p>")}
         </div>
         ${output("spec.md", "Design/Tech Lead review.")}
+        ${agentic(2)}
       </section>
 
       <section id="tactical-3">
@@ -1409,6 +1402,7 @@ function renderTacticalPlaybookMain() {
           ${kv("path-blocking-hook", "<p>Intercepts file edits outside the scope defined in plan.md.</p>")}
         </div>
         ${output("plan.md + code diffs", "Verified code in isolated branches. Engineer plan acceptance.")}
+        ${agentic(3)}
       </section>
 
       <section id="tactical-4">
@@ -1422,6 +1416,7 @@ function renderTacticalPlaybookMain() {
           ${kv("eval-pass-checker", "<p>Blocks PR merge if task accuracy falls below the threshold.</p>")}
         </div>
         ${output("Verification logs + CI eval results", "Automated CI pass threshold.")}
+        ${agentic(4)}
       </section>
 
       <section id="tactical-5">
@@ -1436,6 +1431,7 @@ function renderTacticalPlaybookMain() {
           ${kv("network-egress-blocker hook", "<p>Its own named control rather than folded into managed settings generically.</p>")}
         </div>
         ${output("REVIEW.md", "PR findings and release log. Human Release Manager sign-off on Production only.")}
+        ${agentic(5)}
       </section>
 
       <section id="tactical-6">
@@ -1450,6 +1446,24 @@ function renderTacticalPlaybookMain() {
           ${kv("Claude Tag", "<p>ChatOps bot for on-call. Anthropic's actual Claude Tag product, not a generic ChatOps MCP Bot.</p>")}
         </div>
         ${output("bands.yaml", "Updated bands, incident records, and new regression cases added to Stage 4. Service Owner / on-call triage.")}
+        ${agentic(6)}
+      </section>
+
+      <section id="agentic-tooling">
+        <h2 class="mono uppercase eyebrow">Agentic mode · Tooling layers</h2>
+        <p class="lede">An agentic-mode engagement requires seven infrastructure layers. The specific products filling each layer are project-level decisions maintained in the repo context engine, not prescribed here.</p>
+        <div class="kvs">${parts.tooling}</div>
+      </section>
+
+      <section id="agentic-repo">
+        <h2 class="mono uppercase eyebrow">Agentic mode · Repository structure</h2>
+        <p class="lede">Every agentic-mode deliverable repository conforms to this canonical layout. The context engine lives at the root. Stage artifacts sit alongside the code they govern. Eval datasets live next to the runners that execute them.</p>
+        @@REPO_STRUCTURE@@
+      </section>
+
+      <section id="agentic-principles">
+        <h2 class="mono uppercase eyebrow">Agentic mode · Core operating principles</h2>
+        <div class="kvs">${parts.principles}</div>
       </section>
 
       <section id="reconciliation">
@@ -1482,14 +1496,14 @@ function renderTacticalPlaybookMain() {
           ${kv("Scheduled security scanning", "<p>Anthropic's Deploy stage includes scheduled, model-driven security scanning (Claude Security) running independently of PR review, a recurring scan, not point-in-time, with findings fed back as fresh intent.md. Sparq's only security coverage at Deploy is currently the PR review pass.</p>")}
           ${kv("Leading/lagging metrics per stage", "<p>Anthropic's playbook defines explicit metrics per stage (e.g., time from intent.md commit to spec.md commit; first-pass CI success rate; time from band breach to intent.md in triage). Neither internal doc names how Sparq will measure whether the pipeline itself is working.</p>")}
         </div>
-      </section>`);
+      </section>`).replace("@@REPO_STRUCTURE@@", parts.repoStructure);
 }
 
-function renderAdlcTacticalMain() {
-  return adlcTacticalContent();
-}
-
-function adlcTacticalContent() {
+// The agentic-mode tactical content: what the how looks like when the
+// deliverable is itself an agentic system. It is plain text on purpose. The
+// tactical page wraps every file reference once, over the whole page, so
+// wrapping them here as well would nest the styling.
+function agenticTacticalParts() {
   const repoStructure = `<div class="code-block"><pre><code>.
 CLAUDE.md                     # Central Context Engine & System Instructions
 .claude/
@@ -1509,193 +1523,159 @@ evals/
 mcp-servers/                  # Isolated MCP servers for system integration
 src/                          # Agent runtime logic & deterministic workflows</code></pre></div>`;
 
-  const s0 = [
-    kv("Assumption dump", "<p>Silent dump across five lenses: Value, Usability, Feasibility, Viability, Operational.</p>"),
-    kv("Agentic Failure Premortem", "<p>Explicitly catalog risks related to dynamic reasoning, open-ended tool calling, and token explosion.</p>"),
-    kv("Tag every assertion", `<p>Tag every assertion in ${fileRefs("intent.md")} with: [VALIDATED], [DIRECTIONAL], [ASSUMPTION], or [AGENTIC-RISK]. These are an intent-tagging convention, distinct from model confidence markers.</p>`),
+  const stages = {
+    0: {
+      lede: "Establish whether an agentic architecture is actually necessary. Surface business value, feasibility bounds, and the specific ways an autonomous system can fail that a conventional build never has to consider.",
+      items: [
+        kv("Assumption dump", "<p>Silent dump across five lenses: Value, Usability, Feasibility, Viability, Operational.</p>"),
+        kv("Agentic Failure Premortem", "<p>Explicitly catalog risks related to dynamic reasoning, open-ended tool calling, and token explosion.</p>"),
+        kv("Tag every assertion", "<p>Tag every assertion in intent.md with: [VALIDATED], [DIRECTIONAL], [ASSUMPTION], or [AGENTIC-RISK]. These are an intent-tagging convention, distinct from model confidence markers.</p>"),
+      ].join(""),
+      output: ["intent.md", "Fully tagged, inert."],
+    },
+    1: {
+      lede: "Verify high-risk assumptions with minimal spend before committing to architecture. For agentic systems this gate carries more weight because architecture decisions (tool access, autonomy scope) are expensive to unwind once made.",
+      items: [
+        kv("Evidence Slice or Vision Prototype", "<p>Build a targeted slice or prototype touching the highest-risk assumption.</p>"),
+        kv("Adversarial stress tests", "<p>Multi-persona synthetic simulations with malformed prompts, indirect prompt injections, and edge-case tool parameters.</p>"),
+        kv("Real-world signal", "<p>Connect to a real client touchpoint to collect empirical runtime telemetry. Internal-only signal caps at Directional confidence.</p>"),
+        kv("Gate decision", "<p>Explicit status: Promote, Iterate, Pivot, or Stop.</p>"),
+      ].join(""),
+      output: ["intent.md (cleared)", "Cleared and synced to the enterprise tracker, with a Vision Prototype where built."],
+    },
+    2: {
+      lede: "Design the system's runtime authority on purpose. This is where building an agent most clearly diverges from using one to build: the deliverable's own behavior has to be designed, bounded, and budgeted before implementation begins.",
+      items: [
+        kv("Orchestrator patterns", "<p>Map orchestrator patterns: prompt chaining, routing, parallelization, or orchestrator-worker. Default to deterministic workflows; escalate to autonomous agents only when genuinely required.</p>"),
+        kv("Autonomy Matrix", "<p>Map every task category to an explicit authorization level: Autonomous, Automated with Logging, HITL Approval Required, or Prohibited. This is a strategic decision made once per system.</p>"),
+        kv("Token economics", "<p>Set CAPEX/OPEX budgets as a first-class design constraint alongside functional requirements. Ongoing inference cost is a constraint, not an afterthought.</p>"),
+        kv("Tool boundary specs", "<p>Define MCP server boundaries. Every tool, legacy connection, and enterprise platform the agent touches is exposed via a standardized protocol. No ad-hoc network requests or direct database calls.</p>"),
+      ].join(""),
+      output: ["spec.md + autonomy-matrix.yaml", "Technical blueprint with Autonomy Matrix and token budgets."],
+    },
+    3: {
+      lede: "Execute under Evaluation-Driven Development. Evaluations are the specification that governs whether the system is behaving correctly, not just whether it compiles.",
+      items: [
+        kv("Plan Mode First", "<p>The implementation path is drafted and human-accepted before any code generation begins. The plan is committed to plan.md in Git.</p>"),
+        kv("Worktree isolation", "<p>Isolate agent sessions across separate Git worktrees. Enforce a session cap per engineer to preserve review quality.</p>"),
+        kv("Evaluation-Driven Development", "<p>Draft evaluation scenarios in parallel with feature code, not after it. For a probabilistic system, the eval suite is part of the spec, not a downstream check on it.</p>"),
+        kv("Continuous model evaluation", "<p>Evaluate model outputs continuously during implementation for hallucination rate, formatting compliance, and tool-calling accuracy.</p>"),
+      ].join(""),
+      output: ["plan.md + code diffs", "Verified implementation with initial eval benchmarks."],
+    },
+    4: {
+      lede: "A probabilistic system can pass every functional test and still fail on tool selection or safety alignment. Those need their own verification.",
+      items: [
+        kv("Non-interactive eval pipeline", "<p>Run evaluation suites across 20-50+ task scenarios on every relevant change.</p>"),
+        kv("Test lockouts", "<p>If an eval fails, modify prompts, tool schemas, or context in CLAUDE.md. Never lower evaluation thresholds to reach a passing state.</p>"),
+        kv("Combined pass threshold", `<ul class="bullets"><li><strong>Task completion accuracy</strong></li><li><strong>Tool-call accuracy</strong></li><li><strong>Safety and alignment gate</strong> (zero authorization breaches)</li></ul><p>All three axes must pass independently. Specific thresholds are set per project at Design.</p>`),
+      ].join(""),
+      output: ["Eval pass report + execution logs", "All three axes independently passing."],
+    },
+    5: {
+      lede: "Transition a probabilistic system into production using tiered autonomy, not a single go/no-go review.",
+      items: [
+        kv("Multi-pass review", "<p>Security boundaries, alignment against spec, and functional correctness as separate review passes.</p>"),
+        kv("Tiered autonomy", `<ul class="bullets"><li><strong>Development:</strong> Full autonomous execution.</li><li><strong>Staging:</strong> Automated checks + clean CI pipeline.</li><li><strong>Production:</strong> Explicit, named human authorization for any action above the defined risk threshold.</li></ul>`),
+        kv("Context-engine correction", "<p>When the same mistake recurs, the repo context engine (CLAUDE.md) is updated so it does not recur again. The context engine is a governed artifact with its own feedback loop.</p>"),
+      ].join(""),
+      output: ["REVIEW.md", "Signed production activation record."],
+    },
+    6: {
+      lede: "Manage probabilistic drift over time. Monitor token consumption, capture real-world edge cases, and feed incidents back into intent triage automatically.",
+      items: [
+        kv("Statistical process control", "<p>Monitor performance bands in bands.yaml: token consumption per task, reasoning drift, tool invocation error rates. Apply statistical control rules (e.g., Western Electric) against operational and product metrics.</p>"),
+        kv("Automated incident loop", "<p>When telemetry flags an anomaly, a background process diagnoses the incident, compiles a permanent regression case into the eval suite, and raises a new item in intent.md. The lifecycle is a loop.</p>"),
+        kv("Quarterly governance", "<p>Review governance quarterly against accumulated incident logs, drift data, and token expenditure reports.</p>"),
+      ].join(""),
+      output: ["bands.yaml", "Updated bands and incident regression cases feeding Stage 0."],
+    },
+  };
+
+  const tooling = [
+    kv("Agent CLI & Dev Engine", "<p>Repository-level code execution, plan drafting, worktree-isolated coding, tool invocation.</p>"),
+    kv("Collaborative Ideation", "<p>Multi-persona ideation, assumption dumps, raw intent tagging, client workshop facilitation.</p>"),
+    kv("Repo Context Engine", "<p>Dynamic repository context, agent instructions, project boundaries, subcommands and skills. Lives in CLAUDE.md and the .claude/ directory.</p>"),
+    kv("Tool Integration Layer", "<p>Standardized server/client tool binding, database wrapping, legacy system isolation. Zero direct API access; all enterprise interactions routed through protocol-level boundaries.</p>"),
+    kv("Model Stack", "<p>Strategic reasoning, orchestrator planning, code generation. Model choice is a project decision, not an organizational one.</p>"),
+    kv("Evaluation Framework", "<p>Non-deterministic assertion running, multi-scenario bench testing, pass/fail grading against 20-50+ scenarios. Keep datasets format-agnostic (.jsonl or .yaml) so they parse interchangeably across eval tools.</p>"),
+    kv("Observability & Telemetry", "<p>Token accounting, prompt cost tracking, runtime latency monitoring. Standardize on OpenTelemetry format so traces stream to any aggregator without modifying application code.</p>"),
+    kv("Vector & Memory", "<p>Dynamic session context, semantic retrieval. May be in-memory, protocol-served, or backed by a dedicated vector store depending on the system's context requirements.</p>"),
   ].join("");
 
-  const s1 = [
-    kv("Evidence Slice or Vision Prototype", "<p>Build a targeted slice or prototype touching the highest-risk assumption.</p>"),
-    kv("Adversarial stress tests", "<p>Multi-persona synthetic simulations with malformed prompts, indirect prompt injections, and edge-case tool parameters.</p>"),
-    kv("Real-world signal", "<p>Connect to a real client touchpoint to collect empirical runtime telemetry. Internal-only signal caps at Directional confidence.</p>"),
-    kv("Gate decision", "<p>Explicit status: Promote, Iterate, Pivot, or Stop.</p>"),
+  const principles = [
+    kv("Context engine as governed artifact", "<p>The repo context engine (CLAUDE.md) is not a static config file. It has its own feedback loop: when an agent repeats a mistake, the correction goes into the context engine. PR review checks for staleness. It contains deterministic operational rules, build commands, and agent boundaries.</p>"),
+    kv("Tool boundary isolation", "<p>Agents never make ad-hoc network requests or direct database calls. Every enterprise interaction is routed through a protocol-level boundary (MCP server or equivalent) with input validation and autonomy checks enforced at the tool handler level.</p>"),
+    kv("Format-agnostic evaluation data", "<p>Evaluation datasets are stored in standard formats (.jsonl or .yaml) so they parse interchangeably across any eval framework. The datasets are the durable asset; the runner is replaceable.</p>"),
+    kv("Telemetry portability", "<p>Standardize on open telemetry formats so traces stream to any aggregator without modifying application code. The observability layer is a slot, not a commitment.</p>"),
   ].join("");
 
-  const s2 = [
-    kv("Orchestrator patterns", "<p>Map orchestrator patterns: prompt chaining, routing, parallelization, or orchestrator-worker. Default to deterministic workflows; escalate to autonomous agents only when genuinely required.</p>"),
-    kv("Autonomy Matrix", "<p>Map every task category to an explicit authorization level: Autonomous, Automated with Logging, HITL Approval Required, or Prohibited. This is a strategic decision made once per system.</p>"),
-    kv("Token economics", "<p>Set CAPEX/OPEX budgets as a first-class design constraint alongside functional requirements. Ongoing inference cost is a constraint, not an afterthought.</p>"),
-    kv("Tool boundary specs", "<p>Define MCP server boundaries. Every tool, legacy connection, and enterprise platform the agent touches is exposed via a standardized protocol. No ad-hoc network requests or direct database calls.</p>"),
-  ].join("");
+  return { repoStructure, stages, tooling, principles };
+}
 
-  const s3 = [
-    kv("Plan Mode First", `<p>The implementation path is drafted and human-accepted before any code generation begins. The plan is committed to ${fileRefs("plan.md")} in Git.</p>`),
-    kv("Worktree isolation", "<p>Isolate agent sessions across separate Git worktrees. Enforce a session cap per engineer to preserve review quality.</p>"),
-    kv("Evaluation-Driven Development", "<p>Draft evaluation scenarios in parallel with feature code, not after it. For a probabilistic system, the eval suite is part of the spec, not a downstream check on it.</p>"),
-    kv("Continuous model evaluation", "<p>Evaluate model outputs continuously during implementation for hallucination rate, formatting compliance, and tool-calling accuracy.</p>"),
-  ].join("");
-
-  const s4 = [
-    kv("Non-interactive eval pipeline", "<p>Run evaluation suites across 20-50+ task scenarios on every relevant change.</p>"),
-    kv("Test lockouts", `<p>If an eval fails, modify prompts, tool schemas, or context in ${fileRefs("CLAUDE.md")}. Never lower evaluation thresholds to reach a passing state.</p>`),
-    kv("Combined pass threshold", `<ul class="bullets"><li><strong>Task completion accuracy</strong></li><li><strong>Tool-call accuracy</strong></li><li><strong>Safety and alignment gate</strong> (zero authorization breaches)</li></ul><p>All three axes must pass independently. Specific thresholds are set per project at Design.</p>`),
-  ].join("");
-
-  const s5 = [
-    kv("Multi-pass review", "<p>Security boundaries, alignment against spec, and functional correctness as separate review passes.</p>"),
-    kv("Tiered autonomy", `<ul class="bullets"><li><strong>Development:</strong> Full autonomous execution.</li><li><strong>Staging:</strong> Automated checks + clean CI pipeline.</li><li><strong>Production:</strong> Explicit, named human authorization for any action above the defined risk threshold.</li></ul>`),
-    kv("Context-engine correction", `<p>When the same mistake recurs, the repo context engine (${fileRefs("CLAUDE.md")}) is updated so it does not recur again. The context engine is a governed artifact with its own feedback loop.</p>`),
-  ].join("");
-
-  const s6 = [
-    kv("Statistical process control", `<p>Monitor performance bands in ${fileRefs("bands.yaml")}: token consumption per task, reasoning drift, tool invocation error rates. Apply statistical control rules (e.g., Western Electric) against operational and product metrics.</p>`),
-    kv("Automated incident loop", `<p>When telemetry flags an anomaly, a background process diagnoses the incident, compiles a permanent regression case into the eval suite, and raises a new item in ${fileRefs("intent.md")}. The lifecycle is a loop.</p>`),
-    kv("Quarterly governance", "<p>Review governance quarterly against accumulated incident logs, drift data, and token expenditure reports.</p>"),
-  ].join("");
-
+// One stage's agentic block on the tactical page. It sits under the standard
+// tactical content for the same stage, marked the same way as on the strategy
+// page, with an orange rule where the modes fork in kind.
+function agenticTacticalBlock(parts, fork) {
+  const [file, text] = parts.output;
   return `
-      <section id="overview">
-        <h1 class="mono uppercase eyebrow">Agentic Tactical</h1>
-        <p class="lede">Operating principles, repo structure, and execution patterns for ADLC engagements. This page describes the shape of the work, not the specific tools used to do it. Tool choices belong in each project's context engine and change with the landscape.</p>
-        <p class="lede">The <a href="adlc.html">Agentic strategy page</a> is the what and why. This page is the how.</p>
-      </section>
-
-      <section id="tooling">
-        <h2 class="mono uppercase eyebrow">Tooling layers</h2>
-        <p class="lede">An ADLC engagement requires seven infrastructure layers. The specific products filling each layer are project-level decisions maintained in the repo context engine, not prescribed here.</p>
-        <div class="kvs">
-          ${kv("Agent CLI & Dev Engine", "<p>Repository-level code execution, plan drafting, worktree-isolated coding, tool invocation.</p>")}
-          ${kv("Collaborative Ideation", "<p>Multi-persona ideation, assumption dumps, raw intent tagging, client workshop facilitation.</p>")}
-          ${kv("Repo Context Engine", `<p>Dynamic repository context, agent instructions, project boundaries, subcommands and skills. Lives in ${fileRefs("CLAUDE.md")} and the .claude/ directory.</p>`)}
-          ${kv("Tool Integration Layer", "<p>Standardized server/client tool binding, database wrapping, legacy system isolation. Zero direct API access; all enterprise interactions routed through protocol-level boundaries.</p>")}
-          ${kv("Model Stack", "<p>Strategic reasoning, orchestrator planning, code generation. Model choice is a project decision, not an organizational one.</p>")}
-          ${kv("Evaluation Framework", "<p>Non-deterministic assertion running, multi-scenario bench testing, pass/fail grading against 20-50+ scenarios. Keep datasets format-agnostic (.jsonl or .yaml) so they parse interchangeably across eval tools.</p>")}
-          ${kv("Observability & Telemetry", "<p>Token accounting, prompt cost tracking, runtime latency monitoring. Standardize on OpenTelemetry format so traces stream to any aggregator without modifying application code.</p>")}
-          ${kv("Vector & Memory", "<p>Dynamic session context, semantic retrieval. May be in-memory, protocol-served, or backed by a dedicated vector store depending on the system's context requirements.</p>")}
-        </div>
-      </section>
-
-      <section id="repo-structure">
-        <h2 class="mono uppercase eyebrow">Repository structure</h2>
-        <p class="lede">Every ADLC deliverable repository conforms to this canonical layout. The context engine lives at the root. Stage artifacts sit alongside the code they govern. Eval datasets live next to the runners that execute them.</p>
-        ${repoStructure}
-      </section>
-
-      <section id="tactical-0">
-        <h2 class="mono uppercase eyebrow">Stage 0 · Intent Framing</h2>
-        <p class="line-note">Evidence Sprint</p>
-        <p class="lede">Establish whether an agentic architecture is actually necessary. Surface business value, feasibility bounds, and the specific ways an autonomous system can fail that a conventional build never has to consider.</p>
-        <div class="kvs">${s0}</div>
-        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("intent.md")}</span><span>Fully tagged, inert.</span></div></div>
-      </section>
-
-      <section id="tactical-1">
-        <h2 class="mono uppercase eyebrow">Stage 1 · Evidence Gate</h2>
-        <p class="line-note">Evidence Sprint</p>
-        <p class="lede">Verify high-risk assumptions with minimal spend before committing to architecture. For agentic systems this gate carries more weight because architecture decisions (tool access, autonomy scope) are expensive to unwind once made.</p>
-        <div class="kvs">${s1}</div>
-        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("intent.md")} (cleared)</span><span>Cleared and synced to the enterprise tracker, with a Vision Prototype where built.</span></div></div>
-      </section>
-
-      <section id="tactical-2">
-        <h2 class="mono uppercase eyebrow">Stage 2 · Design</h2>
-        <p class="lede">Design the system's runtime authority on purpose. This is where building an agent most clearly diverges from using one to build: the deliverable's own behavior has to be designed, bounded, and budgeted before implementation begins.</p>
-        <div class="kvs">${s2}</div>
-        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("spec.md")} + autonomy-matrix.yaml</span><span>Technical blueprint with Autonomy Matrix and token budgets.</span></div></div>
-      </section>
-
-      <section id="tactical-3">
-        <h2 class="mono uppercase eyebrow">Stage 3 · Build</h2>
-        <p class="lede">Execute under Evaluation-Driven Development. Evaluations are the specification that governs whether the system is behaving correctly, not just whether it compiles.</p>
-        <div class="kvs">${s3}</div>
-        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("plan.md")} + code diffs</span><span>Verified implementation with initial eval benchmarks.</span></div></div>
-      </section>
-
-      <section id="tactical-4">
-        <h2 class="mono uppercase eyebrow">Stage 4 · Test</h2>
-        <p class="lede">A probabilistic system can pass every functional test and still fail on tool selection or safety alignment. Those need their own verification.</p>
-        <div class="kvs">${s4}</div>
-        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">Eval pass report + execution logs</span><span>All three axes independently passing.</span></div></div>
-      </section>
-
-      <section id="tactical-5">
-        <h2 class="mono uppercase eyebrow">Stage 5 · Deploy</h2>
-        <p class="lede">Transition a probabilistic system into production using tiered autonomy, not a single go/no-go review.</p>
-        <div class="kvs">${s5}</div>
-        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("REVIEW.md")}</span><span>Signed production activation record.</span></div></div>
-      </section>
-
-      <section id="tactical-6">
-        <h2 class="mono uppercase eyebrow">Stage 6 · Maintain & Governance</h2>
-        <p class="lede">Manage probabilistic drift over time. Monitor token consumption, capture real-world edge cases, and feed incidents back into intent triage automatically.</p>
-        <div class="kvs">${s6}</div>
-        <div class="stage-output"><span class="stage-output-label">Deliverable</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs("bands.yaml")}</span><span>Updated bands and incident regression cases feeding Stage 0.</span></div></div>
-      </section>
-
-      <section id="principles">
-        <h2 class="mono uppercase eyebrow">Core operating principles</h2>
-        <div class="kvs">
-          ${kv("Context engine as governed artifact", `<p>The repo context engine (${fileRefs("CLAUDE.md")}) is not a static config file. It has its own feedback loop: when an agent repeats a mistake, the correction goes into the context engine. PR review checks for staleness. It contains deterministic operational rules, build commands, and agent boundaries.</p>`)}
-          ${kv("Tool boundary isolation", "<p>Agents never make ad-hoc network requests or direct database calls. Every enterprise interaction is routed through a protocol-level boundary (MCP server or equivalent) with input validation and autonomy checks enforced at the tool handler level.</p>")}
-          ${kv("Format-agnostic evaluation data", "<p>Evaluation datasets are stored in standard formats (.jsonl or .yaml) so they parse interchangeably across any eval framework. The datasets are the durable asset; the runner is replaceable.</p>")}
-          ${kv("Telemetry portability", "<p>Standardize on open telemetry formats so traces stream to any aggregator without modifying application code. The observability layer is a slot, not a commitment.</p>")}
-        </div>
-      </section>`;
+        <div class="agentic${fork ? " agentic-fork" : ""}">
+          <p class="mono uppercase agentic-label">Agentic mode${fork ? `<span class="stage-tag">Where the modes fork</span>` : ""}</p>
+          <p class="lede">${parts.lede}</p>
+          <div class="kvs">${parts.items}</div>
+          <div class="stage-output"><span class="stage-output-label">Output</span><div class="stage-output-body"><span class="stage-output-file">${file}</span><span>${text}</span></div></div>
+        </div>`;
 }
 
 function renderNewDiscoveryMain(model) {
   const sdlc = requireLifecycle(model, "ai-native-sdlc");
-  const adlc = requireLifecycle(model, "adlc");
+  const cu = sdlc.commercial_unit;
+  const inUnit = (s) => (cu?.stages ?? []).includes(s.number);
+  const stages = (sdlc.stages ?? []).filter(inUnit);
 
-  const sdlcCu = sdlc.commercial_unit;
-  const sdlcStages = (sdlc.stages ?? []).filter((s) =>
-    (sdlcCu?.stages ?? []).includes(s.number),
-  );
-  const sdlcRows = sdlcStages
+  const rows = stages
     .map(
       (s) =>
-        `<tr><td><strong>${s.number}</strong></td><td><a href="ai-sdlc.html#stage-${s.number}">${esc(s.name)}</a></td><td>${esc(s.artifact)}</td></tr>`,
+        `<tr><td><strong>${s.number}</strong></td><td><a href="ai-sdlc.html#stage-${s.number}">${esc(s.name)}</a></td><td>${fileRefs(esc(s.artifact))}</td></tr>`,
     )
     .join("");
 
-  const adlcCu = adlc.commercial_unit;
-  const adlcStages = (adlc.stages ?? []).filter((s) =>
-    (adlcCu?.stages ?? []).includes(s.number),
-  );
-  const adlcRows = adlcStages
-    .map(
-      (s) =>
-        `<tr><td><strong>${s.number}</strong></td><td><a href="adlc.html#stage-${s.number}">${esc(s.name)}</a></td><td>${esc(s.artifact)}</td></tr>`,
-    )
+  // Agentic mode keeps the same commercial unit and adds to what happens
+  // inside it, so this lists the additions rather than a second pipeline.
+  const additions = stages
+    .filter((s) => s.agentic)
+    .map((s) => {
+      const names = (s.agentic.procedures ?? []).map((p) => p.name).join(", ");
+      return `<tr><td><strong>${s.number}</strong></td><td><a href="ai-sdlc.html#stage-${s.number}">${esc(s.name)}</a></td><td>${esc(names || "Extra checks on the same procedures")}</td></tr>`;
+    })
     .join("");
 
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">New Discovery</h1>
-        <p class="lede">The discovery process rebuilt for AI-Native delivery. This is where we define how the front-loaded stages of both lifecycles combine into one commercial unit. the thing we sell as discovery, backed by real signal instead of workshop artifacts.</p>
+        <p class="lede">The discovery process rebuilt for AI-Native delivery. This is where we define how the front-loaded stages of the AI-Native SDLC combine into one commercial unit: the thing we sell as discovery, backed by real signal instead of workshop artifacts.</p>
         <p class="lede">Content is being authored. The stages involved are mapped below.</p>
       </section>
 
       <section id="sdlc-stages">
-        <h2 class="mono uppercase eyebrow">${esc(sdlc.name)} stages involved</h2>
-        ${sdlcCu ? `<p class="lede">In the ${esc(sdlc.name)}, discovery is the <strong>${esc(sdlcCu.name)}</strong>. Stages ${sdlcCu.stages.join(" and ")} sold as one commercial unit.</p>` : ""}
+        <h2 class="mono uppercase eyebrow">Stages involved</h2>
+        ${cu ? `<p class="lede">Discovery is the <strong>${esc(cu.name)}</strong>. Stages ${cu.stages.join(" and ")} are sold as one commercial unit. ${esc(oneLine(cu.description))}</p>` : ""}
         <table class="hairline-table">
           <thead><tr><th>Stage</th><th>Name</th><th>Artifact</th></tr></thead>
-          <tbody>${sdlcRows}</tbody>
+          <tbody>${rows}</tbody>
         </table>
-        <p class="line-note">Full stage details on the <a href="ai-sdlc.html">AI-Native Strategy</a> page.</p>
+        <p class="line-note">Full stage details on the <a href="ai-sdlc.html">AI-Native SDLC</a> page.</p>
       </section>
 
-      <section id="adlc-stages">
-        <h2 class="mono uppercase eyebrow">${esc(adlc.name)} stages involved</h2>
-        ${adlcCu ? `<p class="lede">In the ${esc(adlc.name)}, discovery spans <strong>Stages ${adlcCu.stages[0]} through ${adlcCu.stages[adlcCu.stages.length - 1]}</strong>, the additional stages cover agent-specific scope framing, architecture definition, and simulation.</p>` : ""}
+      ${additions ? `<section id="agentic-additions">
+        <h2 class="mono uppercase eyebrow">What agentic mode adds</h2>
+        ${cu?.agentic_note ? `<p class="lede">${esc(oneLine(cu.agentic_note))}</p>` : ""}
         <table class="hairline-table">
-          <thead><tr><th>Stage</th><th>Name</th><th>Artifact</th></tr></thead>
-          <tbody>${adlcRows}</tbody>
+          <thead><tr><th>Stage</th><th>Name</th><th>Added in agentic mode</th></tr></thead>
+          <tbody>${additions}</tbody>
         </table>
-        <p class="line-note">Full stage details on the <a href="adlc.html">Agentic</a> page.</p>
-      </section>`;
+        <p class="line-note">The commercial unit is the same in both modes. The mode is decided at the Evidence Gate, so it is one of the things the Evidence Sprint produces.</p>
+      </section>` : ""}`;
 }
 
 function renderCorePhilosophyMain(model) {
@@ -2092,22 +2072,6 @@ function render(model, pageId = "core-philosophy") {
       to { opacity: 1; transform: scale(1); }
     }
     .page-link[aria-current="page"]:hover { font-weight: 600; }
-    .page-group .page-children {
-      display: none;
-      flex-direction: column;
-      gap: 6px;
-      padding-left: 18px;
-      margin-top: 6px;
-    }
-    .page-group.open .page-children { display: flex; }
-    .page-caret {
-      flex-shrink: 0;
-      transition: transform 180ms ease;
-      color: var(--dim);
-    }
-    .page-caret.open { transform: rotate(90deg); }
-    .page-toggle { cursor: pointer; }
-    .page-child { font-size: 12.5px; }
     .side .toc {
       display: flex;
       flex-direction: column;
@@ -2294,6 +2258,26 @@ function render(model, pageId = "core-philosophy") {
       border-radius: 4px;
       padding: 1px 6px;
     }
+    /* Agentic mode, inside a stage. A bordered block under the standard content;
+       a fork (Design, Test) adds an orange rule so it cannot be skimmed past. */
+    .agentic {
+      margin: 32px 0 0;
+      padding: 16px 20px 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #FAFAFA;
+    }
+    .agentic-fork { border-left: 3px solid #e8690b; }
+    .agentic > :last-child { margin-bottom: 0; }
+    .agentic .stage-output { background: #fff; }
+    .agentic-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 12px;
+    }
+    .agentic-name { font-weight: 400; }
+    .agentic-facts { margin: 0 0 16px; font-size: 13.5px; line-height: 1.6; max-width: 700px; }
     .stage-output {
       display: flex;
       flex-direction: column;
@@ -2600,16 +2584,6 @@ function render(model, pageId = "core-philosophy") {
       tick();
       setInterval(tick, 30000);
     })();
-    document.querySelectorAll('.page-toggle').forEach(function(el) {
-      el.addEventListener('click', function() {
-        var group = el.closest('.page-group');
-        if (group) {
-          group.classList.toggle('open');
-          var caret = el.querySelector('.page-caret');
-          if (caret) caret.classList.toggle('open');
-        }
-      });
-    });
   </script>
 </body>
 </html>`;
@@ -2627,7 +2601,26 @@ async function build() {
   for (const page of ALL_PAGES) {
     await writeFile(join(outDir, page.file), render(model, page.id));
   }
+  for (const [file, target] of Object.entries(REDIRECTS)) {
+    await writeFile(join(outDir, file), renderRedirect(target));
+  }
   console.log(`Wrote ${ALL_PAGES.map((page) => `site/${page.file}`).join(", ")}`);
+}
+
+function renderRedirect(target) {
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Moved</title>
+  <meta http-equiv="refresh" content="0; url=${esc(target)}">
+  <link rel="canonical" href="${esc(target)}">
+  <script>location.replace(${JSON.stringify(target)});</script>
+</head>
+<body>
+  <p>This page moved. <a href="${esc(target)}">Go to the AI-Native SDLC</a>.</p>
+</body>
+</html>`;
 }
 
 function mime(pathname) {

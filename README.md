@@ -79,7 +79,7 @@ You do not need to edit YAML.
 - `definitions/*.yaml` — canonical terms and the confusions each one rules out (rendered as the Title · Ownership · Seat layers)
 - `titles/*.yaml` — internal groupings of owned capabilities; every capability is owned by exactly one
 - `doctrine/*.yaml` — named, ordered procedures: the commercial stack, how seats get filled, what happens when the work changes
-- `lifecycles/*.yaml` — delivery lifecycles (AI-Native SDLC, ADLC) with ordered stages, domain mappings, and risk shape associations; the machine-readable SOP
+- `lifecycles/*.yaml` — the delivery lifecycle (the AI-Native SDLC, with the ADLC carried as its agentic mode) with ordered stages, domain mappings, and risk shape associations; the machine-readable SOP
 - `capability-profiles.yaml` — who is certified to execute what, at which level. Stub, `visibility: internal`; real entries belong in a private overlay
 - `roles/interface-lead.yaml` — staffing bound example (not rendered on the site yet)
 - `schema/*.json` — the shape rules CI enforces

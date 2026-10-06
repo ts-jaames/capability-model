@@ -35,43 +35,82 @@
           "type": "array",
           "items": { "type": "integer", "minimum": 0 }
         },
-        "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+        "description": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "agentic_note": { "$ref": "common.json#/$defs/nonEmptyString" }
       }
     },
-    "strategic_alignment": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["name", "description"],
-        "properties": {
-          "name": { "$ref": "common.json#/$defs/nonEmptyString" },
-          "description": { "$ref": "common.json#/$defs/nonEmptyString" }
-        }
-      }
-    },
-    "core_shifts": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["dimension"],
-        "properties": {
-          "dimension": { "$ref": "common.json#/$defs/nonEmptyString" },
-          "sdlc": { "$ref": "common.json#/$defs/nonEmptyString" },
-          "adlc": { "$ref": "common.json#/$defs/nonEmptyString" }
-        }
-      }
-    },
-    "commercial_constraints": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["constraint", "response"],
-        "properties": {
-          "constraint": { "$ref": "common.json#/$defs/nonEmptyString" },
-          "response": { "$ref": "common.json#/$defs/nonEmptyString" }
+    "agentic_mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "summary", "description", "question", "asked_at", "decided_at"],
+      "properties": {
+        "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "summary": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "description": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "question": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "asked_at": { "type": "integer", "minimum": 0 },
+        "decided_at": { "type": "integer", "minimum": 0 },
+        "pipeline_note": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "strategic_alignment": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "description"],
+            "properties": {
+              "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+              "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+            }
+          }
+        },
+        "core_shifts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["dimension"],
+            "properties": {
+              "dimension": { "$ref": "common.json#/$defs/nonEmptyString" },
+              "conventional": { "$ref": "common.json#/$defs/nonEmptyString" },
+              "agentic": { "$ref": "common.json#/$defs/nonEmptyString" }
+            }
+          }
+        },
+        "commercial_constraints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["constraint", "response"],
+            "properties": {
+              "constraint": { "$ref": "common.json#/$defs/nonEmptyString" },
+              "response": { "$ref": "common.json#/$defs/nonEmptyString" }
+            }
+          }
+        },
+        "domain_notes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["domain", "note"],
+            "properties": {
+              "domain": { "$ref": "common.json#/$defs/kebabId" },
+              "note": { "$ref": "common.json#/$defs/nonEmptyString" }
+            }
+          }
+        },
+        "gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "description"],
+            "properties": {
+              "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+              "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+            }
+          }
         }
       }
     },
@@ -174,6 +213,44 @@
             "properties": {
               "approach": { "$ref": "common.json#/$defs/nonEmptyString" },
               "governance": { "$ref": "common.json#/$defs/nonEmptyString" }
+            }
+          },
+          "agentic": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["divergence"],
+            "properties": {
+              "divergence": { "type": "string", "enum": ["additive", "fork"] },
+              "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+              "objective": { "$ref": "common.json#/$defs/nonEmptyString" },
+              "framing": { "$ref": "common.json#/$defs/nonEmptyString" },
+              "artifact": { "$ref": "common.json#/$defs/nonEmptyString" },
+              "gate": { "$ref": "common.json#/$defs/nonEmptyString" },
+              "output": { "$ref": "common.json#/$defs/nonEmptyString" },
+              "risk_shapes_hot": {
+                "type": "array",
+                "items": { "$ref": "common.json#/$defs/kebabId" }
+              },
+              "procedures": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["name", "description"],
+                  "properties": {
+                    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+                    "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+                  }
+                }
+              },
+              "adaptation": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "approach": { "$ref": "common.json#/$defs/nonEmptyString" },
+                  "governance": { "$ref": "common.json#/$defs/nonEmptyString" }
+                }
+              }
             }
           }
         }

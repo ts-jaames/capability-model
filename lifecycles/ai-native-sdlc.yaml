@@ -27,6 +27,136 @@ commercial_unit:
     The thing that used to be pitched as discovery, now scoped to roughly 2
     weeks because the output is evidence and a costed Build decision, not a
     stack of workshop artifacts.
+  agentic_note: >
+    In agentic mode the Evidence Sprint also covers agent-specific scope
+    framing, architecture definition, and simulation before committing to a
+    full build.
+
+agentic_mode:
+  name: ADLC
+  summary: >
+    Agentic Delivery Life Cycle. Standard operating procedures for engagements
+    where the deliverable is itself an agentic system, a runtime that reasons
+    non-deterministically, selects tools dynamically, and operates under a
+    probabilistic accuracy distribution rather than a fixed spec. It is the
+    mode this pipeline runs in when the deliverable is agentic, not a second
+    pipeline: the same seven stages, gates, and artifacts, with extra checks at
+    most stages and a real fork at Design and Test.
+  question: >
+    Is the deliverable's runtime behavior fixed at build time, or decided at
+    runtime?
+  asked_at: 0
+  decided_at: 1
+  description: >
+    Software delivery runs on a spectrum of how much of the system's behavior is
+    fixed at build time versus decided at runtime. SDLC: everything is
+    deterministic, inputs map predictably to outputs through logic fully
+    specified at compile time. AI-Native SDLC: the deployed system is
+    deterministic, but AI accelerates how we build it. ADLC: nothing at runtime
+    is deterministic, the deliverable reasons, selects tools, and adapts to
+    shifting context live.
+
+    ADLC governs the third case. The distinction that matters commercially: a
+    client buying software that uses AI in its construction is a conventional
+    build. A client buying a system that is an agent, one whose actions at
+    runtime are not fully predictable in advance, is buying something that needs
+    its own governance model, because "did we build it right" and "does it
+    behave correctly" are no longer the same question. Evaluations, not test
+    suites, become the primary way we know whether the system is doing its job.
+  pipeline_note: >
+    Stages 0 and 1 together are the Evidence Sprint. Stages 2 through 6 are the
+    Production Build. Stage 6 feeds back into Stage 0 via a recursive feedback
+    loop.
+  strategic_alignment:
+    - name: Workflow-First Engineering
+      description: >
+        Unconstrained agent autonomy compounds errors. Default to deterministic
+        Workflows (Prompt Chaining, Routing, Parallelization,
+        Orchestrator-Workers); escalate to fully autonomous Agents only when
+        dynamic reasoning across an open-ended tool space is genuinely required.
+    - name: Evaluation-Driven Development
+      description: >
+        Evaluations replace unit tests as the core specification artifact.
+        Prompts and orchestrators are software components whose behavior is
+        verified against 20-50+ task scenarios before production deployment.
+    - name: MCP Integration
+      description: >
+        Every tool, legacy connection, and enterprise platform the agent touches
+        is exposed via Model Context Protocol. This decouples model logic from
+        infrastructure, standardizes authentication, and enforces isolation
+        boundaries.
+    - name: Repo-Native Context Engines
+      description: >
+        Agent orchestration logic, instructions, skills, and guardrails live
+        directly in the repository via CLAUDE.md. Project context is maintained
+        dynamically, not through ad-hoc system prompts.
+  core_shifts:
+    - dimension: Behavioral model
+      conventional: Deterministic execution (input maps predictably to output)
+      agentic: Probabilistic execution (input, reasoning, one of several possible outputs)
+    - dimension: Logic residency
+      conventional: Code and config alone
+      agentic: Code, system prompts, foundation models, and vector stores together
+    - dimension: Primary artifact
+      conventional: Code, tests, documentation
+      agentic: Agent specs, evaluation suites, MCP tool definitions, CLAUDE.md context engine
+    - dimension: Quality verification
+      conventional: Pass/fail unit tests and code coverage
+      agentic: Evaluation suites, alignment tests, and tool-call accuracy
+    - dimension: Success metrics
+      conventional: Code coverage and functional pass/fail
+      agentic: Accuracy distributions, hallucination rates, and token economics
+    - dimension: Feedback loop
+      conventional: Reactive (users report bugs, devs fix them)
+      agentic: Recursive (runtime telemetry feeds evaluations and re-opens intent triage automatically)
+  commercial_constraints:
+    - constraint: Commercial risk
+      response: >
+        A fixed-fee Evidence Sprint (Stages 0-1) with an explicit Evidence Gate
+        caps unbounded R&D spend before architecture work begins.
+    - constraint: Legacy systems
+      response: >
+        Monolithic and tech-debt codebases are wrapped behind strict MCP
+        boundaries and path-blocking guardrails to prevent unauthorized
+        refactoring.
+    - constraint: Severe unknowns
+      response: >
+        Greenfield exploration is constrained via Plan Mode First and synthetic
+        dry-run simulation before production tokens are spent.
+    - constraint: SLA realities
+      response: >
+        Bounded accuracy distributions replace binary SLAs; post-launch
+        maintenance becomes an ongoing governance retainer tracking drift, not
+        just uptime.
+    - constraint: Token economics
+      response: >
+        CAPEX/OPEX budgets are set at Design and tracked through Maintain.
+        Ongoing inference cost is a first-class constraint, not an afterthought.
+  domain_notes:
+    - domain: commercial
+      note: >
+        Commercial frames the pipeline: a fixed-fee Evidence Sprint caps
+        unbounded R&D spend, and token economics are tracked as a first-class
+        constraint from Design through Maintain.
+    - domain: enablement
+      note: >
+        Enablement activates at Deployment and Governance, where HITL operators
+        manage autonomy tiers and the system transitions to ongoing governance.
+  gaps:
+    - name: Autonomy Matrix standardization
+      description: >
+        The matrix is currently defined per project at Design. Whether a
+        baseline matrix template should exist for common agent categories (chat
+        interface, workflow automation, autonomous research) is unresolved.
+    - name: Token economics benchmarking
+      description: >
+        CAPEX/OPEX budgets are currently set per engagement without a
+        portfolio-level baseline to compare against. This should mature as more
+        engagements accumulate data.
+    - name: Drift and hallucination bands
+      description: >
+        The widened performance-band design that includes token and drift
+        metrics is proposed, not yet ratified in production.
 
 stages:
   - number: 0
@@ -69,6 +199,13 @@ stages:
           Every intent.md, whether written by a human or generated by a
           background agent, must be reviewed and corrected by the Product Owner
           before it proceeds.
+      - name: Mode question
+        description: >
+          Ask the one question that sets the rest of the pipeline: is the
+          deliverable's runtime behavior fixed at build time, or decided at
+          runtime? A fixed answer keeps the pipeline in its standard mode. A
+          runtime answer puts it in agentic mode (ADLC), which adds checks at
+          most stages and changes Design and Test.
     output: >
       Fully tagged, human-readable stack of assumptions. Advances directly to
       Stage 1 (Evidence Gate) for empirical testing. Inert: does not trigger
@@ -78,6 +215,43 @@ stages:
       approach: >
         Structured elicitation producing tagged, unvalidated assumptions.
       governance: Product Owner reviews every intent.md before it proceeds.
+    agentic:
+      divergence: additive
+      objective: >
+        Prevent over-engineering by establishing whether an agentic architecture
+        is actually necessary before writing any code. Surface business value,
+        feasibility bounds, and, because the deliverable will reason and act on
+        its own, the specific ways an autonomous system can fail that a
+        conventional build never has to consider.
+      framing: >
+        Extend the failure premortem explicitly to agentic failure modes:
+        compounding tool calls, runaway loops, data leakage through tool access.
+        This is the one place Stage 0 diverges from a conventional build. The
+        question is not just "what if this fails," it is "what if this decides
+        something we did not intend."
+      gate: Facilitator validates assumption tagging including agentic failure modes
+      risk_shapes_hot:
+        - shape-ai-reliability
+      procedures:
+        - name: Structured workshop
+          description: >
+            Silent assumption dump across five risk lenses (Value, Usability,
+            Feasibility, Viability, Operational), followed by a failure
+            premortem extended to agentic failure modes.
+        - name: Assumption tagging
+          description: >
+            Tag every claim explicitly. No untagged assertions survive the file.
+      output: >
+        intent.md: a fully tagged, human-readable stack of assumptions,
+        including agentic-specific risk. Inert until it clears the Evidence
+        Gate.
+      adaptation:
+        approach: >
+          Structured elicitation surfacing both business and agentic-failure
+          risk.
+        governance: >
+          Facilitator ensures assumption tagging, including failure-mode
+          coverage.
 
   - number: 1
     name: Evidence Gate
@@ -141,6 +315,11 @@ stages:
           non-interactive CI job that compiles spec.md, loading Sparq compliance
           skills (security, UX, brand guidelines). The Product Owner performs
           the final review.
+      - name: Record the mode
+        description: >
+          Write the answer to the mode question into the cleared intent.md so
+          Design starts in the right mode. The question is asked once, here, and
+          not re-argued at each later stage.
     output: >
       The intent.md either clears (merged, synced, and moving to Stage 2) or
       gets sent back to Stage 0 for re-framing, or the initiative is
@@ -152,6 +331,35 @@ stages:
         automatically into tracker sync and spec compilation on Promote.
       governance: >
         Product + Delivery sign-off; Promote/Iterate/Pivot/Stop, then PO merge.
+    agentic:
+      divergence: additive
+      objective: >
+        Decide whether the intent is trustworthy enough to justify architecture
+        investment before any agent design work begins. For agentic systems this
+        gate carries more weight than in a conventional build, because
+        architecture decisions here (tool access, autonomy scope) are expensive
+        to unwind once made.
+      risk_shapes_hot:
+        - shape-ai-reliability
+      procedures:
+        - name: Evidence Slice or Vision Prototype
+          description: >
+            Build a lightweight slice or a fuller prototype addressing the
+            highest-risk assumption.
+        - name: Adversarial simulation
+          description: >
+            Run multi-persona synthetic simulations that deliberately introduce
+            ambiguous, malformed, or malicious inputs, stress-testing not just
+            whether the system works but how it fails when it does not.
+      output: >
+        intent.md (cleared and synced to the enterprise tracker) and, where
+        built, a Vision Prototype demonstrating future-state value.
+      adaptation:
+        approach: >
+          Risk validation loop stress-tested against adversarial input, closing
+          automatically on Promote.
+        governance: >
+          Explicit Promote/Iterate/Pivot/Stop, then merge sign-off.
 
   - number: 2
     name: Design
@@ -182,6 +390,47 @@ stages:
     adaptation:
       approach: Compressed single-session requirements and design synthesis.
       governance: Skills validation (Security, UX, Brand).
+    agentic:
+      divergence: fork
+      objective: >
+        Design the non-deterministic system architecture itself, not just a
+        technical spec but the boundaries of what the deployed agent will be
+        allowed to decide and do. This is where building an agent most clearly
+        diverges from using one to build: the deliverable's own runtime
+        authority has to be designed on purpose.
+      artifact: spec.md + autonomy-matrix.yaml
+      gate: Security and architecture sign-off
+      risk_shapes_hot:
+        - shape-ai-reliability
+      procedures:
+        - name: Architecture session
+          description: >
+            Compressed design session defining the model stack, context engine
+            structure, prompt topologies, and MCP tool schemas.
+        - name: Autonomy Matrix
+          description: >
+            Map every task category the deployed agent will perform to an
+            explicit authorization level: Autonomous, Automated with Logging,
+            HITL Approval Required, or Prohibited. This is a strategic decision
+            made once per system, not a detail to leave implicit until Deploy.
+        - name: Token economics
+          description: >
+            Set CAPEX/OPEX budgets as a first-class design constraint alongside
+            functional requirements.
+        - name: Guardrail validation
+          description: >
+            Validate the spec against organizational security,
+            prompt-validation, and output-parsing guardrails before
+            implementation begins.
+      output: >
+        spec.md: a complete technical blueprint covering MCP tool definitions,
+        the Autonomy Matrix, token budgets, context structure, and failure
+        recovery protocols.
+      adaptation:
+        approach: >
+          Architecture synthesis including an explicit Autonomy Matrix and token
+          budget.
+        governance: Security and architecture sign-off.
 
   - number: 3
     name: Build
@@ -222,6 +471,32 @@ stages:
     adaptation:
       approach: Plan-mode drafting, worktree-isolated implementation.
       governance: CLAUDE.md + path-blocking hooks.
+    agentic:
+      divergence: additive
+      objective: >
+        Execute engineering work under Evaluation-Driven Development, treating
+        evaluations as the specification that governs whether the system is
+        behaving correctly, not just whether it compiles.
+      artifact: plan.md + code diffs + initial eval benchmarks
+      gate: Engineer plan acceptance + evaluation coverage check
+      procedures:
+        - name: Evaluation-Driven Development
+          description: >
+            Draft initial evaluation scenarios in parallel with feature code,
+            not after it, because for a probabilistic system the eval suite is
+            part of the spec, not a downstream check on it.
+        - name: Continuous model evaluation
+          description: >
+            Evaluate model outputs continuously during implementation for
+            hallucination rate, formatting errors, and tool-calling accuracy,
+            alongside standard build verification.
+      output: >
+        An accepted implementation plan, verified code diffs in isolated
+        branches, and initial evaluation benchmarks.
+      adaptation:
+        approach: >
+          Plan-mode drafting with evaluation scenarios built alongside code.
+        governance: Engineer plan acceptance + evaluation coverage check.
 
   - number: 4
     name: Test
@@ -262,6 +537,25 @@ stages:
     adaptation:
       approach: Continuous self-verification and CI-driven eval suites.
       governance: Test-locking hooks and eval pass thresholds.
+    agentic:
+      divergence: fork
+      objective: >
+        Validate the system across non-deterministic outputs. A probabilistic
+        system can pass every functional test and still fail on tool selection
+        or safety alignment. Those need their own verification, not an
+        assumption that functional correctness implies behavioral correctness.
+      gate: Combined threshold on accuracy, safety, and tool-selection
+      procedures:
+        - name: Combined threshold
+          description: >
+            Gate merges on a combined threshold covering task accuracy, safety
+            alignment, and tool-selection accuracy, not task accuracy alone.
+            All three axes must pass independently.
+      output: Execution logs and a comprehensive evaluation pass report.
+      adaptation:
+        approach: >
+          Combined accuracy, safety, and tool-selection threshold.
+        governance: Automated CI gate on all three axes.
 
   - number: 5
     name: Deploy
@@ -298,6 +592,33 @@ stages:
     adaptation:
       approach: Multi-pass agentic PR review with human risk evaluation.
       governance: Branch protection and production deploy hooks.
+    agentic:
+      divergence: additive
+      objective: >
+        Transition a probabilistic system into staging and production safely,
+        using tiered autonomy and multi-pass safety verification rather than a
+        single go/no-go review.
+      artifact: REVIEW.md + PR findings + release record
+      gate: Named human sign-off on Production actions above threshold
+      procedures:
+        - name: Tiered autonomy
+          description: >
+            Deploy through managed autonomy tiers: full autonomy in
+            Development, automated review plus clean CI in Staging, and
+            explicit named human sign-off in Production for any action above
+            the defined risk threshold.
+        - name: Context-engine correction
+          description: >
+            Feed corrections back automatically: when the same mistake recurs
+            across reviews, the context engine is updated so it does not recur a
+            third time.
+      output: >
+        Review findings, environment deployment logs, and a signed production
+        activation record.
+      adaptation:
+        approach: >
+          Tiered autonomy with automatic context-engine correction.
+        governance: Named human sign-off on Production actions above threshold.
 
   - number: 6
     name: Maintain
@@ -336,6 +657,39 @@ stages:
     adaptation:
       approach: Metric-band monitoring auto-generating new intent items.
       governance: Tiered automated response and on-call approval.
+    agentic:
+      divergence: additive
+      name: Maintain & Governance
+      objective: >
+        Manage probabilistic drift over time: monitor token consumption, capture
+        real-world edge cases the system encounters in production, and feed
+        incidents back into intent triage automatically rather than waiting for
+        the next planning cycle.
+      gate: Automated triage feed + quarterly governance review
+      procedures:
+        - name: Statistical process control
+          description: >
+            Monitor performance using statistical process control against
+            defined bands, extended for agentic systems to include token
+            consumption trends and hallucination/drift rates alongside
+            infrastructure and product metrics.
+        - name: Automated incident triage
+          description: >
+            On a detected anomaly (a hallucination, an autonomy-boundary breach,
+            a negative feedback loop) a background process diagnoses the
+            incident, compiles a permanent regression case, and raises a new
+            intent item automatically.
+        - name: Quarterly governance review
+          description: >
+            Review governance quarterly against accumulated incident and drift
+            data.
+      output: >
+        Updated performance bands, incident post-mortem records, and new intent
+        items entering the triage queue.
+      adaptation:
+        approach: >
+          Metric-band monitoring extended to token and drift metrics.
+        governance: Automated triage feed + quarterly governance review.
 
 domain_notes:
   - domain: commercial
@@ -463,4 +817,4 @@ gaps:
 status: draft
 owner: Operating Model
 source: original
-last_updated: 2026-09-25
+last_updated: 2026-10-06
