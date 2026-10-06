@@ -17,12 +17,11 @@ positions_reviewed: false
 # (see CLAUDE.md; `npm run today` reports its age). `updated` is local time with
 # its offset, and the page counts up from it.
 today:
-  updated: 2026-10-05T14:49:44-05:00
+  updated: 2026-10-06T08:08:58-05:00
   text: >
-    Carried the Engagement Lead rename through the title file, the lifecycle
-    RACI, and the rules in CLAUDE.md. Then rewrote the landing page as Core
-    Philosophy so it explains the model to someone who was not in the build,
-    adding the risk shapes, dials, seams, and how settled each part is.
+    Reconciling our SDLC with Anthropic's SDLC model and Atlassian's, and
+    discussing roles and titles as part of it. This follows the Engagement Lead
+    rename and the rewrite of the landing page as Core Philosophy.
 
 note: >
   This file is edited by a human. Nothing in it moves on its own, and no
