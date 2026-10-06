@@ -68,7 +68,8 @@ rows:
 
   - id: roles-titles
     name: Roles & Titles
-    position: thinking
+    position: mapping
+    last_moved: 2026-10-06
 
   - id: operating-view
     name: Operating View
