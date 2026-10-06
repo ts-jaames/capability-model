@@ -427,6 +427,8 @@ export function getLifecycle(index, { lifecycle } = {}) {
     // Agentic mode (ADLC) is the same pipeline with a fork, so it is carried on
     // the lifecycle itself: the mode-level story here, the per-stage changes on
     // each stage's `agentic` overlay below.
+    // Principles true of the whole pipeline in either mode, not just agentic.
+    principles: lc.principles,
     agentic_mode: lc.agentic_mode
       ? {
           name: lc.agentic_mode.name,
@@ -436,7 +438,7 @@ export function getLifecycle(index, { lifecycle } = {}) {
           asked_at: lc.agentic_mode.asked_at,
           decided_at: lc.agentic_mode.decided_at,
           pipeline_note: lc.agentic_mode.pipeline_note ? oneLine(lc.agentic_mode.pipeline_note) : undefined,
-          strategic_alignment: lc.agentic_mode.strategic_alignment,
+          added_principles: lc.agentic_mode.added_principles,
           core_shifts: lc.agentic_mode.core_shifts,
           commercial_constraints: lc.agentic_mode.commercial_constraints,
           domain_notes: lc.agentic_mode.domain_notes,
@@ -475,6 +477,7 @@ export function getLifecycle(index, { lifecycle } = {}) {
       agentic: stage.agentic
         ? {
             divergence: stage.agentic.divergence,
+            summary: stage.agentic.summary,
             name: stage.agentic.name,
             objective: stage.agentic.objective ? oneLine(stage.agentic.objective) : undefined,
             framing: stage.agentic.framing ? oneLine(stage.agentic.framing) : undefined,

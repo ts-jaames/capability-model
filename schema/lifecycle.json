@@ -39,6 +39,19 @@
         "agentic_note": { "$ref": "common.json#/$defs/nonEmptyString" }
       }
     },
+    "principles": {
+      "description": "Principles that hold across the whole pipeline in either mode. Not agentic-specific, so they live here and not in agentic_mode.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "description"],
+        "properties": {
+          "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    },
     "agentic_mode": {
       "type": "object",
       "additionalProperties": false,
@@ -51,7 +64,7 @@
         "asked_at": { "type": "integer", "minimum": 0 },
         "decided_at": { "type": "integer", "minimum": 0 },
         "pipeline_note": { "$ref": "common.json#/$defs/nonEmptyString" },
-        "strategic_alignment": {
+        "added_principles": {
           "type": "array",
           "items": {
             "type": "object",
@@ -207,20 +220,20 @@
           "infrastructure": { "$ref": "common.json#/$defs/nonEmptyString" },
           "output": { "$ref": "common.json#/$defs/nonEmptyString" },
           "note": { "$ref": "common.json#/$defs/nonEmptyString" },
-          "adaptation": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "approach": { "$ref": "common.json#/$defs/nonEmptyString" },
-              "governance": { "$ref": "common.json#/$defs/nonEmptyString" }
-            }
-          },
           "agentic": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["divergence"],
+            "required": ["divergence", "summary"],
             "properties": {
-              "divergence": { "type": "string", "enum": ["additive", "fork"] },
+              "divergence": {
+                "type": "string",
+                "enum": ["additive", "fork"],
+                "description": "additive: the stage keeps its shape and takes on extra checks; its artifact and gate may be added to but never replaced. fork: the stage itself changes shape."
+              },
+              "summary": {
+                "$ref": "common.json#/$defs/nonEmptyString",
+                "description": "One line on what changes at this stage in agentic mode."
+              },
               "name": { "$ref": "common.json#/$defs/nonEmptyString" },
               "objective": { "$ref": "common.json#/$defs/nonEmptyString" },
               "framing": { "$ref": "common.json#/$defs/nonEmptyString" },
@@ -241,14 +254,6 @@
                     "name": { "$ref": "common.json#/$defs/nonEmptyString" },
                     "description": { "$ref": "common.json#/$defs/nonEmptyString" }
                   }
-                }
-              },
-              "adaptation": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                  "approach": { "$ref": "common.json#/$defs/nonEmptyString" },
-                  "governance": { "$ref": "common.json#/$defs/nonEmptyString" }
                 }
               }
             }

@@ -32,6 +32,19 @@ commercial_unit:
     framing, architecture definition, and simulation before committing to a
     full build.
 
+principles:
+  - name: MCP Integration
+    description: >
+      Every tool, legacy connection, and enterprise platform the agent touches
+      is exposed via Model Context Protocol. This decouples model logic from
+      infrastructure, standardizes authentication, and enforces isolation
+      boundaries.
+  - name: Repo-Native Context Engines
+    description: >
+      Agent orchestration logic, instructions, skills, and guardrails live
+      directly in the repository via CLAUDE.md. Project context is maintained
+      dynamically, not through ad-hoc system prompts.
+
 agentic_mode:
   name: ADLC
   summary: >
@@ -40,8 +53,8 @@ agentic_mode:
     non-deterministically, selects tools dynamically, and operates under a
     probabilistic accuracy distribution rather than a fixed spec. It is the
     mode this pipeline runs in when the deliverable is agentic, not a second
-    pipeline: the same seven stages, gates, and artifacts, with extra checks at
-    most stages and a real fork at Design and Test.
+    pipeline: the same seven stages, with extra checks at most stages (some of
+    which add to the artifact as well) and a real fork at Design and Test.
   question: >
     Is the deliverable's runtime behavior fixed at build time, or decided at
     runtime?
@@ -67,7 +80,7 @@ agentic_mode:
     Stages 0 and 1 together are the Evidence Sprint. Stages 2 through 6 are the
     Production Build. Stage 6 feeds back into Stage 0 via a recursive feedback
     loop.
-  strategic_alignment:
+  added_principles:
     - name: Workflow-First Engineering
       description: >
         Unconstrained agent autonomy compounds errors. Default to deterministic
@@ -79,17 +92,6 @@ agentic_mode:
         Evaluations replace unit tests as the core specification artifact.
         Prompts and orchestrators are software components whose behavior is
         verified against 20-50+ task scenarios before production deployment.
-    - name: MCP Integration
-      description: >
-        Every tool, legacy connection, and enterprise platform the agent touches
-        is exposed via Model Context Protocol. This decouples model logic from
-        infrastructure, standardizes authentication, and enforces isolation
-        boundaries.
-    - name: Repo-Native Context Engines
-      description: >
-        Agent orchestration logic, instructions, skills, and guardrails live
-        directly in the repository via CLAUDE.md. Project context is maintained
-        dynamically, not through ad-hoc system prompts.
   core_shifts:
     - dimension: Behavioral model
       conventional: Deterministic execution (input maps predictably to output)
@@ -211,12 +213,9 @@ stages:
       Stage 1 (Evidence Gate) for empirical testing. Inert: does not trigger
       any automated build or CI run.
     note: Evidence Sprint
-    adaptation:
-      approach: >
-        Structured elicitation producing tagged, unvalidated assumptions.
-      governance: Product Owner reviews every intent.md before it proceeds.
     agentic:
       divergence: additive
+      summary: Structured elicitation surfacing both business and agentic-failure risk.
       objective: >
         Prevent over-engineering by establishing whether an agentic architecture
         is actually necessary before writing any code. Surface business value,
@@ -245,13 +244,6 @@ stages:
         intent.md: a fully tagged, human-readable stack of assumptions,
         including agentic-specific risk. Inert until it clears the Evidence
         Gate.
-      adaptation:
-        approach: >
-          Structured elicitation surfacing both business and agentic-failure
-          risk.
-        governance: >
-          Facilitator ensures assumption tagging, including failure-mode
-          coverage.
 
   - number: 1
     name: Evidence Gate
@@ -262,7 +254,7 @@ stages:
       closes automatically: tracker sync, merge, and spec compilation fire
       without a separate decision.
     artifact: intent.md (cleared, synced)
-    gate: Promote / Iterate / Pivot / Stop + PO merge
+    gate: Product + Delivery sign-off; Promote / Iterate / Pivot / Stop + PO merge
     primary_domain: proof
     secondary_domain: framing
     risk_shapes_hot:
@@ -325,14 +317,10 @@ stages:
       gets sent back to Stage 0 for re-framing, or the initiative is
       stopped/pivoted.
     note: Evidence Sprint
-    adaptation:
-      approach: >
-        Risk validation loop for Value/Usability/Viability, closing
-        automatically into tracker sync and spec compilation on Promote.
-      governance: >
-        Product + Delivery sign-off; Promote/Iterate/Pivot/Stop, then PO merge.
     agentic:
       divergence: additive
+      summary: Risk validation loop stress-tested against adversarial input, closing
+        automatically on Promote.
       objective: >
         Decide whether the intent is trustworthy enough to justify architecture
         investment before any agent design work begins. For agentic systems this
@@ -354,12 +342,6 @@ stages:
       output: >
         intent.md (cleared and synced to the enterprise tracker) and, where
         built, a Vision Prototype demonstrating future-state value.
-      adaptation:
-        approach: >
-          Risk validation loop stress-tested against adversarial input, closing
-          automatically on Promote.
-        governance: >
-          Explicit Promote/Iterate/Pivot/Stop, then merge sign-off.
 
   - number: 2
     name: Design
@@ -387,11 +369,10 @@ stages:
           constraint-checks run as secondary, ensuring the architecture stays
           within the boundaries set at the Evidence Gate.
     output: spec.md.
-    adaptation:
-      approach: Compressed single-session requirements and design synthesis.
-      governance: Skills validation (Security, UX, Brand).
     agentic:
       divergence: fork
+      summary: Architecture synthesis including an explicit Autonomy Matrix and
+        token budget.
       objective: >
         Design the non-deterministic system architecture itself, not just a
         technical spec but the boundaries of what the deployed agent will be
@@ -426,11 +407,6 @@ stages:
         spec.md: a complete technical blueprint covering MCP tool definitions,
         the Autonomy Matrix, token budgets, context structure, and failure
         recovery protocols.
-      adaptation:
-        approach: >
-          Architecture synthesis including an explicit Autonomy Matrix and token
-          budget.
-        governance: Security and architecture sign-off.
 
   - number: 3
     name: Build
@@ -468,11 +444,9 @@ stages:
           repositories, including verifier agents (run the app, check behavior) and
           simplifier agents (strip redundant complexity post-implementation).
     output: plan.md and verified code diffs.
-    adaptation:
-      approach: Plan-mode drafting, worktree-isolated implementation.
-      governance: CLAUDE.md + path-blocking hooks.
     agentic:
       divergence: additive
+      summary: Plan-mode drafting with evaluation scenarios built alongside code.
       objective: >
         Execute engineering work under Evaluation-Driven Development, treating
         evaluations as the specification that governs whether the system is
@@ -493,10 +467,6 @@ stages:
       output: >
         An accepted implementation plan, verified code diffs in isolated
         branches, and initial evaluation benchmarks.
-      adaptation:
-        approach: >
-          Plan-mode drafting with evaluation scenarios built alongside code.
-        governance: Engineer plan acceptance + evaluation coverage check.
 
   - number: 4
     name: Test
@@ -534,11 +504,9 @@ stages:
           the tests; it is explicitly denied the ability to alter assertions
           to force a passing status.
     output: Verification logs and evaluation results.
-    adaptation:
-      approach: Continuous self-verification and CI-driven eval suites.
-      governance: Test-locking hooks and eval pass thresholds.
     agentic:
       divergence: fork
+      summary: Combined accuracy, safety, and tool-selection threshold.
       objective: >
         Validate the system across non-deterministic outputs. A probabilistic
         system can pass every functional test and still fail on tool selection
@@ -552,10 +520,6 @@ stages:
             alignment, and tool-selection accuracy, not task accuracy alone.
             All three axes must pass independently.
       output: Execution logs and a comprehensive evaluation pass report.
-      adaptation:
-        approach: >
-          Combined accuracy, safety, and tool-selection threshold.
-        governance: Automated CI gate on all three axes.
 
   - number: 5
     name: Deploy
@@ -563,7 +527,7 @@ stages:
       Conduct multi-pass reviews and securely deploy artifacts across
       environments using defined autonomy tiers.
     artifact: REVIEW.md + PR findings
-    gate: Environment autonomy tiers
+    gate: Environment autonomy tiers; branch protection and production deploy hooks
     primary_domain: building
     secondary_domain: continuity
     risk_shapes_hot:
@@ -589,11 +553,9 @@ stages:
           permissions.deny) to block shell network egress, prevent credential
           leakage, and disable plugin sideloading.
     output: REVIEW.md, PR findings, and deployed code.
-    adaptation:
-      approach: Multi-pass agentic PR review with human risk evaluation.
-      governance: Branch protection and production deploy hooks.
     agentic:
       divergence: additive
+      summary: Tiered autonomy with automatic context-engine correction.
       objective: >
         Transition a probabilistic system into staging and production safely,
         using tiered autonomy and multi-pass safety verification rather than a
@@ -615,10 +577,6 @@ stages:
       output: >
         Review findings, environment deployment logs, and a signed production
         activation record.
-      adaptation:
-        approach: >
-          Tiered autonomy with automatic context-engine correction.
-        governance: Named human sign-off on Production actions above threshold.
 
   - number: 6
     name: Maintain
@@ -626,7 +584,7 @@ stages:
       Monitor system health continuously and trigger automated triage and
       incident resolution loops.
     artifact: bands.yaml + incident records
-    gate: Metric-band triggers
+    gate: Metric-band triggers; tiered automated response and on-call approval
     primary_domain: continuity
     secondary_domain: enablement
     risk_shapes_hot:
@@ -654,11 +612,9 @@ stages:
           regression evaluation case into the CI suite (Stage 4) to guarantee
           prevention of recurrence.
     output: bands.yaml updates and incident/eval loop records.
-    adaptation:
-      approach: Metric-band monitoring auto-generating new intent items.
-      governance: Tiered automated response and on-call approval.
     agentic:
       divergence: additive
+      summary: Metric-band monitoring extended to token and drift metrics.
       name: Maintain & Governance
       objective: >
         Manage probabilistic drift over time: monitor token consumption, capture
@@ -686,10 +642,6 @@ stages:
       output: >
         Updated performance bands, incident post-mortem records, and new intent
         items entering the triage queue.
-      adaptation:
-        approach: >
-          Metric-band monitoring extended to token and drift metrics.
-        governance: Automated triage feed + quarterly governance review.
 
 domain_notes:
   - domain: commercial

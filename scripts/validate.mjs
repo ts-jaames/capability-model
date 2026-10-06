@@ -602,6 +602,17 @@ async function main() {
           add("refs", rec.file, `agentic_mode.domain_notes cites domain "${dn.domain}" which does not exist`);
         }
       }
+      // A principle is either true of the whole pipeline or new in agentic mode.
+      // Filing it in both is how a mode starts to read like a second lifecycle.
+      const pipelineWide = (lc.principles ?? []).map((p) => p.name);
+      const added = (mode.added_principles ?? []).map((p) => p.name);
+      uniqueIds(pipelineWide, rec.file, "principles");
+      uniqueIds(added, rec.file, "agentic_mode.added_principles");
+      for (const name of added) {
+        if (pipelineWide.includes(name)) {
+          add("constraints", rec.file, `principle "${name}" is listed as both pipeline-wide and added in agentic mode; pick one`);
+        }
+      }
       if (!overlaid.some((stage) => stage.agentic.divergence === "fork")) {
         add("constraints", rec.file, "agentic_mode names no stage where the modes fork; at least one stage must set divergence: fork");
       }
@@ -616,6 +627,20 @@ async function main() {
         if ((stage.risk_shapes_hot ?? []).includes(shapeId)) {
           add("constraints", rec.file, `${where} repeats risk shape "${shapeId}" the stage already has; list only the ones it adds`);
         }
+      }
+      // "Additive" has to mean something checkable: the artifact may be added to
+      // but never replaced. An overlay that swaps the artifact out is a fork.
+      if (
+        overlay.divergence === "additive" &&
+        overlay.artifact &&
+        stage.artifact &&
+        !overlay.artifact.startsWith(stage.artifact)
+      ) {
+        add(
+          "constraints",
+          rec.file,
+          `${where} is additive but its artifact "${overlay.artifact}" does not extend the stage artifact "${stage.artifact}"; extend it or mark the stage a fork`,
+        );
       }
       const baseNames = new Set((stage.procedures ?? []).map((p) => p.name));
       const overlayNames = (overlay.procedures ?? []).map((p) => p.name);

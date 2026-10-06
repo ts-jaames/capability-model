@@ -156,7 +156,7 @@ export const TOOLS = [
   {
     name: "get_lifecycle",
     description:
-      "One lifecycle in full: its ordered stages, each with objective, artifact, gate, primary/secondary domain, risk shapes typically hot, and procedures. Each stage may carry an `agentic` overlay (what changes when the deliverable is itself agentic, and whether that stage is an additive check or a fork), and the lifecycle carries the `agentic_mode` block (the mode question, where it is asked and decided, and the mode-level story). The machine-readable SOP for delivery.",
+      "One lifecycle in full: its ordered stages, each with objective, artifact, gate, primary/secondary domain, risk shapes typically hot, and procedures. Each stage may carry an `agentic` overlay (what changes when the deliverable is itself agentic, and whether that stage is additive, meaning extra checks with its artifact and gate added to but never replaced, or a fork), the lifecycle carries pipeline-wide `principles`, and the `agentic_mode` block (the mode question, where it is asked and decided, and the mode-level story). The machine-readable SOP for delivery.",
     inputSchema: oneArg(
       "lifecycle",
       "Lifecycle id: ai-native-sdlc.",

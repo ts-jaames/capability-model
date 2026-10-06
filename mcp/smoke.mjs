@@ -285,6 +285,30 @@ async function main() {
     (sdlc.payload?.stages ?? []).every((stage) => stage.agentic),
   );
   check(
+    "every overlay says in one line what changes",
+    (sdlc.payload?.stages ?? []).every((stage) => stage.agentic?.summary),
+  );
+  // An additive overlay may add to the artifact but never replace it.
+  check(
+    "additive overlays extend the stage artifact",
+    (sdlc.payload?.stages ?? [])
+      .filter((stage) => stage.agentic?.divergence === "additive" && stage.agentic.artifact)
+      .every((stage) => stage.agentic.artifact.startsWith(stage.artifact)),
+  );
+  // MCP and repo-native context hold in both modes, so they are not agentic-only.
+  const pipelineWide = (sdlc.payload?.principles ?? []).map((p) => p.name);
+  const addedInAgentic = (mode?.added_principles ?? []).map((p) => p.name);
+  check(
+    "MCP and repo-native context are pipeline-wide principles",
+    pipelineWide.includes("MCP Integration") && pipelineWide.includes("Repo-Native Context Engines"),
+    pipelineWide.join(","),
+  );
+  check(
+    "agentic mode adds only workflow-first and eval-driven development",
+    addedInAgentic.join(",") === "Workflow-First Engineering,Evaluation-Driven Development",
+    addedInAgentic.join(","),
+  );
+  check(
     "the Autonomy Matrix sits on the Design overlay",
     (sdlc.payload?.stages?.[2]?.agentic?.procedures ?? []).some((p) => p.name === "Autonomy Matrix"),
   );

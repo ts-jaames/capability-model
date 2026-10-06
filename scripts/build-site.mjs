@@ -166,6 +166,7 @@ const PAGE_TOC = {
     ["#agentic-mode", "One pipeline, one fork"],
     ["#pipeline", "Pipeline"],
     ["#how-stages-and-risk-work", "Stages vs risk shapes"],
+    ["#principles", "Principles, both modes"],
     ["#stage-0", "0 · Intent Framing"],
     ["#stage-1", "1 · Evidence Gate"],
     ["#stage-2", "2 · Design"],
@@ -173,11 +174,10 @@ const PAGE_TOC = {
     ["#stage-4", "4 · Test"],
     ["#stage-5", "5 · Deploy"],
     ["#stage-6", "6 · Maintain"],
-    ["#agentic-alignment", "Agentic · Strategic alignment"],
+    ["#agentic-alignment", "Agentic · Added principles"],
     ["#agentic-shifts", "Agentic · Core shifts"],
     ["#agentic-commercial", "Agentic · Commercial model"],
     ["#domains-across", "Domains across stages"],
-    ["#adaptation", "Adaptation matrix"],
     ["#gaps", "Known gaps"],
   ],
   "tactical-playbook": [
@@ -874,6 +874,14 @@ function ledeParagraphs(value) {
     .join("");
 }
 
+// What kind of change an agentic overlay is, read off the data. A fork changes
+// the stage's shape. Otherwise the stage is additive, and it either adds only
+// checks or also adds to its artifact.
+function agenticKind(overlay) {
+  if (overlay.divergence === "fork") return "fork";
+  return overlay.artifact ? "extends" : "adds";
+}
+
 // What changes at one stage when the deliverable is itself agentic. It sits
 // inside the stage, under the standard content, so the two modes read as one
 // pipeline. A fork (Design, Test) is marked and given an orange rule so it
@@ -885,7 +893,11 @@ function renderAgenticOverlay(stage, ctx = {}) {
   const shapeNames = ctx.riskShapeNames ?? new Map();
 
   const label = `<p class="mono uppercase agentic-label">Agentic mode${a.name && a.name !== stage.name ? `<span class="agentic-name">${esc(a.name)}</span>` : ""}${
-    fork ? `<span class="stage-tag">Where the modes fork</span>` : ""
+    fork
+      ? `<span class="stage-tag">Where the modes fork</span>`
+      : agenticKind(a) === "extends"
+        ? `<span class="stage-tag">Adds to the artifact</span>`
+        : ""
   }</p>`;
 
   const objective = a.objective ? `<p class="lede">${fileRefs(esc(oneLine(a.objective)))}</p>` : "";
@@ -931,12 +943,15 @@ function renderAiSdlcMain(model) {
   const domainNames = new Map((model.domains ?? []).map((d) => [d.id, d.name]));
   const stageName = (n) => stages.find((s) => s.number === n)?.name ?? String(n);
 
-  // How each stage reads in agentic mode, in one cell: whether it only adds
-  // checks or forks, and anything that changes about the gate or artifact.
+  // How each stage reads in agentic mode, in one cell. The kind is derived from
+  // the overlay, so a stage that adds to its artifact cannot be labeled as
+  // "adds checks" alone: forks, adds checks and artifact, or adds checks.
   const agenticCell = (s) => {
     const a = s.agentic;
     if (!a) return "";
-    const parts = [a.divergence === "fork" ? "<strong>Forks.</strong>" : "Adds checks."];
+    const kind = agenticKind(a);
+    const label = kind === "fork" ? "<strong>Forks.</strong>" : kind === "extends" ? "Adds checks and artifact." : "Adds checks.";
+    const parts = [label, `${esc(oneLine(a.summary))}`];
     parts.push(a.gate ? `Gate: ${esc(a.gate)}.` : "Same gate.");
     if (a.artifact) parts.push(`Artifact: ${fileRefs(esc(a.artifact))}.`);
     return parts.join(" ");
@@ -965,22 +980,6 @@ function renderAiSdlcMain(model) {
     })
     .join("");
 
-  const adaptationRows = stages
-    .filter((s) => s.adaptation)
-    .map(
-      (s) =>
-        `<tr><td>${s.number} · ${esc(s.name)}</td><td>${esc(oneLine(s.adaptation.approach))}</td><td>${esc(s.artifact)}</td><td>${esc(oneLine(s.adaptation.governance))}</td></tr>`,
-    )
-    .join("");
-
-  const agenticAdaptationRows = stages
-    .filter((s) => s.agentic?.adaptation)
-    .map(
-      (s) =>
-        `<tr><td>${s.number} · ${esc(s.agentic.name ?? s.name)}</td><td>${esc(oneLine(s.agentic.adaptation.approach))}</td><td>${fileRefs(esc(s.agentic.artifact ?? s.artifact))}</td><td>${esc(oneLine(s.agentic.adaptation.governance))}</td></tr>`,
-    )
-    .join("");
-
   const domainNote = (dn, prefix = "") =>
     `<p class="lede"><strong>${prefix}${esc(domainNames.get(dn.domain) ?? dn.domain)}</strong> ${esc(oneLine(dn.note))}</p>`;
   const domainNotes = (lc.domain_notes ?? []).map((dn) => domainNote(dn)).join("");
@@ -1001,6 +1000,10 @@ function renderAiSdlcMain(model) {
   // later stages run plain or in agentic mode.
   const forks = stages.filter((s) => s.agentic?.divergence === "fork");
   const additive = stages.filter((s) => s.agentic?.divergence === "additive");
+  const extended = additive.filter((s) => agenticKind(s.agentic) === "extends");
+  const extendedLinks = extended
+    .map((s) => `<a href="#stage-${s.number}">${esc(s.name)}</a>`)
+    .join(" and ");
   const forkLinks = forks
     .map((s) => `<a href="#stage-${s.number}">${esc(s.name)}</a>`)
     .join(" and ");
@@ -1013,14 +1016,17 @@ function renderAiSdlcMain(model) {
           <p class="mono uppercase agentic-label">The mode question</p>
           <p class="lede"><strong>${esc(oneLine(mode.question))}</strong></p>
           <p class="agentic-facts">Asked at <a href="#stage-${mode.asked_at}">Stage ${mode.asked_at} · ${esc(stageName(mode.asked_at))}</a>. Recorded at <a href="#stage-${mode.decided_at}">Stage ${mode.decided_at} · ${esc(stageName(mode.decided_at))}</a>, in the cleared ${fileRefs("intent.md")}. Not re-argued stage by stage.</p>
-          <p class="lede">A fixed answer keeps the pipeline in its standard mode. A runtime answer puts it in agentic mode (${esc(mode.name)}). ${additive.length} of ${stages.length} stages keep the same gate and artifact and take on extra checks. ${forkLinks ? `${forkLinks} change in kind, so each carries its own marked block below.` : ""}</p>
+          <p class="lede">A fixed answer keeps the pipeline in its standard mode. A runtime answer puts it in agentic mode (${esc(mode.name)}). ${additive.length} of ${stages.length} stages keep their shape and take on extra checks${extendedLinks ? `, and ${extendedLinks} add to their artifact as well` : ""}. ${forkLinks ? `${forkLinks} change in kind, so each carries its own marked block below.` : ""}</p>
         </div>
         ${ledeParagraphs(mode.description)}
         ${mode.pipeline_note ? `<p class="lede"><strong>${esc(oneLine(mode.pipeline_note))}</strong></p>` : ""}
       </section>`
     : "";
 
-  const alignmentItems = (mode?.strategic_alignment ?? [])
+  const principleItems = (lc.principles ?? [])
+    .map((p) => kv(p.name, `<p>${esc(oneLine(p.description))}</p>`))
+    .join("");
+  const alignmentItems = (mode?.added_principles ?? [])
     .map((a) => kv(a.name, `<p>${esc(oneLine(a.description))}</p>`))
     .join("");
   const shiftRows = (mode?.core_shifts ?? [])
@@ -1066,11 +1072,17 @@ function renderAiSdlcMain(model) {
         <p class="lede">Stages have a default gravity, 0 through ${stages.length - 1}. but change events and failed gates send you back. The change-response doctrine runs at any stage: re-read the risk, re-set the dials, decision gate, re-staff, re-price and re-time, name the next slice.</p>
       </section>
 
+      ${principleItems ? `<section id="principles">
+        <h2 class="mono uppercase eyebrow">Principles, both modes</h2>
+        <p class="lede">These hold across the whole pipeline in either mode. Agentic mode makes them more load-bearing, it does not introduce them.</p>
+        <div class="kvs">${principleItems}</div>
+      </section>` : ""}
+
       ${stageBlocks}
 
       ${alignmentItems ? `<section id="agentic-alignment">
-        <h2 class="mono uppercase eyebrow">Agentic mode · Strategic alignment</h2>
-        <p class="lede">What holds across every stage once the pipeline is in agentic mode. The stage-level changes sit on each stage above.</p>
+        <h2 class="mono uppercase eyebrow">Agentic mode · Added principles</h2>
+        <p class="lede">Only what is new once the deliverable reasons and acts on its own. The stage-level changes sit on each stage above.</p>
         <div class="kvs">${alignmentItems}</div>
       </section>` : ""}
 
@@ -1109,27 +1121,6 @@ function renderAiSdlcMain(model) {
         <p class="lede">Risk shapes are listed where they are typically hottest, not where they only fire. Any shape can spike at any stage.</p>
         ${domainNotes}
         ${agenticDomainNotes}
-      </section>
-
-      <section id="adaptation">
-        <h2 class="mono uppercase eyebrow">Adaptation matrix</h2>
-        <div class="scroll-x">
-        <table class="hairline-table">
-          <thead>
-            <tr><th>Stage</th><th>AI-Native approach</th><th>Artifact</th><th>Governance</th></tr>
-          </thead>
-          <tbody>${adaptationRows}</tbody>
-        </table>
-        </div>
-        ${agenticAdaptationRows ? `<p class="mono uppercase agentic-label">In agentic mode</p>
-        <div class="scroll-x">
-        <table class="hairline-table">
-          <thead>
-            <tr><th>Stage</th><th>Agentic approach</th><th>Artifact</th><th>Governance</th></tr>
-          </thead>
-          <tbody>${agenticAdaptationRows}</tbody>
-        </table>
-        </div>` : ""}
       </section>
 
       ${gapItems || agenticGapItems ? `<section id="gaps">
