@@ -367,7 +367,6 @@ function renderTitle(title, capsById, domainsById) {
       <div class="kvs">
         ${kv("Owns", `<p>${owns}</p>`)}
         ${kv("Executes", `<p>${esc(oneLine(title.executes))}</p>`)}
-        ${kv("Shape", `<p>${esc(oneLine(title.shape))}</p>`)}
       </div>
       ${title.note ? `<p class="line-note">${esc(oneLine(title.note))}</p>` : ""}
     </article>`;
@@ -535,7 +534,6 @@ function renderRolesMain(model) {
       <div class="kvs">
         ${kv("Typically owns", `<p>${owns}</p>`)}
         ${defaults ? kv("Also executes by default", `<ul class="bullets">${defaults}</ul>`) : ""}
-        ${kv("Shape", `<p>${esc(oneLine(title.shape))}</p>`)}
       </div>
     </article>`;
     })
@@ -596,9 +594,7 @@ function renderRolesMain(model) {
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Roles & Titles</h1>
         <p class="lede">Capabilities are the contract. Seats are the fulfillment. Titles are internal coverage.</p>
-        <p class="lede">The SOW sells an outcome, priced from the capabilities-at-levels underneath it, never headcount and never a title. A title is internal shorthand for a coherent bundle of capabilities that one person typically owns. It groups coverage; it is not a thing a client buys.</p>
-        <p class="lede">An L4 Capability Owner is a named individual practitioner, not a title or a team. One person owns each capability and is accountable for its maturity. The titles below describe common ownership compositions: five groupings that cover every capability, so each has a coherent home and none is a grab-bag. That coverage is an enforced invariant, not just a claim.</p>
-        <p class="lede">A seat is a capability at a level on an engagement, not a named role. Seats are filled by people whose L4 ownership and execution profile fit the work. One person can execute up to 7 capabilities and own up to 2 on a given engagement.</p>
+        <p class="lede">The SOW sells an outcome, priced from the capabilities-at-levels underneath it, never headcount and never a title. A title is internal shorthand for a kind of practitioner: the person who typically owns a coherent bundle of capabilities. It groups coverage; it is not a thing a client buys.</p>
       </section>
 
       <section id="traditional-mapping">
@@ -614,7 +610,7 @@ function renderRolesMain(model) {
 
       <section id="titles">
         <h2 class="mono uppercase eyebrow">The 5 titles</h2>
-        <p class="lede">Each title describes a coherent cluster of capabilities that one practitioner typically owns. The named L4 owner is a person, not the title itself; the title is the grouping that makes the ownership legible.</p>
+        <p class="lede">Each title is a kind of practitioner, defined by a bundle of capabilities one person can own together. Two people with the same title are not interchangeable. Every capability sits under exactly one title.</p>
         <div class="stack">
         ${titleCards}
         </div>
@@ -622,7 +618,7 @@ function renderRolesMain(model) {
 
       <section id="sensible-defaults">
         <h2 class="mono uppercase eyebrow">Sensible defaults by stage</h2>
-        <p class="lede">The matrix below shows where each title typically leads, contributes, or is informed, derived from which capabilities are primary at each stage. These are sensible defaults, not fixed assignments. Actual responsibility follows from capability ownership: whoever is the named L4 for the capabilities that fire in a stage is accountable for that stage's output, regardless of title.</p>
+        <p class="lede">Each column is the person holding that title. The matrix shows where they typically lead, contribute, or are informed, derived from which capabilities are primary at each stage. These are sensible defaults, not fixed assignments. On a given engagement, the named L4 owner of a capability that fires in a stage can override the default for that capability.</p>
         <p class="lede">R: typically drives and produces. A: typically signs off. C: typically contributes context. I: typically informed on output.</p>
         ${raciTable}
       </section>
