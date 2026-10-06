@@ -132,6 +132,10 @@ function tocLink(href, label) {
 const PAGE_TOC = {
   "core-philosophy": [
     ["#overview", "What this is"],
+    ["#principle-1", "1 · Confidence over dates"],
+    ["#principle-2", "2 · Evidence first"],
+    ["#principle-3", "3 · Promoted as earned"],
+    ["#principle-4", "4 · Domains run throughout"],
     ["#the-spine", "The one list"],
     ["#what-the-work-needs", "What an engagement needs"],
     ["#seams", "Seams"],
@@ -1684,6 +1688,13 @@ function renderNewDiscoveryMain(model) {
 
 function renderCorePhilosophyMain(model) {
   const stack = requireDoctrine(model, "commercial-stack");
+  const lifecycle = requireLifecycle(model, "ai-native-sdlc");
+  const stageLabel = (n) => {
+    const st = (lifecycle.stages ?? []).find((x) => x.number === n);
+    return `${esc(lifecycle.name)}, Stage ${n}${st ? ` · ${esc(st.name)}` : ""}`;
+  };
+  const stageLink = (n) => `<a href="ai-sdlc.html#stage-${n}">${stageLabel(n)}</a>`;
+  const gateName = esc((lifecycle.stages ?? []).find((x) => x.number === 1)?.name ?? "Evidence Gate");
   const layers = (stack.steps ?? [])
     .map(
       (step) =>
@@ -1717,12 +1728,60 @@ function renderCorePhilosophyMain(model) {
     capacity?.surface_area?.cross_domain_countability?.confidence,
   );
 
+  // The four principles are essays, not model data: friction, shift, and where
+  // the model handles it. Anything the model owns (the domain list and count, the
+  // dial steps, stage names) is read from it above, so only the argument is
+  // authored here.
+  const principle = (n, title, friction, shift, approach) => `
+        <article class="principle" id="principle-${n}">
+          <h3>${n}. ${esc(title)}</h3>
+          <p class="lede"><strong>The friction.</strong> ${friction}</p>
+          <p class="lede"><strong>The shift.</strong> ${shift}</p>
+          <p class="lede"><strong>Sparq approach.</strong> ${approach}</p>
+        </article>`;
+
+  const principles = [
+    principle(
+      1,
+      "Confidence governs what gets committed, dates alone don't force it",
+      "Traditional delivery treats the calendar as the trigger. Week four means the roadmap exists, whether or not anyone has tested the assumptions underneath it. Week six means the backlog gets estimated, whether or not the architecture has been proven feasible. Nobody intends this. It is what a fixed-length engagement optimizes for by default when the date is the only thing forcing the decision. The team isn't dishonest. The system rewards calendar completion over validated belief, so that is what it produces. The quiet cost shows up later, when a decision made in week four turns out to rest on an assumption nobody tested, and the rework lands in week ten.",
+      "The timebox stays. Sparq is a consultancy, and a client buying an eight-week engagement needs to know what they get in eight weeks. What changes is what happens inside that window. A date can still require a decision; it cannot manufacture the evidence behind it. So the question at each checkpoint is not \"is this done because the date arrived,\" it is \"what does the evidence support saying, as of this date.\" If a critical assumption is still unresolved at week six, the output at week six says so explicitly, instead of papering over it with confident language because the calendar demanded a confident-sounding deliverable. A capability that has earned confidence early can start hardening ahead of schedule. One still under test stays honestly provisional, on the same engagement, under the same deadline.",
+      `This is the ${gateName}: a checkpoint that still sits on the engagement's fixed timeline, but closes on an explicit Promote, Iterate, Pivot, or Stop that reflects actual evidence, never a default Promote because the date arrived and something had to be delivered. Full mechanics live in ${stageLink(1)}.`,
+    ),
+    principle(
+      2,
+      "Evidence is the primary artifact, documents are a view of it",
+      "Discovery has historically been sold and judged by its documents: a strategy deck, a roadmap, a backlog, a set of wireframes. That incentive is dangerous in a specific way. It rewards artifact completeness, not artifact honesty. A clean, confident-sounding roadmap looks like progress whether or not the assumptions underneath it were ever tested. Polish and good formatting get mistaken for technical readiness. The team can walk out of a workshop with something that photographs well and means almost nothing.",
+      "Evidence becomes the thing that is produced and tracked. Documents become generated views of that evidence: expressions of current confidence, not sources of truth in their own right. A roadmap does not get written from synthesis and intuition. It gets generated from what has actually been validated, and it says so explicitly where something has not been. High confidence reads as definitive language. Low confidence reads as an explicit hypothesis. Nothing gets padded to look complete when the evidence underneath it is not there yet.",
+      `Every assumption that enters the pipeline gets tagged, not left as atmosphere in a workshop room. It is captured in ${fileRefs("intent.md")} as a structured inventory of claims, not settled facts, and reviewed before it is trusted enough to become a spec. Full mechanics live in ${stageLink(0)}.`,
+    ),
+    principle(
+      3,
+      "Capabilities are promoted as they earn it, the system isn't defined all at once upfront",
+      "The traditional instinct is to define the whole system before building any of it: the full MVP, the full roadmap, the full architecture, the full backlog, on the theory that defining more reduces risk. In practice, it does the opposite. Assumptions get locked into static documents before anyone has tested them. Unrelated capabilities get artificially synchronized around the same phase boundary, so a stalled assumption in one area holds up progress everywhere else. And because the definition happened before any real signal came back, the plan is wrong in places nobody has found yet, which means the rework arrives exactly when it is most expensive to absorb.",
+      "Capabilities move independently. One capability can be production-hardened while another, on the same engagement, is still being tested at the thinnest possible slice. The system does not advance as a single block waiting on its slowest-moving part. The MVP is not specified in a workshop on day one. It emerges through which capabilities actually earn their way to commitment, and in what order.",
+      `This is the three Commitment States, Concept, Validation, and Commitment, applied per capability rather than per engagement, with promotion between them requiring a recorded decision, never an assumed one. The capabilities these states attach to are on the <a href="capability-model.html">Capability Model</a> page. The model does not record the states per capability yet; today they appear only in how seat counts and levels promote.`,
+    ),
+    principle(
+      4,
+      "Capabilities are contributed to across the whole lifecycle, not owned by a phase",
+      "Phase-based delivery assigns ownership sequentially: strategy defines, design frames, engineering builds what it is handed. Each handoff is a point where context gets lost and where the people best positioned to catch a problem early are structurally prevented from seeing it until it is already expensive. Engineering, in particular, ends up validating feasibility only after the decisions that depended on feasibility have already been made.",
+      `All ${domainCount} capability domains (${esc(domainNames)}) run across the whole lifecycle at once, from the first conversation. A domain that is not needed yet sits at ${esc(dials[0]?.name ?? "Dormant")}, which means idle, not absent. What changes as commitment deepens is intensity within each domain, not which domain gets to speak. Engineering validates feasibility from day one, not after definition. Design shapes test artifacts before there is anything polished to hand off. Nobody exits after their phase ends, because there is no phase that is theirs alone to begin with.`,
+      `This is the capability-domain model running underneath every stage of delivery: the same ${domainCount} domains present at Concept, Validation, and Commitment, with their relative weight shifting rather than their presence starting or stopping. Full mechanics live in the <a href="operating-view.html">Operating View</a> and <a href="roles-titles.html">Roles &amp; Titles</a>.`,
+    ),
+  ].join("");
+
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
         <p class="lede">Most firms describe themselves with job titles. Titles drift, mean different things at different companies, and tell a client nothing about what they are buying. This model describes the firm by what it promises instead.</p>
         <p class="lede">A capability is a named outcome a client would pay for as a result. Not a task, not a tool, not a job title. There are ${capabilityCount} of them, grouped into ${domainCount} types of work. That list is the model. Everything else on this site points at it: how deeply a capability is run, how hard it is running on a given engagement, who keeps it fit, and what the client is charged for.</p>
         <p class="lede">The reason to work this way is that the list outlasts the labels. Job names churn every couple of years; "prove it works before we build it" does not.</p>
+      </section>
+      <section id="principles">
+        <h2 class="mono uppercase eyebrow">Four principles</h2>
+        <p class="lede">Each one starts from a way conventional delivery fails, says what changes, and points to where the model handles it.</p>
+        ${principles}
       </section>
       <section id="the-spine">
         <h2 class="mono uppercase eyebrow">The one list</h2>
@@ -2262,6 +2321,10 @@ function render(model, pageId = "core-philosophy") {
       border-radius: 4px;
       padding: 1px 6px;
     }
+    /* The four principles on Core Philosophy read as a run of short essays. */
+    .principle + .principle { margin-top: 56px; }
+    .principle h3 { margin: 0 0 16px; }
+    .principle .lede:last-child { margin-bottom: 0; }
     /* A stage heading that follows a group of steps needs room above it, or it
        reads as the end of the group before it instead of the start of its own. */
     .kvs + .process-stage { margin-top: 56px; }
