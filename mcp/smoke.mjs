@@ -215,6 +215,22 @@ async function main() {
 
   // The skill reads its procedure from here, so the shape it depends on is a
   // contract: six moves, in this order, ending on the next slice.
+  const discovery = await client.call("get_doctrine", { doctrine: "new-discovery" });
+  check("new-discovery doctrine resolves", !discovery.isError);
+  const discoverySteps = discovery.payload?.steps ?? [];
+  check("new-discovery names the lifecycle it runs in", discovery.payload?.lifecycle === "ai-native-sdlc");
+  check(
+    "new-discovery is Stages 0 and 1 only, never backward",
+    discoverySteps.every((step, i) => [0, 1].includes(step.stage) && (i === 0 || step.stage >= discoverySteps[i - 1].stage)),
+  );
+  check(
+    "new-discovery has the four workshop practices",
+    ["Assumption Dump", "Failure Premortem", "Domain Walkthrough", "Architecture Exposure"].every((name) =>
+      discoverySteps.some((step) => step.name === name),
+    ),
+  );
+  check("new-discovery states what it delivers", (discovery.payload?.delivers ?? []).length === 4);
+  check("new-discovery lists what can change", (discovery.payload?.variants ?? []).length === 3);
   const change = await client.call("get_doctrine", { doctrine: "change-response" });
   const moves = (change.payload?.steps ?? []).map((step) => step.name);
   check("change-response has six moves", moves.length === 6, String(moves.length));

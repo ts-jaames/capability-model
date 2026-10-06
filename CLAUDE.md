@@ -101,6 +101,8 @@ Pass only if it has an order that carries meaning and a reader could act on it. 
 
 `steps[]` are ordered and named. A step may cite `capabilities[]`, and those refs must resolve — a doctrine that names capability work without pointing at the capability is prose. Where a doctrine is also an agent procedure, the YAML is the source and the `SKILL.md` follows it; never author the same steps twice.
 
+A doctrine that walks through delivery work may name a `lifecycle` and tag each step with the `stage` it belongs to, so a page can group the steps under the stage without retyping stage names. `variants[]` are what may flex between engagements without changing the output or the gate: dials, not steps. `delivers[]` is what the client walks away with. New Discovery is the example: the default discovery procedure for the AI-Native SDLC's Stages 0 and 1.
+
 ### Lifecycle (`lifecycles/`)
 
 A **named, ordered delivery lifecycle** with stages that have artifacts, gates, domain mappings, and risk shape associations. There is currently one: the AI-Native SDLC. The ADLC is not a second lifecycle; it is that lifecycle's **agentic mode**.
@@ -162,7 +164,7 @@ These are shape rules. Passing them does not mean the entity should exist.
 - Definition → every `see_also` id resolves to another definition, and never to itself.
 - Title → every `owns` ref resolves to one domain or one capability; a title may not own both a domain and a capability inside it; `reading_order` unique across titles.
 - **Every capability is owned by exactly one title**, counting domain ownership. An unowned capability and a doubly-owned one are both errors. This is what makes "the five titles cover everything, and none is a grab-bag" a checked claim rather than a stated one — so adding a title means moving ownership, not appending.
-- Doctrine → step names unique within a file, and every `steps[].capabilities` id resolves.
+- Doctrine → step names unique within a file, and every `steps[].capabilities` id resolves. A `lifecycle` resolves; any step with a `stage` requires a `lifecycle`, the stage exists in it, and stages never run backward through the steps; `variants` names are unique.
 - Lifecycle → stage numbers are unique and sequential from 0; every `primary_domain` and `secondary_domain` resolves to a domain; every `risk_shapes_hot` entry resolves to a risk shape; every `domain_notes[].domain` resolves; every `raci[].stage` exists; every `raci[].assignments[].title` resolves to a title. Any `stages[].agentic` overlay requires the lifecycle to have an `agentic_mode`; `asked_at` and `decided_at` are existing stage numbers with `asked_at` not after `decided_at`; `agentic_mode.domain_notes[].domain` resolves; at least one overlay is a `fork`; an `additive` overlay's `artifact` extends the stage artifact rather than replacing it; no principle is listed as both pipeline-wide and added in agentic mode; overlay `risk_shapes_hot` resolve and do not repeat the stage's own; overlay procedure names are unique and do not repeat the stage's own.
 - Capability profiles → every certified `capability` resolves and is listed once per person.
 - Capacity model → `units_by_domain` covers the six domains exactly once in reading order and each resolves; both axes' `scale_ref` is the execution scale in `levels.yaml`; `nominal_capacity` covers exactly L1, L2, L3 in that order; `hard_ceiling` is not below nominal capacity; `multiplier_by_gap` runs from gap 0 upward with no holes, never decreasing, and gap 0 is exactly 1; `change_event_doctrine` resolves to a doctrine.

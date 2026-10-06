@@ -23,6 +23,10 @@
     "source": { "$ref": "common.json#/$defs/source" },
     "last_updated": { "$ref": "common.json#/$defs/isoDate" },
     "rule": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "lifecycle": {
+      "description": "The lifecycle whose stages this doctrine's steps cite. Required once any step names a stage.",
+      "$ref": "common.json#/$defs/kebabId"
+    },
     "steps": {
       "type": "array",
       "minItems": 2,
@@ -34,6 +38,11 @@
           "name": { "$ref": "common.json#/$defs/nonEmptyString" },
           "description": { "$ref": "common.json#/$defs/nonEmptyString" },
           "never": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "stage": {
+            "description": "The stage of the doctrine's lifecycle this step belongs to.",
+            "type": "integer",
+            "minimum": 0
+          },
           "capabilities": {
             "type": "array",
             "uniqueItems": true,
@@ -41,6 +50,24 @@
           }
         }
       }
+    },
+    "variants": {
+      "description": "What may flex from one engagement to the next without changing the output or the gate. These are dials, not steps.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "description"],
+        "properties": {
+          "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "description": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    },
+    "delivers": {
+      "description": "What the client walks away with when the procedure is done.",
+      "type": "array",
+      "items": { "$ref": "common.json#/$defs/nonEmptyString" }
     },
     "closing_note": { "$ref": "common.json#/$defs/nonEmptyString" }
   }

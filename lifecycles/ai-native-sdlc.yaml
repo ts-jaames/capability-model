@@ -26,7 +26,8 @@ commercial_unit:
   description: >
     The thing that used to be pitched as discovery, now scoped to roughly 2
     weeks because the output is evidence and a costed Build decision, not a
-    stack of workshop artifacts.
+    stack of workshop artifacts. Fixed fee, with R&D spend capped by the
+    Evidence Gate.
   agentic_note: >
     In agentic mode the Evidence Sprint also covers agent-specific scope
     framing, architecture definition, and simulation before committing to a
@@ -232,11 +233,11 @@ stages:
       risk_shapes_hot:
         - shape-ai-reliability
       procedures:
-        - name: Structured workshop
+        - name: Extended premortem
           description: >
-            Silent assumption dump across five risk lenses (Value, Usability,
-            Feasibility, Viability, Operational), followed by a failure
-            premortem extended to agentic failure modes.
+            The failure premortem is extended to agentic failure modes
+            (compounding tool calls, runaway loops, data leakage through tool
+            access). The rest of the workshop is the New Discovery doctrine.
         - name: Assumption tagging
           description: >
             Tag every claim explicitly. No untagged assertions survive the file.

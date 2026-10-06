@@ -199,8 +199,9 @@ const PAGE_TOC = {
   ],
   "new-discovery": [
     ["#overview", "Overview"],
-    ["#sdlc-stages", "Stages involved"],
-    ["#agentic-additions", "What agentic mode adds"],
+    ["#process", "The default process"],
+    ["#variants", "What can change"],
+    ["#delivers", "What discovery delivers"],
   ],
 };
 
@@ -391,20 +392,27 @@ function renderLayer(definition) {
     </article>`;
 }
 
+// `plain` is for pages meant to be read straight through: file names get the
+// orange file-ref styling, and the Never / Invokes lines stay in ink rather
+// than the dim grey the model pages use for secondary detail.
+function renderDoctrineStep(step, index, capsById, { plain = false } = {}) {
+  const text = (value) => (plain ? fileRefs(esc(oneLine(value))) : esc(oneLine(value)));
+  const side = plain ? "line-note" : "dim";
+  const never = step.never
+    ? `<p class="${side}">Never: ${text(step.never)}</p>`
+    : "";
+  const caps = (step.capabilities ?? []).length
+    ? `<p class="${side}">Invokes: ${step.capabilities.map((id) => capLink(id, capsById)).join(", ")}</p>`
+    : "";
+  return kv(
+    `${index + 1} · ${oneLine(step.name)}`,
+    `<p>${text(step.description)}</p>${never}${caps}`,
+  );
+}
+
 function renderDoctrine(doctrine, capsById, { heading = false } = {}) {
   const steps = (doctrine.steps ?? [])
-    .map((step, index) => {
-      const never = step.never
-        ? `<p class="dim">Never: ${esc(oneLine(step.never))}</p>`
-        : "";
-      const caps = (step.capabilities ?? []).length
-        ? `<p class="dim">Invokes: ${step.capabilities.map((id) => capLink(id, capsById)).join(", ")}</p>`
-        : "";
-      return kv(
-        `${index + 1} · ${oneLine(step.name)}`,
-        `<p>${esc(oneLine(step.description))}</p>${never}${caps}`,
-      );
-    })
+    .map((step, index) => renderDoctrineStep(step, index, capsById))
     .join("");
   const notes = [doctrine.rule, doctrine.closing_note]
     .filter(Boolean)
@@ -1331,7 +1339,7 @@ function renderTacticalPlaybookMain(model) {
       <section id="tactical-0">
         <h2 class="mono uppercase eyebrow">Stage 0 · Intent Framing. Tactical${sprintTag}</h2>
         <div class="kvs">
-          ${kv("Practice", "<p>A 2–4 hour structured workshop. 10 min silent assumption dump sorted into Value / Usability / Feasibility / Viability / Operational → failure premortem → architecture exposure with engineering. No untagged claims survive the file.</p>")}
+          ${kv("Practice", "<p>A 2–4 hour structured workshop. 10 min silent assumption dump → failure premortem → domain walkthrough across Value / Usability / Feasibility / Viability / Operational → architecture exposure with engineering. The full procedure is on the <a href='new-discovery.html'>New Discovery</a> page. No untagged claims survive the file.</p>")}
           ${kv("Tooling", "<p>Meeting-transcription MCP (Whisper/Fathom/Recall.ai) for live capture, plus Miro/Mural/Slack MCP for stickies and threads.</p>")}
         </div>
         <div class="kvs">
@@ -1618,54 +1626,59 @@ function agenticTacticalBlock(parts, fork) {
         </div>`;
 }
 
+// New Discovery is the "discovery" doctrine drawn as a page: its steps grouped
+// under the lifecycle stage each one belongs to. Stage names come from the
+// lifecycle, so they are never retyped here, and the commercial unit's stages
+// come from the lifecycle too.
 function renderNewDiscoveryMain(model) {
-  const sdlc = requireLifecycle(model, "ai-native-sdlc");
-  const cu = sdlc.commercial_unit;
-  const inUnit = (s) => (cu?.stages ?? []).includes(s.number);
-  const stages = (sdlc.stages ?? []).filter(inUnit);
+  const d = requireDoctrine(model, "new-discovery");
+  const lc = requireLifecycle(model, d.lifecycle);
+  const capsById = byId(model.capabilities ?? []);
+  const stageOf = new Map((lc.stages ?? []).map((st) => [st.number, st]));
 
-  const rows = stages
-    .map(
-      (s) =>
-        `<tr><td><strong>${s.number}</strong></td><td><a href="ai-sdlc.html#stage-${s.number}">${esc(s.name)}</a></td><td>${fileRefs(esc(s.artifact))}</td></tr>`,
-    )
-    .join("");
-
-  // Agentic mode keeps the same commercial unit and adds to what happens
-  // inside it, so this lists the additions rather than a second pipeline.
-  const additions = stages
-    .filter((s) => s.agentic)
-    .map((s) => {
-      const names = (s.agentic.procedures ?? []).map((p) => p.name).join(", ");
-      return `<tr><td><strong>${s.number}</strong></td><td><a href="ai-sdlc.html#stage-${s.number}">${esc(s.name)}</a></td><td>${esc(names || "Extra checks on the same procedures")}</td></tr>`;
+  // Steps keep one running number across both stages, so the procedure reads
+  // as a single sequence. Grouping only decides which heading a step sits under.
+  const steps = d.steps ?? [];
+  const stageNumbers = [...new Set(steps.map((step) => step.stage).filter((n) => n !== undefined))];
+  const groups = stageNumbers
+    .map((n) => {
+      const st = stageOf.get(n);
+      const rows = steps
+        .map((step, index) => (step.stage === n ? renderDoctrineStep(step, index, capsById, { plain: true }) : ""))
+        .join("");
+      return `
+        <h3 class="mono uppercase eyebrow process-stage" id="process-stage-${n}">Stage ${n} · <a href="ai-sdlc.html#stage-${n}">${esc(st?.name ?? String(n))}</a></h3>
+        <div class="kvs">${rows}</div>`;
     })
     .join("");
 
+  const variants = (d.variants ?? [])
+    .map((v) => kv(v.name, `<p>${esc(oneLine(v.description))}</p>`))
+    .join("");
+  const delivers = (d.delivers ?? []).map((item) => `<li>${fileRefs(esc(oneLine(item)))}</li>`).join("");
+
   return `
       <section id="overview">
-        <h1 class="mono uppercase eyebrow">New Discovery</h1>
-        <p class="lede">The discovery process rebuilt for AI-Native delivery. This is where we define how the front-loaded stages of the AI-Native SDLC combine into one commercial unit: the thing we sell as discovery, backed by real signal instead of workshop artifacts.</p>
-        <p class="lede">Content is being authored. The stages involved are mapped below.</p>
+        <h1 class="mono uppercase eyebrow">${esc(d.name)}</h1>
+        <p class="lede">${fileRefs(esc(oneLine(d.summary)))}</p>
       </section>
 
-      <section id="sdlc-stages">
-        <h2 class="mono uppercase eyebrow">Stages involved</h2>
-        ${cu ? `<p class="lede">Discovery is the <strong>${esc(cu.name)}</strong>. Stages ${cu.stages.join(" and ")} are sold as one commercial unit. ${esc(oneLine(cu.description))}</p>` : ""}
-        <table class="hairline-table">
-          <thead><tr><th>Stage</th><th>Name</th><th>Artifact</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-        <p class="line-note">Full stage details on the <a href="ai-sdlc.html">AI-Native SDLC</a> page.</p>
+      <section id="process">
+        <h2 class="mono uppercase eyebrow">The default process</h2>
+        ${d.rule ? `<p class="lede">${fileRefs(esc(oneLine(d.rule)))}</p>` : ""}
+        ${groups}
       </section>
 
-      ${additions ? `<section id="agentic-additions">
-        <h2 class="mono uppercase eyebrow">What agentic mode adds</h2>
-        ${cu?.agentic_note ? `<p class="lede">${esc(oneLine(cu.agentic_note))}</p>` : ""}
-        <table class="hairline-table">
-          <thead><tr><th>Stage</th><th>Name</th><th>Added in agentic mode</th></tr></thead>
-          <tbody>${additions}</tbody>
-        </table>
-        <p class="line-note">The commercial unit is the same in both modes. The mode is decided at the Evidence Gate, so it is one of the things the Evidence Sprint produces.</p>
+      ${variants ? `<section id="variants">
+        <h2 class="mono uppercase eyebrow">What can change</h2>
+        <p class="lede">These change who is in the room and where the time goes. They never change the output or the gate.</p>
+        <div class="kvs">${variants}</div>
+      </section>` : ""}
+
+      ${delivers ? `<section id="delivers">
+        <h2 class="mono uppercase eyebrow">What discovery delivers</h2>
+        <ul class="bullets">${delivers}</ul>
+        ${d.closing_note ? `<p class="lede"><strong>${esc(oneLine(d.closing_note))}</strong></p>` : ""}
       </section>` : ""}`;
 }
 
@@ -2249,6 +2262,9 @@ function render(model, pageId = "core-philosophy") {
       border-radius: 4px;
       padding: 1px 6px;
     }
+    /* A stage heading that follows a group of steps needs room above it, or it
+       reads as the end of the group before it instead of the start of its own. */
+    .kvs + .process-stage { margin-top: 56px; }
     /* Agentic mode, inside a stage. A bordered block under the standard content;
        a fork (Design, Test) adds an orange rule so it cannot be skimmed past. */
     .agentic {

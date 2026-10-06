@@ -511,6 +511,31 @@ async function main() {
 
     const steps = doctrine.steps ?? [];
     uniqueIds(steps.map((step) => step?.name).filter(Boolean), rec.file, "steps");
+    uniqueIds((doctrine.variants ?? []).map((v) => v?.name).filter(Boolean), rec.file, "variants");
+
+    // A step that names a stage has to point at a lifecycle, and the stage has
+    // to exist there. Otherwise the doctrine is naming delivery work in prose.
+    const stagedSteps = steps.filter((step) => step?.stage !== undefined);
+    if (doctrine.lifecycle && !loaded.byId.lifecycle.has(doctrine.lifecycle)) {
+      add("refs", rec.file, `lifecycle "${doctrine.lifecycle}" does not exist`);
+    }
+    if (stagedSteps.length && !doctrine.lifecycle) {
+      add("constraints", rec.file, "steps cite a stage but the doctrine names no lifecycle");
+    }
+    if (doctrine.lifecycle && loaded.byId.lifecycle.has(doctrine.lifecycle)) {
+      const lcData = loaded.byId.lifecycle.get(doctrine.lifecycle);
+      const stageNumbers = new Set(((lcData.data ?? lcData).stages ?? []).map((s) => s.number));
+      for (const step of stagedSteps) {
+        if (!stageNumbers.has(step.stage)) {
+          add("refs", rec.file, `step "${step.name}" cites stage ${step.stage} which does not exist in ${doctrine.lifecycle}`);
+        }
+      }
+      // Stages only ever move forward through a procedure.
+      const order = stagedSteps.map((step) => step.stage);
+      if (order.some((n, i) => i > 0 && n < order[i - 1])) {
+        add("constraints", rec.file, "steps cite stages out of order; a procedure moves forward through the lifecycle");
+      }
+    }
     for (const step of steps) {
       for (const id of step?.capabilities ?? []) {
         if (!capabilities.has(id)) {

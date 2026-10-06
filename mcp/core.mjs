@@ -384,9 +384,11 @@ export function getDoctrine(index, { doctrine } = {}) {
     name: item.name,
     summary: oneLine(item.summary),
     rule: item.rule ? oneLine(item.rule) : undefined,
+    lifecycle: item.lifecycle,
     steps: (item.steps ?? []).map((step, position) => ({
       position: position + 1,
       name: step.name,
+      stage: step.stage,
       description: oneLine(step.description),
       never: step.never ? oneLine(step.never) : undefined,
       capabilities: (step.capabilities ?? []).map((id) => ({
@@ -394,6 +396,8 @@ export function getDoctrine(index, { doctrine } = {}) {
         name: index.capabilityById.get(id)?.name,
       })),
     })),
+    variants: item.variants?.map((v) => ({ name: v.name, description: oneLine(v.description) })),
+    delivers: item.delivers,
     closing_note: item.closing_note ? oneLine(item.closing_note) : undefined,
   };
 }

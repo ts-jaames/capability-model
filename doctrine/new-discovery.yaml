@@ -1,0 +1,160 @@
+id: new-discovery
+name: New Discovery
+summary: >
+  Discovery is the Evidence Sprint: Stages 0 and 1 of the AI-Native SDLC, sold
+  as one unit. Where it used to mean weeks of workshops and a stack of strategy
+  decks, it is now about two weeks that produce real signal and a costed
+  decision on whether to build. Anthropic's and Atlassian's AI-native SDLC
+  writing has no stage like this. Their Plan step assumes an organization that
+  already knows its own code and context, and our clients do not arrive with
+  that.
+rule: >
+  Every engagement runs the same structure and asks the same two questions: what
+  do we know versus what are we only guessing, and is this deliverable's
+  behavior fixed when we build it or decided while it runs. Length, headcount
+  and client involvement flex. The structure and the output do not. The
+  governing question is always what must be proven, never what should we build.
+  If the workshop starts producing a feature list, it has drifted. Discovery
+  delivers evidence and a decision, not a roadmap, an MVP spec or a backlog.
+lifecycle: ai-native-sdlc
+steps:
+  - name: Ask the two questions
+    stage: 0
+    description: >
+      Open every engagement with the same two questions, asked the same way. What
+      do we know, and what are we only guessing? Is this deliverable's behavior
+      fixed at build time, or decided at runtime? Everything after this point
+      depends on the answers.
+    capabilities:
+      - problem-framing
+  - name: Assumption Dump
+    stage: 0
+    description: >
+      Ask "what must be true for this to succeed?" Everyone lists answers on
+      their own first. Then group them and rewrite each one as something
+      testable. This brings out beliefs before anyone has to defend a position
+      out loud.
+    capabilities:
+      - risk-framing
+  - name: Failure Premortem
+    stage: 0
+    description: >
+      Ask "it is 12 months from now and this failed. Why?" Turn each cause of
+      failure into a risk. It is easier to argue against an imagined failure
+      than against your own idea, so this catches what the Assumption Dump
+      misses.
+    capabilities:
+      - risk-framing
+  - name: Domain Walkthrough
+    stage: 0
+    description: >
+      Go through all five risk lenses on purpose: Value, Usability,
+      Feasibility, Viability and Operational. Each lens must produce at least
+      one risk, so no category goes untested by default.
+    capabilities:
+      - risk-framing
+  - name: Architecture Exposure
+    stage: 0
+    description: >
+      Ask "what technical limit could sink this?" Think platform limits,
+      integration dependencies, performance ceilings and security rules. This is
+      also where we first see whether the deliverable has to reason or act on its
+      own. If it does, extend the premortem to agent-specific failures right here
+      and not later: tool calls that compound, runaway loops, and data leaking
+      through tool access.
+    capabilities:
+      - constraint-framing
+  - name: Tag and review
+    stage: 0
+    description: >
+      Tag every claim so nothing is left as atmosphere in the room. The Product
+      Owner then reviews and corrects raw intent.md before it moves. This review
+      is required. It is not a formality.
+    never: Let an untagged claim into raw intent.md.
+    capabilities:
+      - stakeholder-alignment
+  - name: Choose the test
+    stage: 1
+    description: >
+      Pick the test that fits the risk, not the most impressive thing we could
+      build. The default is an Evidence Slice, the smallest buildable thing that
+      gives a signal on one assumption. Five risky assumptions means five
+      candidate slices, ranked by how bad it is if we are wrong, how uncertain we
+      are, and how cheap and fast the test is. Use a Vision Prototype only when
+      the open question is whether the future state is compelling, not whether
+      something works.
+    never: >
+      Bundle several assumptions into one build, or reach for a Vision Prototype
+      by default. A polished prototype answering the wrong question is how
+      polish gets mistaken for confidence.
+    capabilities:
+      - slice-building
+  - name: Set the signal first
+    stage: 1
+    description: >
+      Every test runs the same loop: Risk, Assumption, Slice, Signal,
+      Confidence, Decision. Before the test runs, write down what is measured,
+      what success and failure look like, and what threshold forces a decision.
+      Confidence is a judgment against that criteria, not a score. The more
+      costly a decision is to reverse, the stronger the evidence it needs.
+    never: Run a test before its signal is defined, or it turns into a demo.
+    capabilities:
+      - signal-design
+  - name: Run it where something real can react
+    stage: 1
+    description: >
+      Tie Value and Usability tests to a real occasion: the next client
+      conversation, a stakeholder review, a prospect meeting. If no real occasion
+      exists, an internal-only check is the fallback. Use it openly and record
+      it as such. For a deliverable that reasons and acts, also run adversarial
+      simulation, with several synthetic personas feeding in ambiguous,
+      malformed or malicious input. "Does it work" and "how does it fail" are
+      separate questions, and both need answers before we invest in
+      architecture.
+    never: >
+      Record an internal-only result above Directional confidence, however clean
+      it looks. Directional means it points the right way. Validated means a real
+      occasion confirmed it.
+    capabilities:
+      - validation-testing
+  - name: Make the call
+    stage: 1
+    description: >
+      Close the Evidence Gate on one of four explicit calls: Promote, Iterate,
+      Pivot or Stop. On Promote, write the answer to the fixed-or-runtime
+      question into the cleared intent.md next to the decision, so Design starts
+      in the right mode without reopening it. Then cost the decision: is Design
+      worth funding, and in which mode.
+    never: Close the gate by drifting forward because time ran out.
+    capabilities:
+      - direction-qualification
+      - confidence-based-estimation
+variants:
+  - name: Who is in the room
+    description: >
+      Anywhere from 2 to 20 people. Use heavy client involvement when getting
+      the organization aligned is itself a risk. Go lean and internal when the
+      client has already agreed and our job is mostly technical. This varies by
+      engagement on purpose, and is not a gap to standardize away.
+  - name: Where the time goes
+    description: >
+      A new product leans on the Assumption Dump and the Domain Walkthrough. A
+      legacy system leans on Architecture Exposure. An agentic deliverable makes
+      the extended premortem close to mandatory.
+  - name: How work enters
+    description: >
+      A fresh kickoff, a standard feature request, or a production incident
+      coming back from Stage 6 all go through this same workshop and are tagged
+      the same way before anything advances. One process, several doors.
+delivers:
+  - A cleared, tagged intent.md, synced to the client's tracker.
+  - Real signal on the riskiest assumptions, not opinions about them.
+  - An explicit Promote, Iterate, Pivot or Stop call.
+  - A costed decision on whether Design is worth funding, and in which mode.
+closing_note: >
+  That is the commercial unit: about two weeks, fixed fee, with R&D spend capped.
+  The Evidence Gate is what makes the cap honest instead of arbitrary.
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-10-06
