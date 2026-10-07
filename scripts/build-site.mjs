@@ -880,6 +880,29 @@ function requireLifecycle(model, id) {
 }
 
 // Wrap file references like intent.md, spec.md, plan.md in styled spans.
+// One Output card, used everywhere an output is shown, so the label, width and
+// file chip cannot drift apart between pages. `file` and `text` arrive as HTML.
+// With no file there is no chip, only the text.
+function outputCard({ file = "", text = "" }) {
+  return `<div class="stage-output"><span class="callout-label">Output</span><div class="stage-output-body">${file ? `<span class="stage-output-file">${file}</span>` : ""}<span>${text}</span></div></div>`;
+}
+
+// What an agentic overlay adds to the stage's own artifact. The stage already
+// shows its artifact in its own Output card, so the callout names only what is
+// new and never repeats a file the reader has just seen. Items are compared
+// without a "raw " prefix or a trailing "(...)" qualifier.
+function artifactKey(item) {
+  return item.replace(/\s*\(.*\)\s*$/, "").replace(/^raw\s+/i, "").trim().toLowerCase();
+}
+function addedArtifacts(base, agentic) {
+  if (!agentic) return "";
+  const have = new Set(String(base ?? "").split(" + ").map(artifactKey));
+  return String(agentic)
+    .split(" + ")
+    .filter((item) => !have.has(artifactKey(item)))
+    .join(" + ");
+}
+
 function fileRefs(html) {
   return html.replace(
     /\b((?:raw |cleared )?intent\.md|spec\.md|plan\.md|bands\.yaml|REVIEW\.md|CLAUDE\.md)\b/g,
@@ -920,7 +943,7 @@ function renderStage(stage, ctx = {}) {
     ? `<span class="stage-tag">${esc(oneLine(stage.note))}</span>`
     : "";
   const outputBlock = stage.output
-    ? `<div class="stage-output"><span class="stage-output-label">Output</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs(esc(stage.artifact))}</span><span>${fileRefs(esc(oneLine(stage.output)))}</span></div></div>`
+    ? outputCard({ file: fileRefs(esc(stage.artifact)), text: fileRefs(esc(oneLine(stage.output))) })
     : "";
   return `
       <section id="stage-${stage.number}">
@@ -958,7 +981,7 @@ function renderStageWithTactical(stage) {
     ? `<span class="stage-tag">${esc(oneLine(stage.note))}</span>`
     : "";
   const outputBlock = stage.output
-    ? `<div class="stage-output"><span class="stage-output-label">Artifact</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs(esc(stage.artifact))}</span><span>${fileRefs(esc(oneLine(stage.output)))}</span></div></div>`
+    ? outputCard({ file: fileRefs(esc(stage.artifact)), text: fileRefs(esc(oneLine(stage.output))) })
     : "";
   return `
       <section id="stage-${stage.number}">
@@ -999,7 +1022,7 @@ function renderAgenticOverlay(stage, ctx = {}) {
   const fork = a.divergence === "fork";
   const shapeNames = ctx.riskShapeNames ?? new Map();
 
-  const label = `<p class="mono uppercase agentic-label">Agentic mode${a.name && a.name !== stage.name ? `<span class="agentic-name">${esc(a.name)}</span>` : ""}${
+  const label = `<p class="callout-label agentic-label">Agentic mode${a.name && a.name !== stage.name ? `<span class="agentic-name">${esc(a.name)}</span>` : ""}${
     fork
       ? `<span class="stage-tag">Where the modes fork</span>`
       : agenticKind(a) === "extends"
@@ -1012,7 +1035,6 @@ function renderAgenticOverlay(stage, ctx = {}) {
 
   const facts = [
     a.gate ? `<strong>Gate:</strong> ${esc(a.gate)}` : "",
-    a.artifact ? `<strong>Artifact:</strong> ${fileRefs(esc(a.artifact))}` : "",
     (a.risk_shapes_hot ?? []).length
       ? `<strong>Adds risk shape:</strong> ${esc(a.risk_shapes_hot.map((id) => shapeNames.get(id) ?? id).join(", "))}`
       : "",
@@ -1025,9 +1047,16 @@ function renderAgenticOverlay(stage, ctx = {}) {
     .map((p) => kv(p.name, `<p>${fileRefs(esc(oneLine(p.description)))}</p>`))
     .join("");
 
-  const outputBlock = a.output
-    ? `<div class="stage-output"><span class="stage-output-label">Output</span><div class="stage-output-body"><span class="stage-output-file">${fileRefs(esc(a.artifact ?? stage.artifact))}</span><span>${fileRefs(esc(oneLine(a.output)))}</span></div></div>`
-    : "";
+  // Only what the agentic mode adds to the artifact; the stage's own Output
+  // card above already names the rest.
+  const added = addedArtifacts(stage.artifact, a.artifact);
+  const outputBlock =
+    a.output || added
+      ? outputCard({
+          file: added ? fileRefs(esc(added)) : "",
+          text: a.output ? fileRefs(esc(oneLine(a.output))) : "",
+        })
+      : "";
 
   return `
         <div class="agentic${fork ? " agentic-fork" : ""}">
@@ -1120,7 +1149,7 @@ function renderAiSdlcMain(model) {
         <h2 class="mono uppercase eyebrow">One pipeline, one fork</h2>
         <p class="lede">${esc(oneLine(mode.summary))}</p>
         <div class="agentic agentic-fork">
-          <p class="mono uppercase agentic-label">The mode question</p>
+          <p class="callout-label agentic-label">The mode question</p>
           <p class="lede"><strong>${esc(oneLine(mode.question))}</strong></p>
           <p class="agentic-facts">Asked at <a href="#stage-${mode.asked_at}">Stage ${mode.asked_at} · ${esc(stageName(mode.asked_at))}</a>. Recorded at <a href="#stage-${mode.decided_at}">Stage ${mode.decided_at} · ${esc(stageName(mode.decided_at))}</a>, in the cleared ${fileRefs("intent.md")}. Not re-argued stage by stage.</p>
           <p class="lede">A fixed answer keeps the pipeline in its standard mode. A runtime answer puts it in agentic mode (${esc(mode.name)}). ${additive.length} of ${stages.length} stages keep their shape and take on extra checks${extendedLinks ? `, and ${extendedLinks} add to their artifact as well` : ""}. ${forkLinks ? `${forkLinks} change in kind, so each carries its own marked block below.` : ""}</p>
@@ -1233,7 +1262,7 @@ function renderAiSdlcMain(model) {
       ${gapItems || agenticGapItems ? `<section id="gaps">
         <h2 class="mono uppercase eyebrow">Known gaps</h2>
         ${gapItems ? `<div class="kvs">${gapItems}</div>` : ""}
-        ${agenticGapItems ? `<p class="mono uppercase agentic-label">In agentic mode</p><div class="kvs">${agenticGapItems}</div>` : ""}
+        ${agenticGapItems ? `<p class="callout-label agentic-label">In agentic mode</p><div class="kvs">${agenticGapItems}</div>` : ""}
       </section>` : ""}`;
 }
 
@@ -1394,11 +1423,11 @@ function renderTacticalPlaybookMain(model) {
     agenticTacticalBlock(
       parts.stages[n],
       lc.stages.find((stage) => stage.number === n)?.agentic?.divergence === "fork",
+      lc.stages.find((stage) => stage.number === n)?.artifact,
     );
   // Same output card as the strategy page: an "Output" label over the file
   // reference and a one-line description.
-  const output = (file, text) =>
-    `<div class="stage-output"><span class="stage-output-label">Output</span><div class="stage-output-body"><span class="stage-output-file">${file}</span><span>${text}</span></div></div>`;
+  const output = (file, text) => outputCard({ file, text });
   const sprintTag = `<span class="stage-tag">Evidence Sprint</span>`;
   // fileRefs wraps every intent.md / spec.md / plan.md style reference in the
   // rendered page, so the file-name styling matches the strategy page.
@@ -1714,14 +1743,16 @@ src/                          # Agent runtime logic & deterministic workflows</c
 // One stage's agentic block on the tactical page. It sits under the standard
 // tactical content for the same stage, marked the same way as on the strategy
 // page, with an orange rule where the modes fork in kind.
-function agenticTacticalBlock(parts, fork) {
+function agenticTacticalBlock(parts, fork, baseArtifact) {
   const [file, text] = parts.output;
+  // The stage's own card on this page already names its artifact, so this one
+  // names only what agentic mode adds.
   return `
         <div class="agentic${fork ? " agentic-fork" : ""}">
-          <p class="mono uppercase agentic-label">Agentic mode${fork ? `<span class="stage-tag">Where the modes fork</span>` : ""}</p>
+          <p class="callout-label agentic-label">Agentic mode${fork ? `<span class="stage-tag">Where the modes fork</span>` : ""}</p>
           <p class="lede">${parts.lede}</p>
           <div class="kvs">${parts.items}</div>
-          <div class="stage-output"><span class="stage-output-label">Output</span><div class="stage-output-body"><span class="stage-output-file">${file}</span><span>${text}</span></div></div>
+          ${outputCard({ file: addedArtifacts(baseArtifact, file), text })}
         </div>`;
 }
 
@@ -2379,24 +2410,26 @@ function render(model, pageId = "core-philosophy") {
     .kvs + .process-stage { margin-top: 56px; }
     /* Agentic mode, inside a stage. A bordered block under the standard content;
        a fork (Design, Test) adds an orange rule so it cannot be skimmed past. */
+    /* The Output card is the source of truth for this family: the callout
+       and the card share one label style and one width. */
     .agentic {
       margin: 32px 0 0;
       padding: 16px 20px 20px;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: #FAFAFA;
+      max-width: 700px;
     }
     .agentic-fork { border-left: 3px solid #e8690b; }
     .agentic > :last-child { margin-bottom: 0; }
-    .agentic .stage-output { background: #fff; }
+    .agentic .stage-output { background: #fff; max-width: none; }
     .agentic-label {
       display: flex;
       align-items: center;
       gap: 10px;
       margin: 0 0 12px;
     }
-    .agentic-name { font-weight: 400; }
-    .agentic-facts { margin: 0 0 16px; font-size: 13.5px; line-height: 1.6; max-width: 700px; }
+    .agentic-facts { margin: 0 0 16px; font-size: 13.5px; line-height: 1.6; }
     .stage-output {
       display: flex;
       flex-direction: column;
@@ -2407,13 +2440,14 @@ function render(model, pageId = "core-philosophy") {
       border-radius: 8px;
       max-width: 700px;
     }
-    .stage-output-label {
+    .callout-label {
       font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace;
       font-size: 10px;
+      line-height: 1.4;
       letter-spacing: 0.06em;
       text-transform: uppercase;
       font-weight: 600;
-      opacity: 0.4;
+      color: color-mix(in srgb, var(--ink) 40%, transparent);
     }
     .stage-output-body {
       display: flex;

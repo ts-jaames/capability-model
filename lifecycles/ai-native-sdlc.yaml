@@ -242,9 +242,8 @@ stages:
           description: >
             Tag every claim explicitly. No untagged assertions survive the file.
       output: >
-        intent.md: a fully tagged, human-readable stack of assumptions,
-        including agentic-specific risk. Inert until it clears the Evidence
-        Gate.
+        A fully tagged, human-readable stack of assumptions, including
+        agentic-specific risk. Inert until it clears the Evidence Gate.
 
   - number: 1
     name: Evidence Gate
@@ -341,8 +340,8 @@ stages:
             ambiguous, malformed, or malicious inputs, stress-testing not just
             whether the system works but how it fails when it does not.
       output: >
-        intent.md (cleared and synced to the enterprise tracker) and, where
-        built, a Vision Prototype demonstrating future-state value.
+        Cleared and synced to the enterprise tracker and, where built, a
+        Vision Prototype demonstrating future-state value.
 
   - number: 2
     name: Design
@@ -405,7 +404,7 @@ stages:
             prompt-validation, and output-parsing guardrails before
             implementation begins.
       output: >
-        spec.md: a complete technical blueprint covering MCP tool definitions,
+        A complete technical blueprint covering MCP tool definitions,
         the Autonomy Matrix, token budgets, context structure, and failure
         recovery protocols.
 
