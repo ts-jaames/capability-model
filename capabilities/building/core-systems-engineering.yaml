@@ -21,3 +21,27 @@ l1_guardrails:
 l1_l2_boundary: >
   L1 implements established patterns; architecting custom seams is L2.
 agent_skills: []
+scope_decomposition:
+  unit_definition: >
+    One independent system, subsystem, or integration domain in the
+    engagement's architecture that requires its own end-to-end architectural
+    judgment. For example, a legacy core, an integration layer, and a new AI
+    layer each count as one scope unit if they can be worked and reasoned about
+    independently of the others.
+  scales_with_scope: true
+  leverage_by_level:
+    L1: 1 # pure execution against approved patterns, no spanning capacity
+    L2: 1 # architects custom seams independently, one system at a time
+    L3: 2 # sets standards others execute against; can oversee a second unit
+    L4: 3 # capability-ownership altitude; direction-setting spans further before saturating
+  confidence: "[ASSUMED]"
+  intake_prompt: >
+    How many independent systems, subsystems, or integration domains in this
+    engagement each require their own Core Systems Engineering judgment,
+    separate from the others?
+  notes: >
+    Leverage numbers are a starting default, not derived from delivery history.
+    First thing to check against real engagements before trusting the instance
+    math: whether L1 and L2 leverage of 1 (zero spanning capacity) actually
+    holds, or whether a strong L2 can run two low-complexity systems in
+    parallel.

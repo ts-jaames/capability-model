@@ -63,7 +63,7 @@ export const TOOLS = [
   {
     name: "get_capability",
     description:
-      "Full record for one capability: promise, client experience, method, agent skills, the risk shapes that fire it, and its levels — including whether the level copy is authored for this capability or inherited from the firm ladder.",
+      "Full record for one capability: promise, client experience, method, agent skills, the risk shapes that fire it, its levels — including whether the level copy is authored for this capability or inherited from the firm ladder — and its scope: the unit, the leverage per level and the intake question, or `not_yet_defined`, which is never to be read as one instance.",
     inputSchema: oneArg("capability", "Capability id, e.g. risk-framing."),
     run: (index, args) => getCapability(index, args),
   },

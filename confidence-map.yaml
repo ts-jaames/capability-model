@@ -17,12 +17,13 @@ positions_reviewed: false
 # (see CLAUDE.md; `npm run today` reports its age). `updated` is local time with
 # its offset, and the page counts up from it.
 today:
-  updated: 2026-10-06T12:29:31-05:00
+  updated: 2026-10-07T09:29:00-05:00
   text: >
-    Folding the ADLC into the AI-Native SDLC as its agentic mode, writing the
-    New Discovery doctrine, and simplifying Core Philosophy. Now tightening the
-    Roles & Titles page so a title reads as a kind of practitioner, not a
-    person or a bare bundle.
+    Added Scope Units to the model: a per-capability way to size how many
+    instances of a capability an engagement needs, with only Core Systems
+    Engineering defined so far and every other capability showing the gap.
+    Earlier, tightened the Roles & Titles page so a title reads as a kind of
+    practitioner.
 
 note: >
   This file is edited by a human. Nothing in it moves on its own, and no
@@ -66,6 +67,13 @@ rows:
         position: mapping
       - name: Capability Levels
         position: mapping
+
+  - id: scope-units
+    name: Scope Units
+    position: thinking
+    moves_when: >
+      Core Systems Engineering leverage is checked against a real engagement,
+      and a second capability has had its own scope pass.
 
   - id: roles-titles
     name: Roles & Titles

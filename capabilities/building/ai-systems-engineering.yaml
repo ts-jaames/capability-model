@@ -28,3 +28,9 @@ l1_guardrails:
 l1_l2_boundary: >
   L1 runs scaffolds and eval suites; modifying context pipelines is L2.
 agent_skills: []
+scope_decomposition:
+  status: not_yet_defined
+  open_question: >
+    Likely scales similarly to core systems engineering (one unit per
+    independent model or pipeline domain) but has not been reasoned through. Do
+    not copy the core systems numbers.

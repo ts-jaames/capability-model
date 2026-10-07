@@ -52,6 +52,53 @@
       "items": { "$ref": "common.json#/$defs/nonEmptyString" }
     },
     "l1_l2_boundary": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "scope_decomposition": {
+      "description": "How many independent instances of this capability an engagement needs, as opposed to how senior the work is. Either defined (a unit, a leverage per level, an intake question) or explicitly not yet defined. A capability with no block is also not yet defined. scope_units itself is per-engagement and is never stored here.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "unit_definition",
+            "scales_with_scope",
+            "leverage_by_level",
+            "confidence",
+            "intake_prompt"
+          ],
+          "properties": {
+            "unit_definition": { "$ref": "common.json#/$defs/nonEmptyString" },
+            "scales_with_scope": { "type": "boolean" },
+            "leverage_by_level": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["L1", "L2", "L3", "L4"],
+              "properties": {
+                "L1": { "type": "integer", "minimum": 1 },
+                "L2": { "type": "integer", "minimum": 1 },
+                "L3": { "type": "integer", "minimum": 1 },
+                "L4": { "type": "integer", "minimum": 1 }
+              }
+            },
+            "confidence": {
+              "description": "[ASSUMED] is a number written down to make the model runnable, [UNTESTED] is an unchecked claim. [VALIDATED] is deliberately not allowed yet: nothing here has been recovered from real delivery.",
+              "type": "string",
+              "enum": ["[ASSUMED]", "[UNTESTED]"]
+            },
+            "intake_prompt": { "$ref": "common.json#/$defs/nonEmptyString" },
+            "notes": { "$ref": "common.json#/$defs/nonEmptyString" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status"],
+          "properties": {
+            "status": { "const": "not_yet_defined" },
+            "open_question": { "$ref": "common.json#/$defs/nonEmptyString" }
+          }
+        }
+      ]
+    },
     "agent_skills": {
       "type": "array",
       "maxItems": 10,

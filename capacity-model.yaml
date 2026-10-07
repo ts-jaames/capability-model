@@ -8,7 +8,7 @@ description: >
 status: draft
 owner: Operating Model
 source: original
-last_updated: 2026-09-09
+last_updated: 2026-10-07
 values_reviewed: false
 note: >
   Every number here is a placeholder, and each one carries its own marker so a
@@ -200,6 +200,19 @@ count_derivation:
     risk, re-set the dials, re-staff, re-price, name the next slice. The
     engagement-change-runner skill reads that doctrine rather than restating it,
     and it proposes while owners decide.
+
+scope_units_note: >
+  Where a capability declares a scope decomposition, its scope units are the
+  engagement-specific count that becomes surface area for that capability, and
+  its leverage by level takes the place of the nominal capacity above. A
+  capability with no declared decomposition falls back to the nominal table.
+  The two have not been reconciled and are not claimed to agree. Nominal
+  capacity falls as the demanded level rises, while declared leverage rises with
+  the operator's level, because they measure different things (units running at
+  once, against independent units one person can span). Leverage also covers L4
+  (ownership), which the nominal table does not. Both points are [UNTESTED] and
+  stay open until real delivery data says how they relate. The scope units
+  themselves are never stored here or in the capability files.
 
 economics_note: >
   A comment on the model, not behaviour encoded in it. Capacity permits

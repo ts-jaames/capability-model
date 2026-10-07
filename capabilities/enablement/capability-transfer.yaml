@@ -16,3 +16,8 @@ not_at_l1: >
   no guardrailed way to teach judgment you don't yet hold.
 levels_mode: standard-ladder
 agent_skills: []
+scope_decomposition:
+  status: not_yet_defined
+  open_question: >
+    The unit here is plausibly the audience or team receiving transfer, not a
+    system count. A different unit type again.

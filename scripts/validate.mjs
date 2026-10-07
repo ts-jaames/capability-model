@@ -280,6 +280,23 @@ async function main() {
       }
     }
 
+    // Leverage is how many scope units one person at a level can span. A more
+    // senior person spanning fewer than a less senior one would contradict what
+    // a level means, so it can hold steady or rise, never fall.
+    const leverage = cap.scope_decomposition?.leverage_by_level;
+    if (leverage) {
+      const steps = ["L1", "L2", "L3", "L4"].map((level) => leverage[level]);
+      for (let i = 1; i < steps.length; i += 1) {
+        if (Number.isInteger(steps[i]) && Number.isInteger(steps[i - 1]) && steps[i] < steps[i - 1]) {
+          add(
+            "constraints",
+            rec.file,
+            `scope_decomposition leverage_by_level falls from L${i} (${steps[i - 1]}) to L${i + 1} (${steps[i]}); it can hold steady or rise, never fall`,
+          );
+        }
+      }
+    }
+
     if (statusOf(cap) === "ratified" && !(cap.l1_guardrails ?? []).length) {
       add(
         "constraints",

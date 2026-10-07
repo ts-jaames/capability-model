@@ -21,3 +21,8 @@ l1_l2_boundary: >
   L1 runs the walk-through from the run sheet; handling off-script technical
   questions is L2.
 agent_skills: []
+scope_decomposition:
+  status: not_yet_defined
+  open_question: >
+    Untested hypothesis: one cadence per engagement, not multiplied by subsystem
+    count.

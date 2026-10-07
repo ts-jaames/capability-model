@@ -175,6 +175,31 @@ export function listCapabilities(index, { domain, level_floor } = {}) {
   return { count: found.length, capabilities: found.map(capabilitySummary) };
 }
 
+// Scope is how many independent instances of a capability an engagement needs.
+// A capability that has not had its pass answers "not_yet_defined", never a
+// default of one: reading an undefined capability as one is the exact mistake
+// the block exists to stop. scope_units itself is per engagement and is not here.
+function scopeFor(cap) {
+  const block = cap.scope_decomposition;
+  if (!block || block.status === "not_yet_defined" || !block.leverage_by_level) {
+    return {
+      status: "not_yet_defined",
+      open_question: block?.open_question ? oneLine(block.open_question) : null,
+      note: "No scope pass yet. Do not read this as one instance.",
+    };
+  }
+  return {
+    status: "defined",
+    unit_definition: oneLine(block.unit_definition),
+    scales_with_scope: block.scales_with_scope,
+    leverage_by_level: block.leverage_by_level,
+    confidence: block.confidence,
+    intake_prompt: oneLine(block.intake_prompt),
+    notes: block.notes ? oneLine(block.notes) : null,
+    formula: "instances = ceil(scope_units / leverage_by_level[level])",
+  };
+}
+
 export function getCapability(index, { capability } = {}) {
   const cap = must(index.capabilityById, "capability", capability);
   return {
@@ -182,6 +207,7 @@ export function getCapability(index, { capability } = {}) {
     client_experience: oneLine(cap.client_experience),
     sparq_how: oneLine(cap.sparq_how),
     levels: levelsFor(cap, index),
+    scope: scopeFor(cap),
     agent_skills: (cap.agent_skills ?? []).map((item) => ({
       ...item,
       description: oneLine(index.skillById.get(item.name)?.description),

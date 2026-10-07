@@ -53,6 +53,18 @@ How a **capability** is executed: L1 Guided Execution, L2 Practitioner, L3 Advan
 
 Levels are not a property of domains, skills, titles, or people. Do not invent L5. Do not put the execution scale on a domain or a skill.
 
+### Scope decomposition (`scope_decomposition` on a capability)
+
+How many independent instances of a capability an engagement needs, as opposed to how senior the work is. It is a **property of a capability**, like its levels, not an entity. It never gets its own file and never becomes a seventh bucket.
+
+It carries a `unit_definition` (what counts as one unit for this capability), `scales_with_scope`, `leverage_by_level` (L1 to L4, how many units one person at that level can span), a `confidence` marker, and an `intake_prompt`. `instances = ceil(scope_units / leverage_by_level[level])`.
+
+- `scope_units` is per engagement and is **never stored** in this repo. Only the unit and the leverage are.
+- A capability with no block, or `status: not_yet_defined`, is **undefined**. Never read undefined as one. The site shows the gap on purpose.
+- **Do not fill a capability in by copying another one or by inference.** Different capabilities use different unit types (system, product surface, audience, workstream). Each needs its own reasoning pass, and the leverage numbers are guesses until delivery data says otherwise. Record a hypothesis as `open_question`, never as a number.
+- `confidence` is `[ASSUMED]` or `[UNTESTED]`. Never write `[VALIDATED]` unless a human recovered the figure from real delivery.
+- Not a level (how senior), not a dial (how hot right now), not surface area (what runs at once), not a seat or a headcount. It feeds the capacity model; see `scope_units_note` in `capacity-model.yaml`.
+
 ### Risk shape
 
 A recurring kind of **riskiest unknown**. It names an unknown, fires a set of capabilities at a dial, and produces an output.
@@ -166,6 +178,7 @@ These are shape rules. Passing them does not mean the entity should exist.
 - **Every capability is owned by exactly one title**, counting domain ownership. An unowned capability and a doubly-owned one are both errors. This is what makes "the five titles cover everything, and none is a grab-bag" a checked claim rather than a stated one — so adding a title means moving ownership, not appending.
 - Doctrine → step names unique within a file, and every `steps[].capabilities` id resolves. A `lifecycle` resolves; any step with a `stage` requires a `lifecycle`, the stage exists in it, and stages never run backward through the steps; `variants` names are unique.
 - Lifecycle → stage numbers are unique and sequential from 0; every `primary_domain` and `secondary_domain` resolves to a domain; every `risk_shapes_hot` entry resolves to a risk shape; every `domain_notes[].domain` resolves; every `raci[].stage` exists; every `raci[].assignments[].title` resolves to a title. Any `stages[].agentic` overlay requires the lifecycle to have an `agentic_mode`; `asked_at` and `decided_at` are existing stage numbers with `asked_at` not after `decided_at`; `agentic_mode.domain_notes[].domain` resolves; at least one overlay is a `fork`; an `additive` overlay's `artifact` extends the stage artifact rather than replacing it; no principle is listed as both pipeline-wide and added in agentic mode; overlay `risk_shapes_hot` resolve and do not repeat the stage's own; overlay procedure names are unique and do not repeat the stage's own.
+- Scope decomposition → a defined block carries every field and `leverage_by_level` for exactly L1 to L4 as integers of at least 1, never decreasing from L1 to L4; `confidence` is `[ASSUMED]` or `[UNTESTED]`; a `not_yet_defined` block carries only `status` and an optional `open_question`.
 - Capability profiles → every certified `capability` resolves and is listed once per person.
 - Capacity model → `units_by_domain` covers the six domains exactly once in reading order and each resolves; both axes' `scale_ref` is the execution scale in `levels.yaml`; `nominal_capacity` covers exactly L1, L2, L3 in that order; `hard_ceiling` is not below nominal capacity; `multiplier_by_gap` runs from gap 0 upward with no holes, never decreasing, and gap 0 is exactly 1; `change_event_doctrine` resolves to a doctrine.
 - Confidence map → columns are exactly `thinking`, `mapping`, `pilot` in that order; row ids are unique; part names and stage numbers are unique within a row; a row has either `position` or `items`, never both; a part is either named or cites a `stage`; every `stage` exists in the row's `lifecycle`, and that lifecycle resolves; `today.updated` is a real date and time with an offset, and not in the future.

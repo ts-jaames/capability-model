@@ -227,6 +227,7 @@
         "change_event_note": { "$ref": "common.json#/$defs/nonEmptyString" }
       }
     },
+    "scope_units_note": { "$ref": "common.json#/$defs/nonEmptyString" },
     "economics_note": { "$ref": "common.json#/$defs/nonEmptyString" }
   }
 }

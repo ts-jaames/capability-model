@@ -33,3 +33,9 @@ agent_skills:
   - name: accessible-component-audit
     what: Audit interface components against accessibility criteria → later screens inherit a passable baseline instead of shipping inaccessible patterns.
     status: building
+scope_decomposition:
+  status: not_yet_defined
+  open_question: >
+    The unit is plausibly an independent product surface (a distinct app or
+    portal) rather than a system. Different enough from core systems engineering
+    to need its own pass.

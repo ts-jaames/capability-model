@@ -343,7 +343,32 @@ async function main() {
     }
     check(`capability ${id} resolves L2 text`, Boolean(levels.L2?.text));
     check(`capability ${id} resolves L3 text`, Boolean(levels.L3?.text));
+
+    // Scope never defaults to one: it is either fully defined or says it is not.
+    const scope = cap.payload?.scope ?? {};
+    if (scope.status === "defined") {
+      check(
+        `capability ${id} scope is complete`,
+        Boolean(scope.unit_definition) &&
+          Boolean(scope.intake_prompt) &&
+          ["L1", "L2", "L3", "L4"].every((level) => Number.isInteger(scope.leverage_by_level?.[level])),
+      );
+      check(
+        `capability ${id} scope never claims a validated figure`,
+        scope.confidence === "[ASSUMED]" || scope.confidence === "[UNTESTED]",
+      );
+    } else {
+      check(`capability ${id} scope says it is not yet defined`, scope.status === "not_yet_defined");
+    }
   }
+
+  const coreScope = (await client.call("get_capability", { capability: "core-systems-engineering" })).payload?.scope;
+  check("core systems engineering has a defined scope", coreScope?.status === "defined");
+  check(
+    "undefined scope is not read as one",
+    (await client.call("get_capability", { capability: "slice-building" })).payload?.scope?.status ===
+      "not_yet_defined",
+  );
 
   const levels = await client.call("get_levels");
   check(

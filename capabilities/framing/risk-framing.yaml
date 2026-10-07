@@ -22,3 +22,9 @@ l1_l2_boundary: >
   L1 facilitates the dump and applies the score; judging irreversibility
   ratings is L2.
 agent_skills: []
+scope_decomposition:
+  status: not_yet_defined
+  open_question: >
+    Untested hypothesis: on very large programs this may scale per major
+    workstream (each with its own collapse-level risk set) rather than one
+    shortlist for the whole engagement.

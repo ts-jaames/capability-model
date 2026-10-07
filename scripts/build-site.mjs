@@ -140,6 +140,7 @@ const PAGE_TOC = {
     ["#overview", "Overview"],
     ["#domains", "Domains"],
     ["#capabilities", "Capabilities"],
+    ["#scope-leverage", "Scope & Leverage"],
     ["#agent-skills", "Agent Skills"],
   ],
   "roles-titles": [
@@ -307,6 +308,52 @@ function renderLevelsBlock(cap, legend) {
   );
 }
 
+// The Scope & Leverage block. Like Levels, it reads YAML only. A capability
+// with no block, or a `not_yet_defined` one, shows the gap on purpose: "no
+// indication of size" should be impossible to miss, not an invisible default.
+function isScopeDefined(cap) {
+  const block = cap.scope_decomposition;
+  return Boolean(block && block.status !== "not_yet_defined" && block.leverage_by_level);
+}
+
+function renderScopeBlock(cap) {
+  const block = cap.scope_decomposition;
+  if (!isScopeDefined(cap)) {
+    const question = block?.open_question
+      ? `<p class="line-note">Open question: ${esc(oneLine(block.open_question))}</p>`
+      : "";
+    return kv(
+      "Scope & Leverage",
+      `<div class="levels-block" data-mode="undefined">
+          <div class="levels-block-head"><span class="lvl-mode lvl-mode-standard-ladder">not yet defined</span></div>
+          <p>This capability has not had a scope pass yet. Sizing defaults to word of mouth. <a href="#scope-leverage">How scope is counted</a></p>
+          ${question}
+        </div>`,
+    );
+  }
+  const rows = ["L1", "L2", "L3", "L4"]
+    .map((tag) => {
+      const n = block.leverage_by_level[tag];
+      return levelRow(tag, `<p>${n} ${n === 1 ? "unit" : "units"}</p>`);
+    })
+    .join("");
+  const scales = block.scales_with_scope
+    ? ""
+    : `<p class="line-note">Does not grow with scope: one per engagement regardless of size.</p>`;
+  const notes = block.notes ? `<p class="line-note">${esc(oneLine(block.notes))}</p>` : "";
+  return kv(
+    "Scope & Leverage",
+    `<div class="levels-block" data-mode="defined">
+          <div class="levels-block-head"><span class="lvl-mode lvl-mode-specific">${esc(block.confidence)}</span><a href="#scope-leverage">How scope is counted</a></div>
+          <p><strong>Unit.</strong> ${esc(oneLine(block.unit_definition))}</p>
+          ${scales}
+          <div class="lvl-rows">${rows}</div>
+          <p><strong>Intake question.</strong> ${esc(oneLine(block.intake_prompt))}</p>
+          ${notes}
+        </div>`,
+  );
+}
+
 function renderCap(cap, domains, legend) {
   const domain = domains.find((d) => d.id === cap.domain);
   const skillChips = (cap.agent_skills ?? [])
@@ -328,6 +375,7 @@ function renderCap(cap, domains, legend) {
         ${kv("Client experience", `<p>${esc(oneLine(cap.client_experience))}</p>`)}
         ${kv("Sparq How", paragraphs(cap.sparq_how))}
         ${renderLevelsBlock(cap, legend)}
+        ${renderScopeBlock(cap)}
         ${kv(
           "Agent Skills",
           skillChips
@@ -632,6 +680,8 @@ function renderRolesMain(model) {
 
       <section id="how-seats-get-filled">
         <h2 class="mono uppercase eyebrow">How seats get filled</h2>
+        <p class="lede">Seats are read off the contract as capabilities at levels. How many seats of one capability a level needs depends on how big the work is, which is counted in scope units.</p>
+        ${to("capability-model.html#scope-leverage", "Scope & Leverage")}
         <div class="stack">
         ${renderDoctrine(fulfilment, capsById)}
         </div>
@@ -1824,11 +1874,21 @@ function renderCapabilityModelMain(model) {
     })
     .join("");
 
+  const definedScope = capabilities.filter(isScopeDefined);
+  const hypotheses = capabilities.filter(
+    (cap) => !isScopeDefined(cap) && cap.scope_decomposition?.open_question,
+  ).length;
+  const scopeMarkers = [...new Set(definedScope.map((cap) => cap.scope_decomposition.confidence))];
+  const definedLinks = definedScope
+    .map((cap) => `<a href="#capability-${esc(cap.id)}">${esc(cap.name)}</a>`)
+    .join(", ");
+
   return `
       <section id="overview">
         <h1 class="mono uppercase eyebrow">Capability Model</h1>
         <p class="lede">Domains are types of work. They do not change and they do not have levels. Capabilities are the named outcomes we promise inside a domain.</p>
         <p class="lede">How a capability is executed is a separate scale. L1 Guided Execution, L2 Practitioner, L3 Advanced Lead, and L4 Capability Ownership. That scale lives with capabilities, not with domains.</p>
+        <p class="lede">A second scale says how big the work is: how many independent instances of a capability an engagement needs. That is <a href="#scope-leverage">scope</a>, and it is also set per capability.</p>
       </section>
       <section id="domains">
         <h2 class="mono uppercase eyebrow">Domains</h2>
@@ -1849,6 +1909,13 @@ function renderCapabilityModelMain(model) {
         </table>
         ${capabilitySections}
         ${capabilitySections ? "" : `<p class="meta">None yet.</p>`}
+      </section>
+      <section id="scope-leverage">
+        <h2 class="mono uppercase eyebrow">Scope & Leverage</h2>
+        <p class="lede">Level says how senior the work needs to be. Scope says how many independent instances of that capability and level the engagement needs. Without it, a one-person customization and a large modernization produce the same capability and level, and the size gets settled by asking people.</p>
+        <p class="lede"><span class="mono">instances = ceil(scope_units / leverage[level])</span></p>
+        <p class="lede">A scope unit is one independent instance of the capability's work, and each capability declares what counts as one. Leverage is how many units one person at a level can responsibly span before a second instance is needed. The count itself is per engagement: it comes from answering the capability's intake question at scoping time, so it is never stored in the model. Where a capability declares leverage, it takes the place of the model's generic seat-capacity defaults for that capability.</p>
+        <p class="lede">${definedScope.length} of ${capabilities.length} ${capabilities.length === 1 ? "capability is" : "capabilities are"} defined so far: ${definedLinks || "none yet"}. ${scopeMarkers.length ? `The numbers are ${esc(scopeMarkers.join(", "))}: starting defaults, not drawn from delivery. ` : ""}Every other capability shows the gap on its own card${hypotheses ? `, and ${hypotheses} of them record a hypothesis about what the unit might be` : ""}. Different domains plausibly count different things (a system, a product surface, an audience), so none is filled in by copying another.</p>
       </section>
       <section id="agent-skills">
         <h2 class="mono eyebrow uppercase">Agent Skills</h2>

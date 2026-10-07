@@ -1,0 +1,37 @@
+id: scope-unit
+term: Scope unit
+definition: >
+  How many of this capability the work needs.
+
+  One independent instance of a capability's work in an engagement: the thing
+  that has to be handled on its own, without leaning on the others. What counts
+  as one is declared per capability, because a system, a product surface and an
+  audience are different kinds of unit. Dividing the count by how many units one
+  person at a level can responsibly span (the leverage for that level) gives
+  how many instances of the capability-level the engagement needs. A capability
+  with no declared unit is not yet defined, and the model says so rather than
+  reading it as one.
+not:
+  - A level. Level is how senior the work needs to be; a scope unit is how many
+    independent instances of it there are. A capability at L3 says nothing about
+    size until its scope units are counted.
+  - Surface area. Surface area counts what runs at once and depends on the
+    timeline; a scope unit counts what is independent and depends on the
+    architecture. They can coincide, but compressing a timeline does not add a
+    scope unit.
+  - A seat or a headcount. A seat is one capability at one level on one
+    engagement; scope units are one of the inputs to how many of those there
+    are, never a count of people.
+  - Stored in this repo. The count is per engagement, produced by answering the
+    capability's intake question at scoping time. Only the unit definition and
+    the leverage per level live here.
+  - Settled. The leverage numbers are starting defaults, and only one capability
+    has them. Every other capability is undefined, not zero.
+see_also:
+  - capability
+  - level
+  - seat
+status: draft
+owner: Operating Model
+source: original
+last_updated: 2026-10-07
