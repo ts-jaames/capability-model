@@ -34,8 +34,23 @@ agent_skills:
     what: Audit interface components against accessibility criteria → later screens inherit a passable baseline instead of shipping inaccessible patterns.
     status: building
 scope_decomposition:
-  status: not_yet_defined
-  open_question: >
-    The unit is plausibly an independent product surface (a distinct app or
-    portal) rather than a system. Different enough from core systems engineering
-    to need its own pass.
+  unit_definition: >
+    One independent product surface (a distinct app or portal).
+  scales_with_scope: true
+  concurrency: sequenceable
+  confidence: "[UNTESTED]"
+  intake_prompts:
+    scope_units: >
+      How many independent product surfaces does this engagement require?
+    concurrency: >
+      Must these surfaces be built in parallel, or can they be built one after
+      another without delaying the engagement?
+  notes: >
+    Leverage by level has not been reasoned through for this capability. Do not
+    copy the core systems numbers.
+segregated_from:
+  - capability: validation-testing
+    reason: >
+      Build and QA are segregated. One person cannot hold an instance of each on
+      the same engagement, regardless of scheduling or allocation. This is a
+      policy gate, not an availability question.

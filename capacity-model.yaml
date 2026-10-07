@@ -214,6 +214,20 @@ scope_units_note: >
   stay open until real delivery data says how they relate. The scope units
   themselves are never stored here or in the capability files.
 
+  A capability may also declare its concurrency, which is the link back to
+  surface area above. Concurrent units are all active at once, so they are all
+  surface area and the timeline gives no relief: the seats needed are the units
+  divided by the leverage. Sequenceable units can take turns, so a longer
+  timeline lowers surface area without lowering scope, and one person can cover
+  more units across the span. Splitting one person by percentage across units
+  that run one after another is not a state, because nothing overlaps.
+
+  Open question, [UNTESTED]: how much of a person one active unit takes (an
+  effort fraction) may be the same number as leverage (one over it) and as the
+  nominal capacity above, written three ways. No field is added for it. Add one
+  only if a real case shows the numbers give different answers, so that asking
+  the same question twice does not leave two answers free to disagree.
+
 economics_note: >
   A comment on the model, not behaviour encoded in it. Capacity permits
   overqualified absorption: an L3 operator can hold L1 surface area up to the

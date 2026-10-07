@@ -63,7 +63,19 @@ It carries a `unit_definition` (what counts as one unit for this capability), `s
 - A capability with no block, or `status: not_yet_defined`, is **undefined**. Never read undefined as one. The site shows the gap on purpose.
 - **Do not fill a capability in by copying another one or by inference.** Different capabilities use different unit types (system, product surface, audience, workstream). Each needs its own reasoning pass, and the leverage numbers are guesses until delivery data says otherwise. Record a hypothesis as `open_question`, never as a number.
 - `confidence` is `[ASSUMED]` or `[UNTESTED]`. Never write `[VALIDATED]` unless a human recovered the figure from real delivery.
+- Every field is optional and absence means not yet defined, so a capability can be partly reasoned through. Never fill a missing field to make a block look complete.
+- `concurrency` is `concurrent` (all units active at once, no timeline relief) or `sequenceable` (units can take turns, the calendar gets longer). It is not an allocation: a percentage split across units that run one after another is not a state.
+- There is no `effort_fraction`. It may be the same number as leverage (one over it) and as nominal capacity. Do not add the field, or ask a second intake question for it, until a real case shows the numbers diverge.
 - Not a level (how senior), not a dial (how hot right now), not surface area (what runs at once), not a seat or a headcount. It feeds the capacity model; see `scope_units_note` in `capacity-model.yaml`.
+
+### Segregation (`segregated_from` on a capability)
+
+A seat rule between two capabilities: one person may not hold both on the same engagement, whatever the scheduling or allocation says. It is a policy gate, not an availability question, and it overrides any sequencing or allocation arithmetic.
+
+- It is a pair, so it is **symmetric**: if A lists B, B lists A, each with a `reason`. Never list it on one side only.
+- It never names the capability itself and the id must resolve.
+- Today the pair is Product & interface building and Validation & testing (build against QA). Do not add a pair without a human saying the policy exists.
+- A title whose `default_executes` covers both sides of a pair suggests a staffing the rule forbids. The site flags it; resolving it is a title decision for a human.
 
 ### Risk shape
 
@@ -178,7 +190,8 @@ These are shape rules. Passing them does not mean the entity should exist.
 - **Every capability is owned by exactly one title**, counting domain ownership. An unowned capability and a doubly-owned one are both errors. This is what makes "the five titles cover everything, and none is a grab-bag" a checked claim rather than a stated one — so adding a title means moving ownership, not appending.
 - Doctrine → step names unique within a file, and every `steps[].capabilities` id resolves. A `lifecycle` resolves; any step with a `stage` requires a `lifecycle`, the stage exists in it, and stages never run backward through the steps; `variants` names are unique.
 - Lifecycle → stage numbers are unique and sequential from 0; every `primary_domain` and `secondary_domain` resolves to a domain; every `risk_shapes_hot` entry resolves to a risk shape; every `domain_notes[].domain` resolves; every `raci[].stage` exists; every `raci[].assignments[].title` resolves to a title. Any `stages[].agentic` overlay requires the lifecycle to have an `agentic_mode`; `asked_at` and `decided_at` are existing stage numbers with `asked_at` not after `decided_at`; `agentic_mode.domain_notes[].domain` resolves; at least one overlay is a `fork`; an `additive` overlay's `artifact` extends the stage artifact rather than replacing it; no principle is listed as both pipeline-wide and added in agentic mode; overlay `risk_shapes_hot` resolve and do not repeat the stage's own; overlay procedure names are unique and do not repeat the stage's own.
-- Scope decomposition → a defined block carries every field and `leverage_by_level` for exactly L1 to L4 as integers of at least 1, never decreasing from L1 to L4; `confidence` is `[ASSUMED]` or `[UNTESTED]`; a `not_yet_defined` block carries only `status` and an optional `open_question`.
+- Scope decomposition → every field is optional but a block has at least one; `leverage_by_level`, when present, is exactly L1 to L4 as integers of at least 1, never decreasing from L1 to L4; `concurrency` is `concurrent` or `sequenceable`; `confidence` (`[ASSUMED]` or `[UNTESTED]`) is required whenever a unit, scope flag, leverage or concurrency is present.
+- Segregation → every `segregated_from` capability resolves, is not the capability itself, is listed once, and lists this capability back.
 - Capability profiles → every certified `capability` resolves and is listed once per person.
 - Capacity model → `units_by_domain` covers the six domains exactly once in reading order and each resolves; both axes' `scale_ref` is the execution scale in `levels.yaml`; `nominal_capacity` covers exactly L1, L2, L3 in that order; `hard_ceiling` is not below nominal capacity; `multiplier_by_gap` runs from gap 0 upward with no holes, never decreasing, and gap 0 is exactly 1; `change_event_doctrine` resolves to a doctrine.
 - Confidence map → columns are exactly `thinking`, `mapping`, `pilot` in that order; row ids are unique; part names and stage numbers are unique within a row; a row has either `position` or `items`, never both; a part is either named or cites a `stage`; every `stage` exists in the row's `lifecycle`, and that lifecycle resolves; `today.updated` is a real date and time with an offset, and not in the future.

@@ -23,7 +23,6 @@ l1_l2_boundary: >
   L2.
 agent_skills: []
 scope_decomposition:
-  status: not_yet_defined
   open_question: >
     Slices are meant to be small and disposable. Worth checking whether scope
     units apply at all here, or whether slice count is governed by assumption

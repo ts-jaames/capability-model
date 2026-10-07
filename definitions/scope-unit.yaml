@@ -22,6 +22,13 @@ not:
   - A seat or a headcount. A seat is one capability at one level on one
     engagement; scope units are one of the inputs to how many of those there
     are, never a count of people.
+  - An allocation split. A percentage of one person across units that run one
+    after another is not a state. If the windows do not overlap, each unit gets
+    the person's full time while it is active, and the calendar gets longer.
+    Partial load only matters when windows overlap and every unit alone needs
+    half the person or less. Whether a capability's units can run one after
+    another is its concurrency, and that is a different question from how much
+    of a person each unit takes.
   - Stored in this repo. The count is per engagement, produced by answering the
     capability's intake question at scoping time. Only the unit definition and
     the leverage per level live here.

@@ -297,6 +297,28 @@ async function main() {
       }
     }
 
+    // A segregation rule is between two capabilities, so both have to say it.
+    // One side alone would leave a staffing option open from the other card.
+    const capId = rec.id;
+    const segregated = (cap.segregated_from ?? []).map((item) => item?.capability).filter(Boolean);
+    uniqueIds(segregated, rec.file, "segregated_from");
+    for (const otherId of segregated) {
+      if (otherId === capId) {
+        add("constraints", rec.file, `segregated_from names the capability itself ("${otherId}")`);
+      } else if (!capabilities.has(otherId)) {
+        add("refs", rec.file, `segregated_from capability "${otherId}" does not exist`);
+      } else {
+        const back = (capabilities.get(otherId).data?.segregated_from ?? []).map((item) => item?.capability);
+        if (!back.includes(capId)) {
+          add(
+            "constraints",
+            rec.file,
+            `segregated_from "${otherId}" is not symmetric; "${otherId}" must also list "${capId}"`,
+          );
+        }
+      }
+    }
+
     if (statusOf(cap) === "ratified" && !(cap.l1_guardrails ?? []).length) {
       add(
         "constraints",

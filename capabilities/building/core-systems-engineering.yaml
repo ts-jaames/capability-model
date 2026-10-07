@@ -34,14 +34,23 @@ scope_decomposition:
     L2: 1 # architects custom seams independently, one system at a time
     L3: 2 # sets standards others execute against; can oversee a second unit
     L4: 3 # capability-ownership altitude; direction-setting spans further before saturating
+  concurrency: concurrent
   confidence: "[ASSUMED]"
-  intake_prompt: >
-    How many independent systems, subsystems, or integration domains in this
-    engagement each require their own Core Systems Engineering judgment,
-    separate from the others?
+  intake_prompts:
+    scope_units: >
+      How many independent systems, subsystems, or integration domains in this
+      engagement each require their own Core Systems Engineering judgment,
+      separate from the others?
+    concurrency: >
+      Do these instances need architectural attention at the same time, or could
+      they be addressed one after another without delaying the engagement?
   notes: >
     Leverage numbers are a starting default, not derived from delivery history.
     First thing to check against real engagements before trusting the instance
     math: whether L1 and L2 leverage of 1 (zero spanning capacity) actually
     holds, or whether a strong L2 can run two low-complexity systems in
     parallel.
+    Concurrency reflects the AI modernization worked example (legacy core,
+    integration layer and AI layer needing simultaneous architectural
+    ownership). It has not been checked against an engagement where concurrency
+    turned out to be false.

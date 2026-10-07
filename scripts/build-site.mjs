@@ -308,20 +308,30 @@ function renderLevelsBlock(cap, legend) {
   );
 }
 
-// The Scope & Leverage block. Like Levels, it reads YAML only. A capability
-// with no block, or a `not_yet_defined` one, shows the gap on purpose: "no
-// indication of size" should be impossible to miss, not an invisible default.
-function isScopeDefined(cap) {
+// The Scope & Leverage block. Like Levels, it reads YAML only. Every field is
+// optional and an absent one is simply not yet defined, so the card shows each
+// part's own state: a capability can be half reasoned through, and the page
+// should say which half. With nothing defined at all, the whole block is the
+// gap, on purpose: "no indication of size" should be impossible to miss.
+const SCOPE_CLAIMS = ["unit_definition", "scales_with_scope", "leverage_by_level", "concurrency"];
+const CONCURRENCY_MEANING = {
+  concurrent: "All units must be active at the same time. The timeline gives no relief.",
+  sequenceable:
+    "Units can take turns. The same people can cover more of them, and the calendar gets longer.",
+};
+const GAP = `<span class="lvl-no-l1-tag">not yet defined</span>`;
+
+function hasScopeClaims(cap) {
   const block = cap.scope_decomposition;
-  return Boolean(block && block.status !== "not_yet_defined" && block.leverage_by_level);
+  return Boolean(block && SCOPE_CLAIMS.some((key) => block[key] !== undefined));
 }
 
 function renderScopeBlock(cap) {
   const block = cap.scope_decomposition;
-  if (!isScopeDefined(cap)) {
-    const question = block?.open_question
-      ? `<p class="line-note">Open question: ${esc(oneLine(block.open_question))}</p>`
-      : "";
+  const question = block?.open_question
+    ? `<p class="line-note">Open question: ${esc(oneLine(block.open_question))}</p>`
+    : "";
+  if (!hasScopeClaims(cap)) {
     return kv(
       "Scope & Leverage",
       `<div class="levels-block" data-mode="undefined">
@@ -331,30 +341,65 @@ function renderScopeBlock(cap) {
         </div>`,
     );
   }
-  const rows = ["L1", "L2", "L3", "L4"]
-    .map((tag) => {
-      const n = block.leverage_by_level[tag];
-      return levelRow(tag, `<p>${n} ${n === 1 ? "unit" : "units"}</p>`);
-    })
+
+  const unit = block.unit_definition ? esc(oneLine(block.unit_definition)) : GAP;
+  const scales =
+    block.scales_with_scope === false
+      ? `<p class="line-note">Does not grow with scope: one per engagement regardless of size.</p>`
+      : "";
+  const leverage = block.leverage_by_level
+    ? `<div class="lvl-rows">${["L1", "L2", "L3", "L4"]
+        .map((tag) => {
+          const n = block.leverage_by_level[tag];
+          return levelRow(tag, `<p>${n} ${n === 1 ? "unit" : "units"}</p>`);
+        })
+        .join("")}</div>`
+    : `<p>${GAP}</p>`;
+  const concurrency = block.concurrency
+    ? `<p><span class="mono">${esc(block.concurrency)}</span>. ${esc(CONCURRENCY_MEANING[block.concurrency] ?? "")}</p>`
+    : `<p>${GAP}</p>`;
+  const prompts = block.intake_prompts ?? {};
+  const asked = [
+    ["Units", prompts.scope_units],
+    ["Concurrency", prompts.concurrency],
+  ]
+    .filter(([, text]) => text)
+    .map(([label, text]) => `<p><strong>${label}.</strong> ${esc(oneLine(text))}</p>`)
     .join("");
-  const scales = block.scales_with_scope
-    ? ""
-    : `<p class="line-note">Does not grow with scope: one per engagement regardless of size.</p>`;
   const notes = block.notes ? `<p class="line-note">${esc(oneLine(block.notes))}</p>` : "";
   return kv(
     "Scope & Leverage",
     `<div class="levels-block" data-mode="defined">
-          <div class="levels-block-head"><span class="lvl-mode lvl-mode-specific">${esc(block.confidence)}</span><a href="#scope-leverage">How scope is counted</a></div>
-          <p><strong>Unit.</strong> ${esc(oneLine(block.unit_definition))}</p>
+          <div class="levels-block-head"><span class="lvl-mode lvl-mode-specific">${esc(block.confidence ?? "")}</span><a href="#scope-leverage">How scope is counted</a></div>
+          <p><strong>Unit.</strong> ${unit}</p>
           ${scales}
-          <div class="lvl-rows">${rows}</div>
-          <p><strong>Intake question.</strong> ${esc(oneLine(block.intake_prompt))}</p>
+          <p><strong>Leverage by level.</strong></p>
+          ${leverage}
+          <p><strong>Concurrency.</strong></p>
+          ${concurrency}
+          ${asked ? `<p><strong>Intake questions</strong></p>${asked}` : ""}
           ${notes}
+          ${question}
         </div>`,
   );
 }
 
-function renderCap(cap, domains, legend) {
+// A seat rule between two capabilities, shown on both cards. The rule is a
+// policy gate: it overrides any sequencing or allocation, so the card says so
+// rather than leaving a staffing option open that the policy already forbids.
+function renderSeatRule(cap, capsById) {
+  const rules = cap.segregated_from ?? [];
+  if (!rules.length) return "";
+  const body = rules
+    .map(
+      (rule) =>
+        `<p>Cannot share a seat with ${capLink(rule.capability, capsById)}. ${esc(oneLine(rule.reason))}</p>`,
+    )
+    .join("");
+  return kv("Seat rule", body);
+}
+
+function renderCap(cap, domains, legend, capsById) {
   const domain = domains.find((d) => d.id === cap.domain);
   const skillChips = (cap.agent_skills ?? [])
     .map((item) => item?.name)
@@ -376,6 +421,7 @@ function renderCap(cap, domains, legend) {
         ${kv("Sparq How", paragraphs(cap.sparq_how))}
         ${renderLevelsBlock(cap, legend)}
         ${renderScopeBlock(cap)}
+        ${renderSeatRule(cap, capsById)}
         ${kv(
           "Agent Skills",
           skillChips
@@ -572,6 +618,28 @@ function renderRolesMain(model) {
           return `<li>${esc(label)} @ ${esc(d.level)}</li>`;
         })
         .join("");
+      // A title that owns or executes by default both sides of a seat rule
+      // suggests a staffing the rule forbids. Name it; resolving it is a
+      // decision about the title, not something the page quietly drops.
+      const covered = new Set([
+        ...(title.owns ?? []).flatMap((ref) =>
+          ref?.domain
+            ? [...capsById.values()].filter((cap) => cap.domain === ref.domain).map((cap) => cap.id)
+            : [ref?.capability],
+        ),
+        ...(title.default_executes ?? []).map((d) => d.capability),
+      ]);
+      const clashes = [];
+      for (const id of covered) {
+        for (const rule of capsById.get(id)?.segregated_from ?? []) {
+          if (covered.has(rule.capability) && id < rule.capability) clashes.push([id, rule.capability]);
+        }
+      }
+      const seatRuleFlag = clashes.length
+        ? `<p class="line-note">Seat rule: these defaults cover both sides of a segregated pair (${clashes
+            .map(([a, b]) => `${capLink(a, capsById)} and ${capLink(b, capsById)}`)
+            .join("; ")}). One person cannot hold both on the same engagement, so the defaults need resolving.</p>`
+        : "";
       return `
     <article class="row" id="title-${esc(title.id)}">
       <header class="row-head">
@@ -583,6 +651,7 @@ function renderRolesMain(model) {
         ${kv("Typically owns", `<p>${owns}</p>`)}
         ${defaults ? kv("Also executes by default", `<ul class="bullets">${defaults}</ul>`) : ""}
       </div>
+      ${seatRuleFlag}
     </article>`;
     })
     .join("");
@@ -680,7 +749,7 @@ function renderRolesMain(model) {
 
       <section id="how-seats-get-filled">
         <h2 class="mono uppercase eyebrow">How seats get filled</h2>
-        <p class="lede">Seats are read off the contract as capabilities at levels. How many seats of one capability a level needs depends on how big the work is, which is counted in scope units.</p>
+        <p class="lede">Seats are read off the contract as capabilities at levels. How many seats of one capability a level needs depends on how big the work is, which is counted in scope units. Build and QA are segregated: one person cannot hold Product & interface building and Validation & testing on the same engagement, whatever the scheduling says.</p>
         ${to("capability-model.html#scope-leverage", "Scope & Leverage")}
         <div class="stack">
         ${renderDoctrine(fulfilment, capsById)}
@@ -1797,6 +1866,7 @@ function renderCorePhilosophyMain(model) {
 function renderCapabilityModelMain(model) {
   const { levels, domains, capabilities, skills } = model;
   const legend = levelLegendMap(levels);
+  const capsById = byId(capabilities);
 
   // Grouped and sorted once, then read twice: the domain index links to
   // capabilities, and the capability sections render them in the same order.
@@ -1839,7 +1909,7 @@ function renderCapabilityModelMain(model) {
   const capabilitySections = domains
     .map((domain) =>
       (capsByDomain.get(domain.id) ?? [])
-        .map((cap) => renderCap(cap, domains, legend))
+        .map((cap) => renderCap(cap, domains, legend, capsById))
         .join(""),
     )
     .join("");
@@ -1874,12 +1944,14 @@ function renderCapabilityModelMain(model) {
     })
     .join("");
 
-  const definedScope = capabilities.filter(isScopeDefined);
+  const scoped = capabilities.filter(hasScopeClaims);
+  const withLeverage = scoped.filter((cap) => cap.scope_decomposition.leverage_by_level).length;
+  const withConcurrency = scoped.filter((cap) => cap.scope_decomposition.concurrency).length;
   const hypotheses = capabilities.filter(
-    (cap) => !isScopeDefined(cap) && cap.scope_decomposition?.open_question,
+    (cap) => !hasScopeClaims(cap) && cap.scope_decomposition?.open_question,
   ).length;
-  const scopeMarkers = [...new Set(definedScope.map((cap) => cap.scope_decomposition.confidence))];
-  const definedLinks = definedScope
+  const scopeMarkers = [...new Set(scoped.map((cap) => cap.scope_decomposition.confidence))];
+  const scopedLinks = scoped
     .map((cap) => `<a href="#capability-${esc(cap.id)}">${esc(cap.name)}</a>`)
     .join(", ");
 
@@ -1915,7 +1987,9 @@ function renderCapabilityModelMain(model) {
         <p class="lede">Level says how senior the work needs to be. Scope says how many independent instances of that capability and level the engagement needs. Without it, a one-person customization and a large modernization produce the same capability and level, and the size gets settled by asking people.</p>
         <p class="lede"><span class="mono">instances = ceil(scope_units / leverage[level])</span></p>
         <p class="lede">A scope unit is one independent instance of the capability's work, and each capability declares what counts as one. Leverage is how many units one person at a level can responsibly span before a second instance is needed. The count itself is per engagement: it comes from answering the capability's intake question at scoping time, so it is never stored in the model. Where a capability declares leverage, it takes the place of the model's generic seat-capacity defaults for that capability.</p>
-        <p class="lede">${definedScope.length} of ${capabilities.length} ${capabilities.length === 1 ? "capability is" : "capabilities are"} defined so far: ${definedLinks || "none yet"}. ${scopeMarkers.length ? `The numbers are ${esc(scopeMarkers.join(", "))}: starting defaults, not drawn from delivery. ` : ""}Every other capability shows the gap on its own card${hypotheses ? `, and ${hypotheses} of them record a hypothesis about what the unit might be` : ""}. Different domains plausibly count different things (a system, a product surface, an audience), so none is filled in by copying another.</p>
+        <p class="lede">Concurrency is a separate question: do the units have to run at the same time, or can they take turns? Concurrent units are all active at once, so the timeline gives no relief and the people needed are the units divided by the leverage. Sequenceable units can follow one another, so the same people cover more of them and the calendar gets longer. There is no 50/50 split between two units that run one after another, because nothing overlaps. Each unit gets the person's full time while it is active.</p>
+        <p class="lede">How much of a person one active unit takes is not recorded. It may be the same number as leverage, one over it, so it stays an open question until a real case shows the two disagree.</p>
+        <p class="lede">${scoped.length} of ${capabilities.length} capabilities have some of this defined so far: ${scopedLinks || "none yet"}. Leverage by level is set for ${withLeverage} and concurrency for ${withConcurrency}. ${scopeMarkers.length ? `The figures are ${esc(scopeMarkers.join(", "))}: starting defaults, not drawn from delivery. ` : ""}Every capability shows its own gaps on its card${hypotheses ? `, and ${hypotheses} with nothing defined record a hypothesis about what the unit might be` : ""}. Different domains plausibly count different things (a system, a product surface, an audience), so none is filled in by copying another.</p>
       </section>
       <section id="agent-skills">
         <h2 class="mono eyebrow uppercase">Agent Skills</h2>

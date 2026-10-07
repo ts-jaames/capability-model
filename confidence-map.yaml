@@ -73,7 +73,8 @@ rows:
     position: thinking
     moves_when: >
       Core Systems Engineering leverage is checked against a real engagement,
-      and a second capability has had its own scope pass.
+      concurrency is checked against one where it turned out to be wrong, and
+      a second capability has had its own scope pass.
 
   - id: roles-titles
     name: Roles & Titles

@@ -176,27 +176,37 @@ export function listCapabilities(index, { domain, level_floor } = {}) {
 }
 
 // Scope is how many independent instances of a capability an engagement needs.
-// A capability that has not had its pass answers "not_yet_defined", never a
-// default of one: reading an undefined capability as one is the exact mistake
-// the block exists to stop. scope_units itself is per engagement and is not here.
+// Every part is reported on its own: a capability can be partly reasoned
+// through, and an undefined part says "not_yet_defined" rather than reading as
+// a default. Reading an undefined part as one is the exact mistake this block
+// exists to stop. scope_units itself is per engagement and is not here.
+const NOT_YET = "not_yet_defined";
+
 function scopeFor(cap) {
-  const block = cap.scope_decomposition;
-  if (!block || block.status === "not_yet_defined" || !block.leverage_by_level) {
-    return {
-      status: "not_yet_defined",
-      open_question: block?.open_question ? oneLine(block.open_question) : null,
-      note: "No scope pass yet. Do not read this as one instance.",
-    };
-  }
+  const block = cap.scope_decomposition ?? {};
+  const part = (value) => (value === undefined ? NOT_YET : value);
+  const parts = {
+    unit_definition: block.unit_definition === undefined ? NOT_YET : oneLine(block.unit_definition),
+    scales_with_scope: part(block.scales_with_scope),
+    leverage_by_level: part(block.leverage_by_level),
+    concurrency: part(block.concurrency),
+  };
+  const present = Object.values(parts).filter((value) => value !== NOT_YET).length;
+  const status = present === 0 ? NOT_YET : present === 4 ? "defined" : "partial";
+  const prompts = block.intake_prompts ?? {};
   return {
-    status: "defined",
-    unit_definition: oneLine(block.unit_definition),
-    scales_with_scope: block.scales_with_scope,
-    leverage_by_level: block.leverage_by_level,
-    confidence: block.confidence,
-    intake_prompt: oneLine(block.intake_prompt),
+    status,
+    ...parts,
+    confidence: block.confidence ?? null,
+    intake_prompts: {
+      scope_units: prompts.scope_units ? oneLine(prompts.scope_units) : null,
+      concurrency: prompts.concurrency ? oneLine(prompts.concurrency) : null,
+    },
     notes: block.notes ? oneLine(block.notes) : null,
+    open_question: block.open_question ? oneLine(block.open_question) : null,
     formula: "instances = ceil(scope_units / leverage_by_level[level])",
+    reading_note:
+      "A part that says not_yet_defined has not been reasoned through. Never read it as one instance or as a default. concurrent means the timeline gives no relief; sequenceable means units can take turns. How much of a person one unit takes is deliberately not recorded.",
   };
 }
 
@@ -208,6 +218,10 @@ export function getCapability(index, { capability } = {}) {
     sparq_how: oneLine(cap.sparq_how),
     levels: levelsFor(cap, index),
     scope: scopeFor(cap),
+    segregated_from: (cap.segregated_from ?? []).map((rule) => ({
+      capability: rule.capability,
+      reason: oneLine(rule.reason),
+    })),
     agent_skills: (cap.agent_skills ?? []).map((item) => ({
       ...item,
       description: oneLine(index.skillById.get(item.name)?.description),

@@ -22,7 +22,6 @@ agent_skills:
     what: Reason over the source-of-truth model when a mid-delivery change lands → a proposed re-scope with the emergence-vs-new-envelope test and a confidence-tiered re-estimate for owners to decide.
     status: building
 scope_decomposition:
-  status: not_yet_defined
   open_question: >
     Untested hypothesis: one envelope per engagement regardless of internal
     system count. The deal wraps the whole thing, not a subsystem. Needs

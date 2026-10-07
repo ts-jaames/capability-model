@@ -53,51 +53,66 @@
     },
     "l1_l2_boundary": { "$ref": "common.json#/$defs/nonEmptyString" },
     "scope_decomposition": {
-      "description": "How many independent instances of this capability an engagement needs, as opposed to how senior the work is. Either defined (a unit, a leverage per level, an intake question) or explicitly not yet defined. A capability with no block is also not yet defined. scope_units itself is per-engagement and is never stored here.",
-      "oneOf": [
-        {
+      "description": "How many independent instances of this capability an engagement needs, as opposed to how senior the work is. Every field is optional and an absent field is simply not yet defined, so a capability can be partly reasoned through and the site shows exactly which part is missing. A capability with no block at all is also not yet defined. scope_units itself is per-engagement and is never stored here. There is deliberately no effort_fraction: it may be the same number as leverage (1/leverage), so it is not a field until a case shows the two diverge.",
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "dependentRequired": {
+        "unit_definition": ["confidence"],
+        "scales_with_scope": ["confidence"],
+        "leverage_by_level": ["confidence"],
+        "concurrency": ["confidence"]
+      },
+      "properties": {
+        "unit_definition": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "scales_with_scope": { "type": "boolean" },
+        "leverage_by_level": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "unit_definition",
-            "scales_with_scope",
-            "leverage_by_level",
-            "confidence",
-            "intake_prompt"
-          ],
+          "required": ["L1", "L2", "L3", "L4"],
           "properties": {
-            "unit_definition": { "$ref": "common.json#/$defs/nonEmptyString" },
-            "scales_with_scope": { "type": "boolean" },
-            "leverage_by_level": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["L1", "L2", "L3", "L4"],
-              "properties": {
-                "L1": { "type": "integer", "minimum": 1 },
-                "L2": { "type": "integer", "minimum": 1 },
-                "L3": { "type": "integer", "minimum": 1 },
-                "L4": { "type": "integer", "minimum": 1 }
-              }
-            },
-            "confidence": {
-              "description": "[ASSUMED] is a number written down to make the model runnable, [UNTESTED] is an unchecked claim. [VALIDATED] is deliberately not allowed yet: nothing here has been recovered from real delivery.",
-              "type": "string",
-              "enum": ["[ASSUMED]", "[UNTESTED]"]
-            },
-            "intake_prompt": { "$ref": "common.json#/$defs/nonEmptyString" },
-            "notes": { "$ref": "common.json#/$defs/nonEmptyString" }
+            "L1": { "type": "integer", "minimum": 1 },
+            "L2": { "type": "integer", "minimum": 1 },
+            "L3": { "type": "integer", "minimum": 1 },
+            "L4": { "type": "integer", "minimum": 1 }
           }
         },
-        {
+        "concurrency": {
+          "description": "Whether the units must all be active at the same time (concurrent: the timeline gives no relief) or can occupy non-overlapping windows (sequenceable: the same people can cover more units in turn, and the calendar gets longer).",
+          "type": "string",
+          "enum": ["concurrent", "sequenceable"]
+        },
+        "confidence": {
+          "description": "[ASSUMED] is a number written down to make the model runnable, [UNTESTED] is an unchecked claim. [VALIDATED] is deliberately not allowed yet: nothing here has been recovered from real delivery. Required whenever any claim is present.",
+          "type": "string",
+          "enum": ["[ASSUMED]", "[UNTESTED]"]
+        },
+        "intake_prompts": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["status"],
+          "minProperties": 1,
           "properties": {
-            "status": { "const": "not_yet_defined" },
-            "open_question": { "$ref": "common.json#/$defs/nonEmptyString" }
+            "scope_units": { "$ref": "common.json#/$defs/nonEmptyString" },
+            "concurrency": { "$ref": "common.json#/$defs/nonEmptyString" }
           }
+        },
+        "notes": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "open_question": { "$ref": "common.json#/$defs/nonEmptyString" }
+      }
+    },
+    "segregated_from": {
+      "description": "A seat rule between two capabilities: one person may not hold both on the same engagement, whatever the scheduling or allocation says. A policy gate, not an availability question. Symmetric: if A lists B, B lists A.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capability", "reason"],
+        "properties": {
+          "capability": { "$ref": "common.json#/$defs/kebabId" },
+          "reason": { "$ref": "common.json#/$defs/nonEmptyString" }
         }
-      ]
+      }
     },
     "agent_skills": {
       "type": "array",

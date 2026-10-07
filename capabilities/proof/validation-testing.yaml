@@ -22,3 +22,15 @@ l1_l2_boundary: >
   L1 triggers runs and fills the failure report; authoring custom generative
   suites is L2.
 agent_skills: []
+scope_decomposition:
+  concurrency: sequenceable
+  confidence: "[UNTESTED]"
+  notes: >
+    Only concurrency has been reasoned through. The unit definition and whether
+    the capability scales with scope still need their own pass.
+segregated_from:
+  - capability: product-interface-building
+    reason: >
+      Build and QA are segregated. One person cannot hold an instance of each on
+      the same engagement, regardless of scheduling or allocation. This is a
+      policy gate, not an availability question.

@@ -344,30 +344,65 @@ async function main() {
     check(`capability ${id} resolves L2 text`, Boolean(levels.L2?.text));
     check(`capability ${id} resolves L3 text`, Boolean(levels.L3?.text));
 
-    // Scope never defaults to one: it is either fully defined or says it is not.
+    // Scope never defaults to one: each part is a real value or says it is not
+    // yet defined, and the status agrees with the parts.
     const scope = cap.payload?.scope ?? {};
-    if (scope.status === "defined") {
+    const partKeys = ["unit_definition", "scales_with_scope", "leverage_by_level", "concurrency"];
+    const set = partKeys.filter((key) => scope[key] !== "not_yet_defined" && scope[key] !== undefined);
+    check(
+      `capability ${id} scope status agrees with its parts`,
+      scope.status === (set.length === 0 ? "not_yet_defined" : set.length === 4 ? "defined" : "partial"),
+      `${scope.status} with ${set.length} parts`,
+    );
+    check(
+      `capability ${id} scope never reports a missing part as empty`,
+      partKeys.every((key) => scope[key] !== null && scope[key] !== undefined && scope[key] !== ""),
+    );
+    if (scope.leverage_by_level !== "not_yet_defined") {
       check(
-        `capability ${id} scope is complete`,
-        Boolean(scope.unit_definition) &&
-          Boolean(scope.intake_prompt) &&
-          ["L1", "L2", "L3", "L4"].every((level) => Number.isInteger(scope.leverage_by_level?.[level])),
+        `capability ${id} scope leverage covers L1 to L4`,
+        ["L1", "L2", "L3", "L4"].every((level) => Number.isInteger(scope.leverage_by_level?.[level])),
       );
+    }
+    if (set.length > 0) {
       check(
         `capability ${id} scope never claims a validated figure`,
         scope.confidence === "[ASSUMED]" || scope.confidence === "[UNTESTED]",
       );
-    } else {
-      check(`capability ${id} scope says it is not yet defined`, scope.status === "not_yet_defined");
+    }
+    if (scope.concurrency !== "not_yet_defined") {
+      check(
+        `capability ${id} concurrency is concurrent or sequenceable`,
+        ["concurrent", "sequenceable"].includes(scope.concurrency),
+      );
+    }
+
+    // A seat rule is a pair: the other side has to say it back.
+    for (const rule of cap.payload?.segregated_from ?? []) {
+      const other = await client.call("get_capability", { capability: rule.capability });
+      check(
+        `capability ${id} segregation with ${rule.capability} is symmetric`,
+        (other.payload?.segregated_from ?? []).some((back) => back.capability === id),
+      );
     }
   }
 
   const coreScope = (await client.call("get_capability", { capability: "core-systems-engineering" })).payload?.scope;
   check("core systems engineering has a defined scope", coreScope?.status === "defined");
   check(
+    "ai systems engineering is partly defined, not fully",
+    (await client.call("get_capability", { capability: "ai-systems-engineering" })).payload?.scope?.status ===
+      "partial",
+  );
+  check(
     "undefined scope is not read as one",
     (await client.call("get_capability", { capability: "slice-building" })).payload?.scope?.status ===
       "not_yet_defined",
+  );
+  const buildSide = await client.call("get_capability", { capability: "product-interface-building" });
+  check(
+    "build and QA are segregated",
+    (buildSide.payload?.segregated_from ?? []).some((rule) => rule.capability === "validation-testing"),
   );
 
   const levels = await client.call("get_levels");
