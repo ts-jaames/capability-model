@@ -440,7 +440,7 @@ done:
       - A generated site, rebuilt from the YAML.
       - A read-only MCP server that agents use to read the model.
       - Visibility tiers and a private overlay path for internal data.
-  - group: Harnesses (work in progress)
+  - group: Harness ideation
     items:
       - "Staffing and capability mapping: designed; ledger schema undefined."
       - "ESOA: designed; refresh trigger open."
