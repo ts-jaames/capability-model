@@ -72,6 +72,26 @@ export function oneLine(value) {
   return String(value ?? "").trim().replace(/\s+/g, " ");
 }
 
+// The overall pilot window on the confidence map: from the earliest silo pilot
+// to the latest joint pilot, leaving out parts allowed to trail the pilot. It
+// is worked out here and never typed into the YAML, so it cannot drift from the
+// parts. Dates are ISO strings, which sort as dates. Null when either end is
+// missing.
+export function pilotWindow(map) {
+  const pilots = (map?.rows ?? [])
+    .filter((row) => !row.trails_pilot && row.windows?.pilot?.window)
+    .map((row) => row.windows.pilot);
+  const silo = pilots.filter((p) => p.mode === "silo").map((p) => p.window.earliest).sort();
+  const joint = pilots.filter((p) => p.mode === "joint").map((p) => p.window.latest).sort();
+  if (!silo.length || !joint.length) return null;
+  const all = pilots.map((p) => p.window);
+  return {
+    earliest: silo[0],
+    latest: joint[joint.length - 1],
+    confirmed: all.every((w) => w.confirmed === true),
+  };
+}
+
 export function fileStem(file) {
   return basename(file).replace(/\.(yaml|yml)$/, "");
 }

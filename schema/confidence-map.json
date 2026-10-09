@@ -35,6 +35,112 @@
       }
     },
     "note": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "mapping_engagements_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min": { "type": "integer", "minimum": 1 },
+        "max": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "coverage_to_advance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min": { "type": "number", "minimum": 0, "maximum": 1 },
+        "max": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "loop_nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "$ref": "common.json#/$defs/kebabId" },
+          "name": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "note": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "depends_on": { "$ref": "#/$defs/dependsOn" }
+        }
+      }
+    },
+    "loop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ring"],
+      "properties": {
+        "ring": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "common.json#/$defs/kebabId" }
+        },
+        "center": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/kebabId" }
+        },
+        "callout": { "$ref": "common.json#/$defs/nonEmptyString" }
+      }
+    },
+    "done": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["group", "items"],
+        "properties": {
+          "group": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "common.json#/$defs/nonEmptyString" }
+          }
+        }
+      }
+    },
+    "next": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["item", "estimate"],
+        "properties": {
+          "item": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "estimate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["min", "max", "unit"],
+            "properties": {
+              "min": { "type": "number", "exclusiveMinimum": 0 },
+              "max": { "type": "number", "exclusiveMinimum": 0 },
+              "unit": { "type": "string", "enum": ["days", "weeks"] }
+            }
+          },
+          "after": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "note": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": { "$ref": "common.json#/$defs/nonEmptyString" }
+    },
+    "range_drivers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pushes_late": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/nonEmptyString" }
+        },
+        "pulls_early": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/nonEmptyString" }
+        }
+      }
+    },
+    "durations_note": { "$ref": "common.json#/$defs/nonEmptyString" },
     "columns": {
       "type": "array",
       "minItems": 3,
@@ -58,6 +164,49 @@
   },
   "$defs": {
     "position": { "type": "string", "enum": ["thinking", "mapping", "pilot"] },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["earliest", "latest", "confirmed"],
+      "properties": {
+        "earliest": { "$ref": "common.json#/$defs/isoDate" },
+        "latest": { "$ref": "common.json#/$defs/isoDate" },
+        "confirmed": { "type": "boolean" }
+      }
+    },
+    "windows": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "thinking_end": { "$ref": "#/$defs/range" },
+        "mapping_end": { "$ref": "#/$defs/range" },
+        "pilot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "window"],
+          "properties": {
+            "mode": { "type": "string", "enum": ["silo", "joint"] },
+            "window": { "$ref": "#/$defs/range" },
+            "silo_scope": { "$ref": "common.json#/$defs/nonEmptyString" }
+          }
+        }
+      }
+    },
+    "dependsOn": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "reason"],
+        "properties": {
+          "id": { "$ref": "common.json#/$defs/kebabId" },
+          "reason": { "$ref": "common.json#/$defs/nonEmptyString" },
+          "real": { "type": "boolean" }
+        }
+      }
+    },
     "row": {
       "type": "object",
       "additionalProperties": false,
@@ -69,6 +218,10 @@
         "position": { "$ref": "#/$defs/position" },
         "moves_when": { "$ref": "common.json#/$defs/nonEmptyString" },
         "last_moved": { "$ref": "common.json#/$defs/isoDate" },
+        "note": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "windows": { "$ref": "#/$defs/windows" },
+        "trails_pilot": { "type": "boolean" },
+        "depends_on": { "$ref": "#/$defs/dependsOn" },
         "items": {
           "type": "array",
           "minItems": 1,
@@ -85,11 +238,14 @@
       "additionalProperties": false,
       "required": ["position"],
       "properties": {
+        "id": { "$ref": "common.json#/$defs/kebabId" },
         "name": { "$ref": "common.json#/$defs/nonEmptyString" },
         "stage": { "type": "integer", "minimum": 0 },
         "position": { "$ref": "#/$defs/position" },
         "moves_when": { "$ref": "common.json#/$defs/nonEmptyString" },
-        "last_moved": { "$ref": "common.json#/$defs/isoDate" }
+        "last_moved": { "$ref": "common.json#/$defs/isoDate" },
+        "note": { "$ref": "common.json#/$defs/nonEmptyString" },
+        "depends_on": { "$ref": "#/$defs/dependsOn" }
       },
       "oneOf": [
         { "type": "object", "properties": { "name": {} }, "required": ["name"] },

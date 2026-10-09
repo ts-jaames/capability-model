@@ -1,44 +1,59 @@
 id: confidence-map
-name: Confidence map
+name: Status & Pilot Readiness
 description: >
-  This page shows how much we trust each part of our operating model. It is
-  not a schedule. Every part sits in one of three columns, from least tested to
-  most tested. A part moves right only after it has held up against real work,
-  and moves back left if real work breaks it. A group, like the Capability
-  Model, sits in the same column as its least tested part, and the number next
-  to its name is how many parts it has. Open a group to see them.
+  This page shows how far each part of our operating model has been tested, and
+  when it could be ready for pilot use. Progress is measured by confidence, not
+  by the calendar. Every part sits in one of three columns, from least tested to
+  most tested. A part moves right only after real work holds it up, and moves
+  back left if real work breaks it. A group sits in the column of its least
+  tested part.
+
+  The whole model gets a loose definition first, then each part is tightened
+  against running engagements. The dates here are estimates for planning, set
+  by a human and not confirmed. They never move a part.
 status: draft
 owner: Operating Model
 source: original
-last_updated: 2026-10-01
+last_updated: 2026-10-09
 positions_reviewed: false
 
 # What is being worked on right now. Refreshed after 4 hours of work in the repo
 # (see CLAUDE.md; `npm run today` reports its age). `updated` is local time with
 # its offset, and the page counts up from it.
 today:
-  updated: 2026-10-07T09:29:00-05:00
+  updated: 2026-10-09T07:33:00-05:00
   text: >
-    Added Scope Units to the model: a per-capability way to size how many
-    instances of a capability an engagement needs, with only Core Systems
-    Engineering defined so far and every other capability showing the gap.
-    Earlier, tightened the Roles & Titles page so a title reads as a kind of
-    practitioner.
+    Turning this page into Status & Pilot Readiness: estimate windows for when
+    each part could reach pilot use, the dependency loop between parts, and what
+    is done and next. Since the last note, added concurrency and the build and QA
+    seat rule to Scope Units, and gave the AI-Native SDLC one Output card style.
 
 note: >
   This file is edited by a human. Nothing in it moves on its own, and no
-  assistant promotes a part without being told to. Every part starts in the
-  first column because that claims the least. `positions_reviewed` stays false
-  until a human has gone through and set where each part really sits.
+  assistant promotes a part without being told to. `positions_reviewed` stays
+  false until a human has gone through and set where each part really sits.
 
-  There are no dates for the future here, on purpose. `last_moved` records when
-  a part last changed column, which is history. `moves_when` records what has
-  to be true for it to move right, which is the honest answer to "how long".
+  `last_moved` records when a part last changed column, which is history.
+  `moves_when` records what has to be true for it to move right. Future dates
+  appear only as estimate windows, each an earliest and latest date with
+  `confirmed: false` until a human confirms it. An assistant may seed a window
+  but never confirms one. The overall pilot window is worked out from the parts
+  and is never typed here.
 
   A row with parts sits where its weakest part sits. Do not set `position` on a
   row that has `items`; it is worked out from them. A part with a `stage`
   takes its name from the lifecycle named on the row, so a renamed stage cannot
   leave this file stale.
+
+# Mapping runs against running engagements, referred to by count only. A part
+# is ready to leave mapping when this share of what it claims has been seen
+# holding up in them.
+mapping_engagements_target:
+  min: 2
+  max: 3
+coverage_to_advance:
+  min: 0.75
+  max: 0.80
 
 columns:
   - id: thinking
@@ -60,13 +75,38 @@ columns:
 rows:
   - id: capability-model
     name: Capability Model
+    note: First self-alignment run done; levels being adapted.
+    windows:
+      mapping_end: { earliest: 2026-11-02, latest: 2026-11-20, confirmed: false }
+      pilot:
+        mode: silo
+        silo_scope: A capability-detection run on one live delivery.
+        window: { earliest: 2026-12-07, latest: 2026-12-18, confirmed: false }
     items:
-      - name: Domains
+      - id: domains
+        name: Domains
         position: mapping
-      - name: Capabilities
+      - id: capabilities
+        name: Capabilities
         position: mapping
-      - name: Capability Levels
+      - id: capability-levels
+        name: Capability Levels
         position: mapping
+        note: Being adapted after the first self-alignment run.
+        depends_on:
+          - id: operating-view
+            reason: >
+              Risk shapes and dials say how hard a capability runs, which is
+              what a level has to be able to describe.
+          - id: self-alignment
+            reason: >
+              The working group levelling themselves is the first test of
+              whether the levels read true, and it seeds the staffing pool.
+          - id: staffing-ledger
+            real: false
+            reason: >
+              Staffing runs should show where a level was set wrong. This
+              feedback does not exist until the ledger has run once.
 
   - id: scope-units
     name: Scope Units
@@ -75,14 +115,45 @@ rows:
       Core Systems Engineering leverage is checked against a real engagement,
       concurrency is checked against one where it turned out to be wrong, and
       a second capability has had its own scope pass.
+    windows:
+      thinking_end: { earliest: 2026-10-23, latest: 2026-11-13, confirmed: false }
+      mapping_end: { earliest: 2026-11-20, latest: 2026-12-11, confirmed: false }
+      pilot:
+        mode: joint
+        window: { earliest: 2026-12-14, latest: 2027-01-15, confirmed: false }
+    depends_on:
+      - id: ai-native-sdlc
+        reason: >
+          What counts as one unit depends on how the work is cut into stages.
 
   - id: roles-titles
     name: Roles & Titles
     position: mapping
     last_moved: 2026-10-06
+    windows:
+      mapping_end: { earliest: 2026-11-06, latest: 2026-11-27, confirmed: false }
+      pilot:
+        mode: joint
+        window: { earliest: 2026-12-14, latest: 2027-01-15, confirmed: false }
+    depends_on:
+      - id: capability-levels
+        reason: >
+          A title is a bundle of capabilities at levels, so it cannot settle
+          before the levels do.
 
   - id: operating-view
     name: Operating View
+    windows:
+      thinking_end: { earliest: 2026-10-30, latest: 2026-11-20, confirmed: false }
+      mapping_end: { earliest: 2026-11-27, latest: 2026-12-18, confirmed: false }
+      pilot:
+        mode: joint
+        window: { earliest: 2026-12-14, latest: 2027-01-15, confirmed: false }
+    depends_on:
+      - id: ai-native-sdlc
+        reason: >
+          Risk shapes run hot at particular stages, so they follow the
+          lifecycle's stage map.
     items:
       - name: Risk Shapes
         position: thinking
@@ -94,6 +165,13 @@ rows:
   - id: ai-native-sdlc
     name: AI-Native SDLC
     lifecycle: ai-native-sdlc
+    windows:
+      thinking_end: { earliest: 2026-10-30, latest: 2026-11-20, confirmed: false }
+      mapping_end: { earliest: 2026-11-27, latest: 2026-12-11, confirmed: false }
+      pilot:
+        mode: silo
+        silo_scope: One stage run on a live delivery.
+        window: { earliest: 2026-12-07, latest: 2026-12-31, confirmed: false }
     items:
       - stage: 0
         position: thinking
@@ -115,3 +193,101 @@ rows:
         position: thinking
       - name: Agentic mode, Test (combined threshold)
         position: thinking
+
+# Nodes in the dependency loop that are not parts on the map, so they have no
+# column and no window.
+loop_nodes:
+  - id: self-alignment
+    name: Self-alignment
+    note: >
+      The working group levelling themselves against the capability levels. A
+      small proof test with subject experts, not a part of the model.
+  - id: staffing-ledger
+    name: Staffing ledger
+    note: >
+      Where staffing decisions get recorded and checked. Not yet a part of the
+      model.
+    depends_on:
+      - id: roles-titles
+        reason: >
+          A staffing run fills seats by title, so titles have to hold first.
+      - id: scope-units
+        reason: >
+          The ledger needs to know how many instances of each capability the
+          pilot's work calls for.
+
+loop:
+  ring:
+    - capability-levels
+    - roles-titles
+    - staffing-ledger
+    - scope-units
+    - ai-native-sdlc
+    - operating-view
+  center:
+    - self-alignment
+  callout: >
+    Asking when roles and titles will be done is really asking when levels
+    settle, when sizing exists for the pilot's capabilities, and when staffing
+    has run once to check them.
+
+done:
+  - group: The model
+    items:
+      - Six domains with 26 capabilities, each on the L1 to L4 execution scale.
+      - Five titles, with every capability owned by exactly one.
+      - Thirteen definitions, each with the confusions it rules out.
+      - Scope Units, defined for one capability with the gap shown on the rest.
+  - group: How work runs
+    items:
+      - The AI-Native SDLC, seven stages plus its agentic mode.
+      - Eight risk shapes, the intensity dial, and five seams.
+      - Four doctrines, including New Discovery and what happens when work changes.
+      - The build and QA seat rule.
+  - group: Infrastructure
+    items:
+      - YAML as the source of truth, with a schema and validator for every entity.
+      - A generated site, rebuilt from the YAML.
+      - A read-only MCP server that agents use to read the model.
+      - Visibility tiers and a private overlay path for internal data.
+  - group: The harnesses
+    items: []
+
+next:
+  - item: Ledger schema
+    estimate: { min: 3, max: 5, unit: days }
+  - item: Finish adapting levels
+    estimate: { min: 1, max: 2, unit: weeks }
+  - item: Private layer
+    estimate: { min: 1, max: 1, unit: weeks }
+  - item: Scope units for the pilot's capabilities
+    estimate: { min: 2, max: 4, unit: weeks }
+  - item: Three read-only tools
+    estimate: { min: 1, max: 2, unit: weeks }
+    after: the ledger schema
+  - item: SOW and Staffing Briefing templates
+    estimate: { min: 1, max: 1, unit: weeks }
+  - item: Mapping against 2 to 3 engagements
+    estimate: { min: 3, max: 5, unit: weeks }
+    note: Overlaps the items above.
+
+decisions:
+  - Which 2 to 3 running engagements to map against.
+  - The summarizer proposes changes through a reviewed PR and never writes directly.
+  - How required levels get set for a seat.
+  - The Forward Deployed Engineer default breaks the build and QA seat rule.
+  - The ESOA refresh trigger, signal-driven with a time fallback.
+
+range_drivers:
+  pushes_late:
+    - A large re-cut of the levels.
+    - Thin delivery data from the mapping engagements.
+    - More than one round on scope units.
+    - Holidays.
+  pulls_early:
+    - A pilot scoped to a few capabilities.
+    - The ledger schema landing next week.
+    - Letting the Evidence Work harness trail the pilot.
+
+durations_note: >
+  Durations are thinking-time estimates, not commitments.

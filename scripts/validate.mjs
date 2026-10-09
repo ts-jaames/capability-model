@@ -11,7 +11,9 @@ import {
   REPO_ROOT,
   fileStem,
   loadModel,
+  overlayRoots,
 } from "./model.mjs";
+import { parse } from "yaml";
 
 const SCHEMA_ID = (name) => `https://capability-model.local/schema/${name}.json`;
 const SCHEMA_NAMES = [
@@ -41,6 +43,9 @@ const groups = {
   orphans: [],
   constraints: [],
 };
+
+// Printed after a passing run; never fail it.
+const warnings = [];
 
 function add(group, file, message) {
   groups[group].push({ file, message });
@@ -940,8 +945,12 @@ async function main() {
           }
         }
       }
+
+      checkReadiness(map, legend.file);
     },
   );
+
+  await checkDenylist(loaded);
 
   const sections = {
     parse: "Parse errors",
@@ -993,6 +1002,168 @@ async function main() {
     ? ` (base + ${overlays.length} overlay${overlays.length === 1 ? "" : "s"})`
     : "";
   console.log(`OK — ${summary}${from}`);
+  for (const warning of warnings) console.warn(`warning: ${warning}`);
+}
+
+// Readiness fields on the confidence map. Windows are estimates, so these
+// checks only keep them coherent; they never judge whether a date is right.
+function checkReadiness(map, file) {
+  const COLUMN_IDS = ["thinking", "mapping", "pilot"];
+  const rows = map.rows ?? [];
+  const today = new Date().toISOString().slice(0, 10);
+
+  const pair = (label, range) => {
+    if (range && range.earliest > range.latest) {
+      add("constraints", file, `${label} earliest ${range.earliest} is after latest ${range.latest}`);
+    }
+  };
+  const minMax = (label, value) => {
+    if (value && value.min > value.max) {
+      add("constraints", file, `${label} min ${value.min} is above max ${value.max}`);
+    }
+  };
+
+  minMax("mapping_engagements_target", map.mapping_engagements_target);
+  minMax("coverage_to_advance", map.coverage_to_advance);
+  for (const entry of map.next ?? []) minMax(`next "${entry.item}" estimate`, entry.estimate);
+
+  // Every id an edge can point at: rows, parts that carry an id, loop nodes.
+  const loopNodes = map.loop_nodes ?? [];
+  const ids = [
+    ...rows.flatMap((row) => [row.id, ...(row.items ?? []).map((item) => item.id).filter(Boolean)]),
+    ...loopNodes.map((node) => node.id),
+  ];
+  uniqueIds(ids, file, "part and loop node ids");
+  const known = new Set(ids);
+
+  const edges = [];
+  const checkEdges = (owner, list) => {
+    const seen = new Set();
+    for (const edge of list ?? []) {
+      if (edge.id === owner) add("constraints", file, `"${owner}" depends on itself`);
+      if (seen.has(edge.id)) add("duplicates", file, `"${owner}" lists depends_on "${edge.id}" twice`);
+      seen.add(edge.id);
+      if (!known.has(edge.id)) add("refs", file, `"${owner}" depends_on "${edge.id}" which does not exist`);
+      edges.push([owner, edge.id]);
+    }
+  };
+
+  for (const row of rows) {
+    const where = `row "${row.id}"`;
+    const items = row.items ?? [];
+    checkEdges(row.id, row.depends_on);
+    for (const item of items) if (item.depends_on) {
+      if (!item.id) add("constraints", file, `${where} has a part with depends_on but no id`);
+      else checkEdges(item.id, item.depends_on);
+    }
+
+    for (const entry of [row, ...items]) {
+      if (entry.last_moved && entry.last_moved > today) {
+        add("constraints", file, `${where} last_moved ${entry.last_moved} is in the future; it is history`);
+      }
+    }
+
+    // A group's column is its least tested part, never typed.
+    const column = items.length
+      ? COLUMN_IDS[Math.min(...items.map((item) => COLUMN_IDS.indexOf(item.position)))]
+      : row.position;
+    const index = COLUMN_IDS.indexOf(column);
+
+    if (column === "pilot" && !row.note) {
+      add("constraints", file, `${where} sits in pilot, so it needs a note on the real work it ran against`);
+    }
+    for (const item of items) {
+      if (item.position === "pilot" && !item.note) {
+        add("constraints", file, `${where} part "${item.name ?? item.stage}" sits in pilot without a note`);
+      }
+    }
+
+    const w = row.windows;
+    if (!w) continue;
+    pair(`${where} thinking_end`, w.thinking_end);
+    pair(`${where} mapping_end`, w.mapping_end);
+    pair(`${where} pilot window`, w.pilot?.window);
+    if (w.pilot?.mode === "silo" && !w.pilot.silo_scope) {
+      add("constraints", file, `${where} pilots in silo mode, so it needs silo_scope`);
+    }
+    if (w.thinking_end && index > 0) {
+      add("constraints", file, `${where} is past thinking, so it cannot carry thinking_end`);
+    }
+    if (w.mapping_end && index > 1) {
+      add("constraints", file, `${where} is in pilot, so it cannot carry mapping_end`);
+    }
+    const order = [
+      ["thinking_end", w.thinking_end?.earliest],
+      ["mapping_end", w.mapping_end?.earliest],
+      ["pilot", w.pilot?.window?.earliest],
+    ].filter(([, date]) => date);
+    for (let i = 1; i < order.length; i += 1) {
+      if (order[i - 1][1] > order[i][1]) {
+        add(
+          "constraints",
+          file,
+          `${where} ${order[i - 1][0]} earliest ${order[i - 1][1]} is after ${order[i][0]} earliest ${order[i][1]}`,
+        );
+      }
+    }
+  }
+
+  for (const node of loopNodes) checkEdges(node.id, node.depends_on);
+
+  // The loop draws every edge, so both ends of each edge must have a place.
+  const ring = map.loop?.ring ?? [];
+  const center = map.loop?.center ?? [];
+  uniqueIds([...ring, ...center], file, "loop ring and center");
+  for (const id of [...ring, ...center]) {
+    if (!known.has(id)) add("refs", file, `loop places "${id}" which does not exist`);
+  }
+  if (map.loop) {
+    const placed = new Set([...ring, ...center]);
+    for (const [from, to] of edges) {
+      for (const id of [from, to]) {
+        if (known.has(id) && !placed.has(id)) {
+          add("constraints", file, `"${from}" depends on "${to}", so "${id}" needs a place in loop.ring or loop.center`);
+        }
+      }
+    }
+  }
+}
+
+// Client names must never reach this public repo. The list of names to look
+// for lives only in the private overlay, so it cannot leak them itself. Until
+// the private layer exists this only warns.
+async function readDenylist() {
+  const terms = [];
+  for (const root of overlayRoots()) {
+    try {
+      const data = parse(await readFile(join(root, "client-denylist.yaml"), "utf8"));
+      terms.push(...(data?.terms ?? []).map((term) => String(term).trim()).filter(Boolean));
+    } catch (err) {
+      if (err.code !== "ENOENT") warnings.push(`could not read ${join(root, "client-denylist.yaml")}: ${err.message}`);
+    }
+  }
+  return terms;
+}
+
+async function checkDenylist(loaded) {
+  const terms = await readDenylist();
+  if (!terms.length) {
+    warnings.push("no client-name denylist loaded; add client-denylist.yaml to the private overlay");
+    return;
+  }
+  const records = [
+    ...Object.values(loaded.all).flat(),
+    ...Object.values(loaded.legends).filter(Boolean),
+  ].filter((rec) => rec.rootIndex === 0);
+  for (const rec of records) {
+    const text = JSON.stringify(rec.data).toLowerCase();
+    for (const term of terms) {
+      if (text.includes(term.toLowerCase())) {
+        warnings.push(`${rec.file} contains a denylisted client name`);
+        break;
+      }
+    }
+  }
 }
 
 main().catch((err) => {
