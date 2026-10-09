@@ -1466,12 +1466,10 @@ const shortDate = (iso) => {
 const READINESS_COLOR = { thinking: "#C9A47A", mapping: "#4E9A6A", pilot: "#EC4B24" };
 const LOOP_RED = "#D63B27";
 
-// One chart for every part. Each row has two lanes: readiness on top (thinking,
-// then mapping) and the pilot underneath, so a pilot never draws on mapping.
-// A bar is solid up to its earliest end and hatched up to its latest end, and
-// an unconfirmed window has a dashed edge, which today is all of them. A silo
-// pilot sits alone in its row's lower lane. A joint pilot is one orange box
-// across the lower lanes of every part it pilots with.
+// One chart for every part. Each row is one line: thinking, then mapping, then
+// the pilot, each a solid bar covering its whole window. Where a pilot overlaps
+// an earlier bar it draws on top. A joint pilot is one orange box across every
+// part it pilots with.
 function readinessGantt(map, nodes, helpers) {
   const { columns, columnIndex, partName, tests, notes, infoTip } = helpers;
   const rows = map.rows ?? [];
@@ -1513,37 +1511,41 @@ function readinessGantt(map, nodes, helpers) {
 
   const bar = (kind, from, range, lane) => {
     const x0 = at(from);
-    const x1 = Math.max(x0, at(range.earliest));
-    const x2 = Math.max(x1, at(range.latest));
-    // Thinking and mapping fill their whole window; only a pilot has a hatched buffer.
-    const solid = kind !== "pilot" ? 100 : x2 - x0 ? ((x1 - x0) / (x2 - x0)) * 100 : 100;
-    return `<span class="gt-bar gt-${kind} gt-${lane}" style="left:${f(x0)}%;width:${f(x2 - x0)}%"><span class="gt-solid" style="width:${f(solid)}%"></span></span>`;
+    const x2 = Math.max(x0, at(range.latest));
+    // Every bar fills its whole window, from its start to its latest end.
+    return `<span class="gt-bar gt-${kind}" style="left:${f(x0)}%;width:${f(x2 - x0)}%"><span class="gt-solid"></span></span>`;
   };
-  // Labels sit to the left of a bar, so they never run into the joint box.
-  const leftLabel = (text, from) =>
-    `<span class="gt-label gt-lower" style="right:${f(100 - at(from))}%">${esc(text)}</span>`;
+  // Labels sit just after the end of a bar.
+  const endLabel = (text, range) =>
+    `<span class="gt-label" style="left:${f(at(range.latest))}%">${esc(text)}</span>`;
 
   const columnOf = (row) => nodes.get(row.id)?.column;
 
-  // The lanes for a row: thinking then mapping on top, the pilot underneath.
+  // One line per row: thinking, then mapping, then the pilot, all on the same line.
   const lanes = (row) => {
     const column = columnOf(row);
-    const upper = [];
-    if (column === "thinking" && row.thinking_end) upper.push(bar("thinking", todayIso, row.thinking_end, "upper"));
+    const bars = [];
+    let end = null;
+    if (column === "thinking" && row.thinking_end) {
+      bars.push(bar("thinking", todayIso, row.thinking_end));
+      end = row.thinking_end.latest;
+    }
     if (column !== "pilot" && row.mapping?.ends) {
       // Mapping starts where thinking ends, so the two never overlap.
       const from = column === "thinking" && row.thinking_end ? row.thinking_end.latest : todayIso;
-      upper.push(bar("mapping", from, row.mapping.ends, "upper"));
+      bars.push(bar("mapping", from, row.mapping.ends));
+      end = row.mapping.ends.latest;
     }
     const pilot = pilotOf(row);
-    let lower = "";
     if (pilot) {
-      lower = bar("pilot", pilot.starts, pilot.window, "lower");
-      if (pilot.mode === "silo") lower += leftLabel(pilot.label ?? "Pilots on its own", pilot.starts);
+      // Drawn last, so where it overlaps an earlier bar the pilot is on top.
+      bars.push(bar("pilot", pilot.starts, pilot.window));
+      if (pilot.mode === "silo") bars.push(endLabel(pilot.label ?? "Pilots on its own", pilot.window));
     } else {
-      lower = `<span class="gt-note gt-lower">Pilot not defined yet</span>`;
+      const after = end ? `left:${f(at(end))}%;` : "left:8px;";
+      bars.push(`<span class="gt-note" style="${after}padding-left:8px">Pilot not defined yet</span>`);
     }
-    return grid + upper.join("") + lower;
+    return grid + bars.join("");
   };
 
   const caret = `<svg class="cm-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -1574,8 +1576,8 @@ function readinessGantt(map, nodes, helpers) {
         .map((item) => {
           const own = pilotOf(item);
           const childLane = own
-            ? grid + bar("pilot", own.starts, own.window, "lower") + (own.mode === "silo" ? leftLabel(own.label ?? "Pilots on its own", own.starts) : "")
-            : `${grid}<span class="gt-note gt-upper">Follows the group</span>`;
+            ? grid + bar("pilot", own.starts, own.window) + (own.mode === "silo" ? endLabel(own.label ?? "Pilots on its own", own.window) : "")
+            : `${grid}<span class="gt-note">Follows the group</span>`;
           return `
           <div class="gt-row gt-child" data-row="${esc(item.id ?? "")}" data-group="${esc(row.id)}">
             <div class="gt-name">
@@ -1603,7 +1605,6 @@ function readinessGantt(map, nodes, helpers) {
   const key = (swatch, label, tip, end = false) =>
     `<span class="gt-key">${swatch}${esc(label)}${tip ? infoTip(label, tip, end) : ""}</span>`;
   const sw = (kind, cls = "") => `<span class="gt-swatch gt-bar gt-${kind} ${cls}"><span class="gt-solid"></span></span>`;
-  const hatched = (kind) => `<span class="gt-swatch gt-bar gt-${kind}"></span>`;
   const meaning = (id) => columns.find((column) => column.id === id)?.meaning;
 
   const joint = jointRow
@@ -1617,12 +1618,11 @@ function readinessGantt(map, nodes, helpers) {
   return `
       <section id="timeline">
         <h2 class="mono uppercase eyebrow">Where each part is, and when it could move${map.reading_rule ? infoTip("Reading the chart", map.reading_rule) : ""}</h2>
-        <p class="lede">Each bar covers its likely window. Hatched is the pilot buffer.</p>
+        <p class="lede">Each bar covers its likely window.</p>
         <div class="gt-legend">
           ${key(sw("thinking"), "Thinking time", meaning("thinking"))}
           ${key(sw("mapping"), "Mapping", meaning("mapping"))}
           ${key(sw("pilot"), "Pilot", meaning("pilot"), true)}
-          ${key(hatched("pilot"), "Pilot buffer")}
           ${jointRow ? key(`<span class="gt-swatch gt-joint-swatch"></span>`, "Pilots together, one box") : ""}
         </div>
         <div class="cm-scroll">
@@ -1648,7 +1648,7 @@ function readinessGantt(map, nodes, helpers) {
                 return row;
               }).filter(Boolean);
               if (!rows.length) return;
-              var top = Math.min.apply(null, rows.map(function (r) { return r.offsetTop; })) + 26;
+              var top = Math.min.apply(null, rows.map(function (r) { return r.offsetTop; })) + 32;
               var last = rows.reduce(function (a, r) { return r.offsetTop > a.offsetTop ? r : a; });
               box.style.top = top + 'px';
               box.style.height = (last.offsetTop + last.offsetHeight - 4 - top) + 'px';
@@ -3015,7 +3015,7 @@ function render(model, pageId = "core-philosophy") {
     .gt-group-btn:focus-visible, .gt-more:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
     .gt-group-btn[aria-expanded="true"] .cm-caret { transform: rotate(90deg); }
     .gt [hidden] { display: none !important; }
-    .gt-lane { position: relative; min-height: 52px; }
+    .gt-lane { position: relative; min-height: 40px; }
     .gt-child .gt-lane { min-height: 40px; }
     .gt-month, .gt-today { position: absolute; top: 0; bottom: 0; width: 1px; background: #E4E4E4; }
     .gt-today { background: #EC4B24; }
@@ -3024,21 +3024,18 @@ function render(model, pageId = "core-philosophy") {
     .gt-bar {
       --c: #C9A47A;
       position: absolute;
+      top: 14px;
       height: 12px;
       border: 1px solid var(--c);
-      background: repeating-linear-gradient(135deg, var(--c) 0 1.6px, #FFFFFF 1.6px 5px);
+      background: var(--c);
     }
     .gt-thinking { --c: #C9A47A; }
     .gt-mapping { --c: #4E9A6A; }
-    .gt-pilot { --c: #EC4B24; }
+    .gt-pilot { --c: #EC4B24; box-shadow: 0 0 0 1.5px var(--bg); }
     .gt-solid { position: absolute; left: 0; top: 0; bottom: 0; background: var(--c); }
-    .gt-upper { top: 10px; }
-    .gt-lower { top: 30px; }
-    .gt-label, .gt-note { position: absolute; font-size: 12px; line-height: 12px; white-space: nowrap; }
-    .gt-label { padding-right: 6px; }
-    .gt-note { left: 8px; }
-    .gt-note.gt-upper { top: 10px; font-style: normal; opacity: 0.7; }
-    .gt-lane > .gt-note.gt-lower { top: 30px; }
+    .gt-label, .gt-note { position: absolute; top: 14px; font-size: 12px; line-height: 14px; white-space: nowrap; }
+    .gt-label { margin-left: 4px; padding: 0 3px; background: var(--bg); z-index: 3; }
+    .gt-note { left: 8px; opacity: 0.7; }
     .gt-joint {
       position: absolute;
       left: calc(240px + (100% - 240px) * var(--l));
@@ -3071,7 +3068,7 @@ function render(model, pageId = "core-philosophy") {
       font-size: 12.5px;
     }
     .gt-key { display: inline-flex; align-items: center; gap: 8px; }
-    .gt-swatch { position: relative; display: inline-block; width: 22px; height: 10px; }
+    .gt-swatch { position: relative; top: 0; display: inline-block; width: 22px; height: 10px; }
     .gt-joint-swatch { border: 1.5px solid #EC4B24; border-radius: 3px; background: none; }
     .gt-swatch .gt-solid { width: 100%; }
     .cm-hero { margin: 0 0 40px; }
