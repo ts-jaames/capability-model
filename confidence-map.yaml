@@ -174,7 +174,11 @@ rows:
 
   - id: sizing-staffing-rules
     name: Sizing & Staffing Rules
-    note: How many seats the work needs, and whether a staffing is allowed.
+    note: >
+      Covers how many instances and seats a piece of work needs, from scope
+      units, required level and capacity, and the checks that keep a staffing
+      allowed, such as build and QA separation and operator eligibility. The
+      individual rules are kept in the model file.
     depends_on:
       - id: ai-native-sdlc
         reason: >
