@@ -3136,8 +3136,9 @@ function render(model, pageId = "core-philosophy") {
     .cm-two h3 { margin-top: 16px; }
     .cm-h { margin: 0 0 12px; font-size: 15px; font-weight: 600; line-height: 1.3; }
     .cm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-    .cm-changes { list-style: none; margin: 0; padding: 0; }
-    .cm-changes li { margin: 0 0 4px; }
+    .cm-changes { list-style: disc; margin: 0; padding: 0 0 0 18px; }
+    .cm-changes li { margin: 0 0 4px; padding-left: 2px; }
+    .cm-changes li::marker { color: color-mix(in srgb, var(--ink) 40%, transparent); }
     .cm-detail { display: flex; flex-direction: column; gap: 2px; padding: 8px 0 0 18px; border-top: 1px solid var(--line); }
     .cm-detail .cm-note { padding-left: 0; }
     .cm-tests { padding: 8px 0 8px 18px; border-top: 1px solid var(--line); }
