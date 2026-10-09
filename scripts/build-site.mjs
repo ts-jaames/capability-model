@@ -1518,7 +1518,7 @@ function readinessGantt(map, nodes, helpers) {
     const x2 = Math.max(x1, at(range.latest));
     // Thinking and mapping fill their whole window; only a pilot has a hatched buffer.
     const solid = kind !== "pilot" ? 100 : x2 - x0 ? ((x1 - x0) / (x2 - x0)) * 100 : 100;
-    return `<span class="gt-bar gt-${kind} gt-${lane}${range.confirmed ? "" : " gt-unconfirmed"}" style="left:${f(x0)}%;width:${f(x2 - x0)}%"><span class="gt-solid" style="width:${f(solid)}%"></span></span>`;
+    return `<span class="gt-bar gt-${kind} gt-${lane}" style="left:${f(x0)}%;width:${f(x2 - x0)}%"><span class="gt-solid" style="width:${f(solid)}%"></span></span>`;
   };
   // Labels sit to the left of a bar, so they never run into the joint box.
   const leftLabel = (text, from) =>
@@ -1621,13 +1621,12 @@ function readinessGantt(map, nodes, helpers) {
   return `
       <section id="timeline">
         <h2 class="mono uppercase eyebrow">Where each part is, and when it could move${map.reading_rule ? infoTip("Reading the chart", map.reading_rule) : ""}</h2>
-        <p class="lede">Each bar covers its likely window. Hatched is the pilot buffer, dashed means unconfirmed.</p>
+        <p class="lede">Each bar covers its likely window. Hatched is the pilot buffer.</p>
         <div class="gt-legend">
           ${key(sw("thinking"), "Thinking time", meaning("thinking"))}
           ${key(sw("mapping"), "Mapping", meaning("mapping"))}
           ${key(sw("pilot"), "Pilot", meaning("pilot"), true)}
           ${key(hatched("pilot"), "Pilot buffer")}
-          ${key(`<span class="gt-swatch gt-bar gt-thinking gt-unconfirmed gt-dash"></span>`, "Dashed edge: unconfirmed")}
           ${jointRow ? key(`<span class="gt-swatch gt-joint-swatch"></span>`, "Pilots together, one box") : ""}
         </div>
         <div class="cm-scroll">
@@ -3043,7 +3042,6 @@ function render(model, pageId = "core-philosophy") {
     .gt-thinking { --c: #C9A47A; }
     .gt-mapping { --c: #4E9A6A; }
     .gt-pilot { --c: #EC4B24; }
-    .gt-unconfirmed { outline: 1px dashed var(--c); outline-offset: 2px; }
     .gt-solid { position: absolute; left: 0; top: 0; bottom: 0; background: var(--c); }
     .gt-upper { top: 10px; }
     .gt-lower { top: 30px; }
@@ -3086,7 +3084,6 @@ function render(model, pageId = "core-philosophy") {
     .gt-key { display: inline-flex; align-items: center; gap: 8px; }
     .gt-swatch { position: relative; display: inline-block; width: 22px; height: 10px; }
     .gt-joint-swatch { border: 1.5px solid #EC4B24; border-radius: 3px; background: none; }
-    .gt-dash { background: #FFFFFF; }
     .gt-swatch .gt-solid { width: 100%; }
     .cm-hero { margin: 0 0 40px; }
     .cm-hero-range {
