@@ -1499,8 +1499,9 @@ function readinessGantt(map, nodes, helpers) {
   for (const row of rows) {
     for (const entry of [row, ...(row.items ?? [])]) {
       for (const range of [entry.thinking_end, entry.mapping?.ends]) if (range) dates.push(range.earliest, range.latest);
-      const pilot = pilotOf(entry);
-      if (pilot) dates.push(pilot.starts, pilot.window.earliest, pilot.window.latest);
+      for (const pilot of [pilotOf(entry), pilotOf({ pilot: entry.early_pilot })]) {
+        if (pilot) dates.push(pilot.starts, pilot.window.earliest, pilot.window.latest);
+      }
     }
   }
   dates.sort();
@@ -1510,10 +1511,6 @@ function readinessGantt(map, nodes, helpers) {
   const end = Date.UTC(ly, lm, 1) / 86400000;
   const at = (iso) => ((dayOf(iso) - start) / (end - start)) * 100;
   const f = (n) => Number(n.toFixed(3));
-
-  // The joint pilot, and everything that takes part in it.
-  const jointRow = rows.find((row) => row.pilot?.test && row.pilot.mode === "joint" && row.pilot.window);
-  const members = jointRow ? [jointRow.id, ...(jointRow.pilot.with ?? [])] : [];
 
   const monthDays = [];
   for (let day = start; day < end; day += 1) {
@@ -1578,6 +1575,8 @@ function readinessGantt(map, nodes, helpers) {
       bars.push(bar("mapping", from, row.mapping.ends));
       end = row.mapping.ends.latest;
     }
+    const early = pilotOf({ pilot: row.early_pilot });
+    if (early) bars.push(bar("pilot", early.starts, early.window));
     const pilot = pilotOf(row);
     if (pilot) {
       // Drawn last, so where it overlaps an earlier bar the pilot is on top.
@@ -1694,14 +1693,6 @@ function readinessGantt(map, nodes, helpers) {
   const sw = (kind, cls = "") => `<span class="gt-swatch gt-bar gt-${kind} ${cls}"><span class="gt-solid"></span></span>`;
   const meaning = (id) => columns.find((column) => column.id === id)?.meaning;
 
-  const joint = jointRow
-    ? (() => {
-        const l = at(jointRow.pilot.starts);
-        const w = at(jointRow.pilot.window.latest) - l;
-        return `<div class="gt-joint" data-members="${esc(members.join(" "))}" style="--l:${f(l / 100)};--w:${f(w / 100)}"><span class="gt-joint-label">Piloted together: ${esc(jointRow.name.toLowerCase())}</span></div>`;
-      })()
-    : "";
-
   return `
       <section id="timeline">
         <h2 class="mono uppercase eyebrow">Where each part is, and when it could move${map.reading_rule ? infoTip("Reading the chart", map.reading_rule) : ""}</h2>
@@ -1710,46 +1701,27 @@ function readinessGantt(map, nodes, helpers) {
           ${key(sw("thinking"), "Thinking time", meaning("thinking"))}
           ${key(sw("mapping"), "Mapping", meaning("mapping"))}
           ${key(sw("pilot"), "Pilot", meaning("pilot"), true)}
-          ${jointRow ? key(`<span class="gt-swatch gt-joint-swatch"></span>`, "Pilots together, one box") : ""}
         </div>
-        <div class="cm-scroll">
+        <div class="gt-wrap">
           <div class="gt">
             <div class="gt-row gt-head">
               <div class="gt-name"><span class="gt-title">Part of the model</span></div>
               <div class="gt-lane">${monthLabels}${grid}<span class="gt-today-label" style="left:${f(at(todayIso))}%">Today</span></div>
             </div>
             ${body}
-            ${joint}
           </div>
         </div>
         <script>
           (function () {
             var chart = document.querySelector('.gt');
             if (!chart) return;
-            function layout() {
-              var box = chart.querySelector('.gt-joint');
-              if (!box) return;
-              var rows = box.getAttribute('data-members').split(' ').map(function (id) {
-                var row = chart.querySelector('[data-row="' + id + '"]');
-                if (row && row.offsetParent === null) row = chart.querySelector('[data-row="' + row.getAttribute('data-group') + '"]');
-                return row;
-              }).filter(Boolean);
-              if (!rows.length) return;
-              var top = Math.min.apply(null, rows.map(function (r) { return r.offsetTop; })) + 32;
-              var last = rows.reduce(function (a, r) { return r.offsetTop > a.offsetTop ? r : a; });
-              box.style.top = top + 'px';
-              box.style.height = (last.offsetTop + last.offsetHeight - 4 - top) + 'px';
-            }
             chart.querySelectorAll('[data-toggle]').forEach(function (button) {
               button.addEventListener('click', function () {
                 var open = button.getAttribute('aria-expanded') === 'true';
                 button.setAttribute('aria-expanded', String(!open));
                 document.getElementById(button.getAttribute('aria-controls')).hidden = open;
-                layout();
               });
             });
-            window.addEventListener('resize', layout);
-            layout();
           })();
         </script>
       </section>`;
@@ -3037,7 +3009,8 @@ function render(model, pageId = "core-philosophy") {
       border-radius: 99px;
       white-space: nowrap;
     }
-    .gt { position: relative; min-width: 1100px; }
+    .gt { position: relative; }
+    .gt-wrap { margin-top: 32px; }
     .gt-row {
       display: grid;
       grid-template-columns: 240px 1fr;

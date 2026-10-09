@@ -80,6 +80,7 @@ export function oneLine(value) {
 export function pilotWindow(map) {
   const live = (map?.rows ?? [])
     .flatMap((row) => [row, ...(row.items ?? [])])
+    .flatMap((entry) => [entry, { pilot: entry.early_pilot }])
     .filter((entry) => entry.pilot?.test && entry.pilot.window);
   const silo = live.filter((entry) => entry.pilot.mode === "silo").map((entry) => entry.pilot.starts).sort();
   const joint = live.filter((entry) => entry.pilot.mode === "joint").map((entry) => entry.pilot);

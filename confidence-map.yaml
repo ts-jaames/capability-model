@@ -375,7 +375,20 @@ rows:
   - id: staffing-harness
     name: Staffing harness
     position: thinking
-    thinking_end: { earliest: 2026-10-30, latest: 2026-11-20, confirmed: false }
+    thinking_end: { earliest: 2026-10-20, latest: 2026-10-23, confirmed: false }
+    mapping:
+      test: >
+        Run past staffings by hand and see whether the rules would have made
+        the same calls.
+      ends: { earliest: 2026-11-03, latest: 2026-11-06, confirmed: false }
+    early_pilot:
+      test: >
+        Size and staff one upcoming project by hand with the levels, scope
+        units and qualified pool, then reconcile once it runs.
+      mode: silo
+      silo_scope: One upcoming project, run manually.
+      starts: 2026-11-06
+      window: { earliest: 2026-11-18, latest: 2026-11-25, confirmed: false }
     pilot:
       test: >
         Run the full staffing harness with adapted levels, scope units, and the qualified

@@ -349,6 +349,9 @@
         },
         "pilot": {
           "$ref": "#/$defs/pilot"
+        },
+        "early_pilot": {
+          "$ref": "#/$defs/pilot"
         }
       },
       "oneOf": [
@@ -452,6 +455,9 @@
         },
         "lives_in": {
           "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "early_pilot": {
+          "$ref": "#/$defs/pilot"
         }
       },
       "oneOf": [

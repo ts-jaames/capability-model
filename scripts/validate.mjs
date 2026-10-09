@@ -1186,6 +1186,12 @@ function checkReadiness(map, file, definitions) {
       }
     };
     checkTests(where, row, index, row.id);
+    if (row.early_pilot) {
+      checkTests(`${where} early_pilot`, { pilot: row.early_pilot, mapping: row.mapping, thinking_end: row.thinking_end }, index, row.id);
+      if (row.pilot?.starts && row.early_pilot.window && row.early_pilot.window.latest > row.pilot.starts) {
+        add("constraints", file, `${where} early pilot ends ${row.early_pilot.window.latest} after the full pilot starts ${row.pilot.starts}`);
+      }
+    }
     for (const item of items) {
       if (!item.mapping && !item.pilot && !item.thinking_end) continue;
       const itemIndex = COLUMN_IDS.indexOf(item.position);
