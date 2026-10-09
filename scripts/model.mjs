@@ -72,6 +72,28 @@ export function oneLine(value) {
   return String(value ?? "").trim().replace(/\s+/g, " ");
 }
 
+// The two answers at the top of the readiness page, both worked out from the
+// parts and never typed: when the first pilots can start (the earliest silo
+// pilot), and the window of the joint pilot. A part with no pilot.test has no
+// pilot window and is left out. Dates are ISO strings, which sort as dates.
+// Null when there is no silo pilot or no joint pilot.
+export function pilotWindow(map) {
+  const live = (map?.rows ?? [])
+    .flatMap((row) => [row, ...(row.items ?? [])])
+    .filter((entry) => entry.pilot?.test && entry.pilot.window);
+  const silo = live.filter((entry) => entry.pilot.mode === "silo").map((entry) => entry.pilot.window.earliest).sort();
+  const joint = live.filter((entry) => entry.pilot.mode === "joint").map((entry) => entry.pilot.window);
+  if (!silo.length || !joint.length) return null;
+  return {
+    first: silo[0],
+    joint: {
+      earliest: joint.map((w) => w.earliest).sort()[0],
+      latest: joint.map((w) => w.latest).sort().reverse()[0],
+    },
+    confirmed: live.every((entry) => entry.pilot.window.confirmed === true),
+  };
+}
+
 export function fileStem(file) {
   return basename(file).replace(/\.(yaml|yml)$/, "");
 }

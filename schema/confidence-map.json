@@ -16,25 +16,202 @@
     "rows"
   ],
   "properties": {
-    "id": { "$ref": "common.json#/$defs/kebabId" },
-    "name": { "$ref": "common.json#/$defs/nonEmptyString" },
-    "description": { "$ref": "common.json#/$defs/nonEmptyString" },
-    "status": { "$ref": "common.json#/$defs/status" },
-    "visibility": { "$ref": "common.json#/$defs/visibility" },
-    "owner": { "$ref": "common.json#/$defs/nonEmptyString" },
-    "source": { "$ref": "common.json#/$defs/source" },
-    "last_updated": { "$ref": "common.json#/$defs/isoDate" },
-    "positions_reviewed": { "type": "boolean" },
-    "today": {
+    "id": {
+      "$ref": "common.json#/$defs/kebabId"
+    },
+    "name": {
+      "$ref": "common.json#/$defs/nonEmptyString"
+    },
+    "description": {
+      "$ref": "common.json#/$defs/nonEmptyString"
+    },
+    "status": {
+      "$ref": "common.json#/$defs/status"
+    },
+    "visibility": {
+      "$ref": "common.json#/$defs/visibility"
+    },
+    "owner": {
+      "$ref": "common.json#/$defs/nonEmptyString"
+    },
+    "source": {
+      "$ref": "common.json#/$defs/source"
+    },
+    "last_updated": {
+      "$ref": "common.json#/$defs/isoDate"
+    },
+    "positions_reviewed": {
+      "type": "boolean"
+    },
+    "note": {
+      "$ref": "common.json#/$defs/nonEmptyString"
+    },
+    "mapping_engagements_target": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["updated", "text"],
+      "required": [
+        "min",
+        "max"
+      ],
       "properties": {
-        "updated": { "$ref": "common.json#/$defs/isoDateTime" },
-        "text": { "$ref": "common.json#/$defs/nonEmptyString" }
+        "min": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "estimate": {
+          "type": "boolean"
+        }
       }
     },
-    "note": { "$ref": "common.json#/$defs/nonEmptyString" },
+    "coverage_to_advance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min",
+        "max"
+      ],
+      "properties": {
+        "min": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "estimate": {
+          "type": "boolean"
+        }
+      }
+    },
+    "loop": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ring"
+      ],
+      "properties": {
+        "ring": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "common.json#/$defs/kebabId"
+          }
+        },
+        "center": {
+          "type": "array",
+          "items": {
+            "$ref": "common.json#/$defs/kebabId"
+          }
+        },
+        "callout": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "done": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "group",
+          "items"
+        ],
+        "properties": {
+          "group": {
+            "$ref": "common.json#/$defs/nonEmptyString"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "common.json#/$defs/nonEmptyString"
+            }
+          }
+        }
+      }
+    },
+    "next": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "item",
+          "estimate"
+        ],
+        "properties": {
+          "item": {
+            "$ref": "common.json#/$defs/nonEmptyString"
+          },
+          "estimate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "min",
+              "max",
+              "unit"
+            ],
+            "properties": {
+              "min": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "max": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "unit": {
+                "type": "string",
+                "enum": [
+                  "days",
+                  "weeks"
+                ]
+              }
+            }
+          },
+          "after": {
+            "$ref": "common.json#/$defs/nonEmptyString"
+          },
+          "note": {
+            "$ref": "common.json#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "$ref": "common.json#/$defs/nonEmptyString"
+      }
+    },
+    "range_drivers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pushes_late": {
+          "type": "array",
+          "items": {
+            "$ref": "common.json#/$defs/nonEmptyString"
+          }
+        },
+        "pulls_early": {
+          "type": "array",
+          "items": {
+            "$ref": "common.json#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "durations_note": {
+      "$ref": "common.json#/$defs/nonEmptyString"
+    },
     "columns": {
       "type": "array",
       "minItems": 3,
@@ -42,59 +219,297 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "name", "meaning"],
+        "required": [
+          "id",
+          "name",
+          "meaning"
+        ],
         "properties": {
-          "id": { "$ref": "#/$defs/position" },
-          "name": { "$ref": "common.json#/$defs/nonEmptyString" },
-          "meaning": { "$ref": "common.json#/$defs/nonEmptyString" }
+          "id": {
+            "$ref": "#/$defs/position"
+          },
+          "name": {
+            "$ref": "common.json#/$defs/nonEmptyString"
+          },
+          "meaning": {
+            "$ref": "common.json#/$defs/nonEmptyString"
+          }
         }
       }
     },
     "rows": {
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/row" }
+      "items": {
+        "$ref": "#/$defs/row"
+      }
+    },
+    "pilot_principle": {
+      "$ref": "common.json#/$defs/nonEmptyString"
+    },
+    "reading_rule": {
+      "$ref": "common.json#/$defs/nonEmptyString"
+    },
+    "recent_projects_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min",
+        "max"
+      ],
+      "properties": {
+        "min": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "estimate": {
+          "type": "boolean"
+        }
+      }
     }
   },
   "$defs": {
-    "position": { "type": "string", "enum": ["thinking", "mapping", "pilot"] },
+    "position": {
+      "type": "string",
+      "enum": [
+        "thinking",
+        "mapping",
+        "pilot"
+      ]
+    },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "earliest",
+        "latest",
+        "confirmed"
+      ],
+      "properties": {
+        "earliest": {
+          "$ref": "common.json#/$defs/isoDate"
+        },
+        "latest": {
+          "$ref": "common.json#/$defs/isoDate"
+        },
+        "confirmed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "dependsOn": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "reason"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "common.json#/$defs/kebabId"
+          },
+          "reason": {
+            "$ref": "common.json#/$defs/nonEmptyString"
+          },
+          "real": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
     "row": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name"],
+      "required": [
+        "id",
+        "name"
+      ],
       "properties": {
-        "id": { "$ref": "common.json#/$defs/kebabId" },
-        "name": { "$ref": "common.json#/$defs/nonEmptyString" },
-        "lifecycle": { "$ref": "common.json#/$defs/kebabId" },
-        "position": { "$ref": "#/$defs/position" },
-        "moves_when": { "$ref": "common.json#/$defs/nonEmptyString" },
-        "last_moved": { "$ref": "common.json#/$defs/isoDate" },
+        "id": {
+          "$ref": "common.json#/$defs/kebabId"
+        },
+        "name": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "lifecycle": {
+          "$ref": "common.json#/$defs/kebabId"
+        },
+        "position": {
+          "$ref": "#/$defs/position"
+        },
+        "moves_when": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "last_moved": {
+          "$ref": "common.json#/$defs/isoDate"
+        },
+        "note": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "depends_on": {
+          "$ref": "#/$defs/dependsOn"
+        },
         "items": {
           "type": "array",
           "minItems": 1,
-          "items": { "$ref": "#/$defs/item" }
+          "items": {
+            "$ref": "#/$defs/item"
+          }
+        },
+        "status": {
+          "$ref": "common.json#/$defs/status"
+        },
+        "thinking_end": {
+          "$ref": "#/$defs/range"
+        },
+        "mapping": {
+          "$ref": "#/$defs/mapping"
+        },
+        "pilot": {
+          "$ref": "#/$defs/pilot"
         }
       },
       "oneOf": [
-        { "type": "object", "properties": { "position": {} }, "required": ["position"] },
-        { "type": "object", "properties": { "items": {} }, "required": ["items"] }
+        {
+          "type": "object",
+          "properties": {
+            "position": {}
+          },
+          "required": [
+            "position"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "items": {}
+          },
+          "required": [
+            "items"
+          ]
+        }
       ]
     },
     "item": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["position"],
+      "required": [
+        "position"
+      ],
       "properties": {
-        "name": { "$ref": "common.json#/$defs/nonEmptyString" },
-        "stage": { "type": "integer", "minimum": 0 },
-        "position": { "$ref": "#/$defs/position" },
-        "moves_when": { "$ref": "common.json#/$defs/nonEmptyString" },
-        "last_moved": { "$ref": "common.json#/$defs/isoDate" }
+        "id": {
+          "$ref": "common.json#/$defs/kebabId"
+        },
+        "name": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "stage": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "position": {
+          "$ref": "#/$defs/position"
+        },
+        "moves_when": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "last_moved": {
+          "$ref": "common.json#/$defs/isoDate"
+        },
+        "note": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "depends_on": {
+          "$ref": "#/$defs/dependsOn"
+        },
+        "mapping": {
+          "$ref": "#/$defs/mapping"
+        },
+        "pilot": {
+          "$ref": "#/$defs/pilot"
+        }
       },
       "oneOf": [
-        { "type": "object", "properties": { "name": {} }, "required": ["name"] },
-        { "type": "object", "properties": { "stage": {} }, "required": ["stage"] }
+        {
+          "type": "object",
+          "properties": {
+            "name": {}
+          },
+          "required": [
+            "name"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "stage": {}
+          },
+          "required": [
+            "stage"
+          ]
+        }
       ]
+    },
+    "mapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "test": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "ends": {
+          "$ref": "#/$defs/range"
+        },
+        "skip": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "pilot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "test": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "silo",
+            "joint"
+          ]
+        },
+        "silo_scope": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "with": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.json#/$defs/kebabId"
+          }
+        },
+        "label": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "window": {
+          "$ref": "#/$defs/range"
+        },
+        "not_yet": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "note": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        }
+      }
     }
   }
 }

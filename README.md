@@ -70,7 +70,7 @@ You do not need to edit YAML.
 - `levels.yaml` — agency-wide L1 / L2 / L3 / L4 legend
 - `intensity.yaml` — agency-wide Dormant / Low / Active / Peak dial legend
 - `capacity-model.yaml` — how demanded load converts into a seat count: surface area, the two level axes, nominal capacity, the caliber gap. Every number is a marked placeholder and `values_reviewed` is false. Carries no engagement data; pairs with a still-missing operating-view file that holds the per-engagement inputs
-- `confidence-map.yaml` — where each part of the model sits on how tested it is: Thinking Time, Current engagement mapping, Pilot use. Edited by hand, ordered by evidence rather than dates, and rendered as a standalone page (`confidence-map.html`) reached from the foot of the sidebar
+- `confidence-map.yaml` — the source for the Status & Pilot Readiness page: where each part of the model sits on how tested it is (Thinking Time, Current engagement mapping, Pilot use), unconfirmed estimate windows for its next moves, the dependency loop between parts, and what is done, next and undecided. Each part states one mapping test (looks back) and one pilot test (looks forward). Edited by hand. Positions move on evidence only; the overall pilot window is derived from the parts. Rendered as a standalone page (`confidence-map.html`) reached from the foot of the sidebar
 - `domains/*.yaml` — six closed domains
 - `capabilities/<domain-slug>/<kebab-id>.yaml` — capabilities nested by domain
 - `skills/*.yaml` — methods used inside capabilities (`agent_skills`)

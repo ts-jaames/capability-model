@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
 import { createServer } from "node:http";
 import { extname, join, resolve } from "node:path";
 import {
@@ -9,6 +10,7 @@ import {
   loadModel,
   modelView,
   oneLine,
+  pilotWindow,
   scopeView,
 } from "./model.mjs";
 
@@ -95,9 +97,10 @@ const PAGES = [
   // sidebar rather than from the page list above it.
   {
     id: "confidence-map",
-    title: "Confidence Map",
+    title: "Status & Pilot Readiness",
     file: "confidence-map.html",
     main: renderConfidenceMapMain,
+    footerNote: (model) => model.confidenceMap?.durations_note,
     standalone: true,
   },
 ];
@@ -1266,10 +1269,49 @@ function renderAiSdlcMain(model) {
       </section>` : ""}`;
 }
 
-// The Confidence Map reads confidence-map.yaml and nothing else is authored
-// here. Positions are a human's call, so this only lays them out: it never
-// infers one. A row with parts shows where its weakest part sits, plus how many
-// parts sit in each column.
+// Status & Pilot Readiness reads confidence-map.yaml and nothing else is
+// authored here. Positions are a human's call, so this only lays them out: it
+// never infers one. A row with parts shows where its weakest part sits.
+
+// What counts as a change to the model. Edits to the site, the scripts or this
+// page are not model changes, so they never appear in "What's happening today".
+const MODEL_PATHS = [
+  "capabilities",
+  "domains",
+  "skills",
+  "roles",
+  "titles",
+  "risk-shapes",
+  "seams",
+  "definitions",
+  "doctrine",
+  "lifecycles",
+  "levels.yaml",
+  "intensity.yaml",
+  "capacity-model.yaml",
+];
+
+// The latest commits that touched a model file, newest first. Empty when git is
+// not available (a source archive, say), in which case the card is left out.
+function modelChanges(limit = 5) {
+  try {
+    const out = execFileSync(
+      "git",
+      ["log", "-n", String(limit), "--format=%cI%x09%s", "--", ...MODEL_PATHS],
+      { cwd: REPO_ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
+    );
+    return out
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => {
+        const [when, ...rest] = line.split("\t");
+        return { when, subject: rest.join("\t") };
+      });
+  } catch {
+    return [];
+  }
+}
+
 function renderConfidenceMapMain(model) {
   const map = model.confidenceMap;
   if (!map) throw new Error("Missing confidence-map.yaml. Run npm run validate.");
@@ -1283,8 +1325,17 @@ function renderConfidenceMapMain(model) {
   const dot = (id, part = false) =>
     `<span class="cm-dot${part ? " cm-dot-part" : ""}" role="img" aria-label="Sits in ${esc(nameOf(id))}"></span>`;
 
+  // Counted from the capability files, so the figure cannot go stale.
+  const caps = model.capabilities ?? [];
+  const sized = caps.filter((cap) => cap.scope_decomposition?.leverage_by_level).length;
+  const derived = {
+    "scope-units": `${sized} of ${caps.length} capabilities have leverage defined.`,
+  };
+
   const notes = (entry) =>
     [
+      entry.note ?? "",
+      derived[entry.id] ?? "",
       entry.moves_when ? `Moves right when: ${entry.moves_when}` : "",
       entry.last_moved ? `Last moved ${entry.last_moved}` : "",
     ]
@@ -1304,65 +1355,93 @@ function renderConfidenceMapMain(model) {
     return `Stage ${stage.number} · ${stage.name}`;
   };
 
-  const cells = (renderCell) =>
-    columns.map((column, index) => `<div class="cm-cell">${renderCell(column, index)}</div>`).join("");
+  // Every id an edge or a joint pilot can point at, with its display name, the
+  // column it sits in and the row it belongs to.
+  const nodes = new Map();
+  for (const row of map.rows ?? []) {
+    const items = row.items ?? [];
+    const column = items.length
+      ? columns[Math.min(...items.map((item) => columnIndex.get(item.position) ?? columns.length))]?.id
+      : row.position;
+    nodes.set(row.id, { name: row.name, column, row: row.id, depends_on: row.depends_on });
+    for (const item of items) {
+      if (item.id) {
+        nodes.set(item.id, { name: partName(row, item), column: item.position, row: row.id, depends_on: item.depends_on });
+      }
+    }
+  }
+
+  // The planned pilot mode shows in the pilot column until the part gets there.
+  // A part with no pilot test has no pilot, so it gets no badge.
+  const modeBadge = (row) =>
+    row.pilot?.test && row.pilot.mode
+      ? `<span class="cm-mode">${row.pilot.mode === "silo" ? "Silo pilot" : "Joint pilot"}</span>`
+      : "";
+  const cells = (renderCell, row) =>
+    columns
+      .map((column, index) => {
+        const inner = renderCell(column, index);
+        const badge = column.id === "pilot" && !inner && row ? modeBadge(row) : "";
+        return `<div class="cm-cell">${inner}${badge}</div>`;
+      })
+      .join("");
+
+  // Mapping looks back and pilot looks forward. Each part states one test for
+  // each, and says so plainly when it has none.
+  const tests = (entry) => {
+    if (!entry.mapping && !entry.pilot) return "";
+    const m = entry.mapping;
+    const p = entry.pilot;
+    const looking = m?.skip ? `Skipped. ${m.skip}` : (m?.test ?? "No mapping test yet.");
+    const forward = p?.test ?? "Pilot not defined yet.";
+    const meta = !p?.test
+      ? ""
+      : p.mode === "joint"
+        ? `Joint pilot with ${(p.with ?? []).map((id) => nodes.get(id)?.name ?? id).join(", ")}.`
+        : `Silo pilot: ${p.silo_scope}`;
+    return `
+          <div class="cm-tests">
+            <p><strong>Mapping looks back.</strong> ${esc(oneLine(looking))}</p>
+            <p><strong>Pilot looks forward.</strong> ${esc(oneLine(forward))}</p>
+            ${meta ? `<p class="cm-tests-meta">${esc(oneLine(meta))}${p.not_yet ? ` ${esc(oneLine(p.not_yet))}` : ""}${p.note ? ` ${esc(oneLine(p.note))}` : ""}</p>` : ""}
+          </div>`;
+  };
 
   const caret = `<svg class="cm-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
+  // Every row opens, so the tests are always one click away. A group sits in
+  // the column of its weakest part, which is the honest reading.
   const rows = (map.rows ?? [])
     .map((row) => {
       const items = row.items ?? [];
-
-      if (!items.length) {
-        return `
-        <div class="cm-single">
-          <div class="cm-row">
-            <div class="cm-name"><span class="cm-name-line"><span class="cm-spacer"></span>${esc(row.name)}</span>${notes(row)}</div>
-            ${cells((column) => (column.id === row.position ? dot(column.id) : ""))}
-          </div>
-        </div>`;
-      }
-
-      // The leftmost column any part sits in. Anything not yet tested keeps the
-      // whole group there, which is the honest reading of "weakest part".
-      const weakest = Math.min(
-        ...items.map((item) => columnIndex.get(item.position) ?? columns.length),
-      );
-
+      const weakest = items.length
+        ? Math.min(...items.map((item) => columnIndex.get(item.position) ?? columns.length))
+        : (columnIndex.get(row.position) ?? columns.length);
       const children = items
         .map(
           (item) => `
           <div class="cm-row cm-child">
             <div class="cm-name"><span>${esc(partName(row, item))}</span>${notes(item)}</div>
             ${cells((column) => (column.id === item.position ? dot(column.id, true) : ""))}
-          </div>`,
+          </div>${tests(item)}`,
         )
         .join("");
+      const count = items.length ? `<span class="cm-count">(${items.length})</span>` : "";
 
       return `
         <details class="cm-group">
           <summary class="cm-row">
-            <div class="cm-name"><span class="cm-name-line">${caret}${esc(row.name)}<span class="cm-count">(${items.length})</span></span>${notes(row)}</div>
-            ${cells((column, index) => (index === weakest ? dot(column.id) : ""))}
-          </summary>${children}
+            <div class="cm-name"><span class="cm-name-line">${caret}${esc(row.name)}${count}</span></div>
+            ${cells((column, index) => (index === weakest ? dot(column.id) : ""), row)}
+          </summary>${notes(row) ? `<div class="cm-detail">${notes(row)}</div>` : ""}${tests(row)}${children}
         </details>`;
     })
     .join("");
 
-  // A column's definition, on hover or keyboard focus beside its name. Every
-  // column but the first opens its tooltip leftwards so it cannot run off the
-  // right edge of the grid.
+  // A definition on hover or keyboard focus beside a header. Every column but
+  // the first opens its tooltip leftwards so it cannot run off the right edge.
   const infoTip = (column, index) =>
     `<span class="skill-tip cm-info" tabindex="0" aria-label="${esc(column.name)}: ${esc(oneLine(column.meaning))}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="4.9" r="0.9" fill="currentColor"/></svg><span class="tip${index > 0 ? " tip-end" : ""}" role="tooltip">${esc(oneLine(column.meaning))}</span></span>`;
-
-  // The description is authored as short paragraphs in the YAML. In a folded
-  // (>) block a blank line between paragraphs arrives as a single newline, so
-  // that is what separates them here.
-  const explanation = String(map.description ?? "")
-    .trim()
-    .split(/\n+/)
-    .map((block) => `<p class="lede">${esc(oneLine(block))}</p>`)
-    .join("");
 
   // The stamp is written with an offset ("2026-10-01T10:25:11-05:00"). Read as
   // written, it gives the same absolute time for every reader and no script.
@@ -1371,42 +1450,392 @@ function renderConfidenceMapMain(model) {
     return match ? `${match[1]} ${match[2]} ${match[3] === "Z" ? "UTC" : `UTC${match[3]}`}` : String(value);
   };
 
-  // A short note on what is being worked on right now. It is history-facing
-  // (what is happening, as of a moment), never a forecast. The page script
-  // turns the stamp into a running "4 mins ago"; without it the absolute time
-  // is shown instead, so the note is never left without a time.
-  const today = map.today
+  // What changed in the model, from the commits that touched model files. It
+  // is history, never a forecast. The page script turns the newest stamp into a
+  // running "4 mins ago"; without it the absolute time is shown instead.
+  const changes = modelChanges();
+  const today = changes.length
     ? `<div class="cm-today">
           <div class="cm-today-head">
-            <p class="mono uppercase cm-today-title">What's happening today</p>
-            <p class="mono cm-today-date">Updated <time class="cm-ago" datetime="${esc(map.today.updated)}" data-since="${esc(map.today.updated)}">${esc(stamped(map.today.updated))}</time></p>
+            <p class="callout-label cm-today-title">What's happening today</p>
+            <p class="cm-today-date">Latest model change <time class="cm-ago" datetime="${esc(changes[0].when)}" data-since="${esc(changes[0].when)}">${esc(stamped(changes[0].when))}</time></p>
           </div>
-          ${String(map.today.text)
-            .trim()
-            .split(/\n+/)
-            .map((block) => `<p>${esc(oneLine(block))}</p>`)
-            .join("")}
+          <ul class="cm-changes">
+            ${changes
+              .map((change) => `<li><span class="cm-change-date">${esc(shortDate(change.when.slice(0, 10)))}</span> ${esc(oneLine(change.subject))}</li>`)
+              .join("")}
+          </ul>
+        </div>`
+    : "";
+
+  const span = (range) => (range.min === range.max ? `${range.min}` : `${range.min}–${range.max}`);
+  const pct = (value) => Math.round(value * 100);
+  const target = map.mapping_engagements_target;
+  const recent = map.recent_projects_target;
+  const coverage = map.coverage_to_advance;
+  const rules = [
+    target && recent ? `Mapping looks back at ${span(target)} running and ${span(recent)} recent projects.` : "",
+    coverage ? `A part moves on at ${pct(coverage.min)}–${pct(coverage.max)}% coverage.` : "",
+    "Dates are estimates and never move a part.",
+  ].filter(Boolean).join(" ");
+
+  const overall = pilotWindow(map);
+  const hero = overall
+    ? `<div class="cm-hero">
+          <p class="cm-hero-range"><span class="cm-hero-k">First pilots:</span> from ${esc(shortDate(overall.first))}</p>
+          <p class="cm-hero-range"><span class="cm-hero-k">Joint staffing pilot:</span> ${esc(shortDate(overall.joint.earliest))} – ${esc(shortDate(overall.joint.latest))}</p>
+          ${map.pilot_principle ? `<p class="cm-hero-sub">${esc(oneLine(map.pilot_principle))}</p>` : ""}
+          <p class="cm-hero-sub">${esc(rules)}</p>
         </div>`
     : "";
 
   return `
       <section id="overview">
         <p class="cm-back"><a href="index.html">← Back to the model</a></p>
-        <h1 class="mono uppercase eyebrow">${esc(map.name)}</h1>
-        <div class="cm-explainer">${explanation}</div>
+        <h1 class="cm-sr">${esc(map.name)}</h1>
+        ${hero}
         ${today}
+      </section>
+      <section id="map">
+        <h2 class="mono uppercase eyebrow">Where each part sits</h2>
         <div class="cm-scroll">
           <div class="cm">
             <div class="cm-head">
-              <div class="cm-hcell">Part of the model</div>
+              <div class="cm-hcell">Part of the model${map.reading_rule ? infoTip({ name: "Reading the map", meaning: map.reading_rule }, 0) : ""}</div>
               ${columns
                 .map(
                   (column, index) =>
-                    `<div class="cm-hcell">${esc(column.name)}${infoTip(column, index)}</div>`,
+                    `<div class="cm-hcell">${esc(column.name)}${infoTip(column, index + 1)}</div>`,
                 )
                 .join("")}
             </div>
             ${rows}
+          </div>
+        </div>
+      </section>
+      ${readinessTimeline(map, nodes)}
+      ${readinessLoop(map, nodes)}
+      ${readinessDone(map)}
+      ${readinessNext(map)}
+      ${readinessDecisions(map)}`;
+}
+
+// Dates on the readiness page are ISO days. They are read as UTC midnight so a
+// day never shifts with the reader's time zone.
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const dayOf = (iso) => {
+  const [y, m, d] = String(iso).split("-").map(Number);
+  return Date.UTC(y, m - 1, d) / 86400000;
+};
+const isoOf = (day) => new Date(day * 86400000).toISOString().slice(0, 10);
+const shortDate = (iso) => {
+  const [, m, d] = String(iso).split("-").map(Number);
+  return `${MONTHS[m - 1]} ${d}`;
+};
+
+const READINESS_COLOR = { thinking: "#C9A47A", mapping: "#4E9A6A", pilot: "#EC4B24" };
+const LOOP_RED = "#D63B27";
+
+// One row per part: thinking and mapping bars, then the pilot bar. A thinking
+// or mapping bar is solid up to its earliest end and hatched up to its latest.
+// An unconfirmed window gets a dashed edge, which today is all of them. A part
+// with no pilot test shows that in words where the pilot bar would sit.
+function readinessTimeline(map, nodes) {
+  const rows = map.rows ?? [];
+  if (!rows.length) return "";
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const dates = [todayIso];
+  for (const row of rows) {
+    const pilots = [row, ...(row.items ?? [])].filter((e) => e.pilot?.test && e.pilot.window).map((e) => e.pilot.window);
+    for (const range of [row.thinking_end, row.mapping?.ends, ...pilots]) {
+      if (range) dates.push(range.earliest, range.latest);
+    }
+  }
+  dates.sort();
+  const [fy, fm] = dates[0].split("-").map(Number);
+  const [ly, lm] = dates[dates.length - 1].split("-").map(Number);
+  const start = Date.UTC(fy, fm - 1, 1) / 86400000;
+  const end = Date.UTC(ly, lm, 1) / 86400000;
+
+  const labelW = 230;
+  const chartW = 660;
+  const top = 40;
+  const rowH = 52;
+  const width = labelW + chartW + 16;
+  const height = top + rows.length * rowH + 8;
+  const x = (iso) => labelW + ((dayOf(iso) - start) / (end - start)) * chartW;
+
+  const grid = [];
+  for (let day = start; day <= end; day += 1) {
+    const date = new Date(day * 86400000);
+    const px = labelW + ((day - start) / (end - start)) * chartW;
+    if (date.getUTCDate() === 1) {
+      grid.push(`<line class="tl-month" x1="${px}" x2="${px}" y1="8" y2="${height - 8}"/>`);
+      if (day < end) {
+        grid.push(`<text class="tl-label" x="${px + 6}" y="16">${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}</text>`);
+      }
+    } else if (date.getUTCDay() === 1) {
+      grid.push(`<line class="tl-week" x1="${px}" x2="${px}" y1="28" y2="${height - 8}"/>`);
+    }
+  }
+
+  // The joint band sits only behind the parts a joint pilot lists, and the
+  // part that runs it.
+  const together = new Map();
+  for (const row of rows) {
+    if (row.pilot?.test && row.pilot.mode === "joint" && row.pilot.window) {
+      for (const id of [row.id, ...(row.pilot.with ?? []).map((w) => nodes.get(w)?.row ?? w)]) {
+        together.set(id, row.pilot.window);
+      }
+    }
+  }
+
+  const bar = (from, range, color, y, h) => {
+    const x0 = x(from);
+    const x1 = Math.max(x0, x(range.earliest));
+    const x2 = Math.max(x1, x(range.latest));
+    const dash = range.confirmed ? "" : ` stroke-dasharray="3 2"`;
+    return `<rect x="${x0}" y="${y}" width="${x1 - x0}" height="${h}" fill="${color}"/>` +
+      `<rect x="${x1}" y="${y}" width="${x2 - x1}" height="${h}" fill="url(#hatch-${color.slice(1)})" stroke="${color}" stroke-width="1"${dash}/>`;
+  };
+
+  const body = rows
+    .map((row, i) => {
+      const y = top + i * rowH;
+      const column = nodes.get(row.id)?.column;
+      const pilots = [row, ...(row.items ?? [])].map((e) => e.pilot).filter((p) => p?.test && p.window);
+      const window = together.get(row.id);
+      const band = window
+        ? `<rect class="tl-band" x="${x(window.earliest)}" y="${y + 2}" width="${x(window.latest) - x(window.earliest)}" height="${rowH - 4}"/>`
+        : "";
+      const mappingFrom = column === "thinking" && row.thinking_end ? row.thinking_end.earliest : todayIso;
+
+      // Pilot bars sit on the same line as the thinking and mapping bars. A
+      // label goes underneath, and says what waits when only part of a part is
+      // piloted.
+      let pilotMark = "";
+      for (const pilot of pilots) {
+        const x1 = x(pilot.window.earliest);
+        const x2 = x(pilot.window.latest);
+        const dash = pilot.window.confirmed ? "" : ` stroke-dasharray="3 2"`;
+        const caption = [pilot.label, pilot.not_yet].filter(Boolean).map(oneLine).join(". ");
+        pilotMark +=
+          `<rect x="${x1}" y="${y + 12}" width="${Math.max(0, x2 - x1)}" height="12" fill="${READINESS_COLOR.pilot}" fill-opacity="0.3" stroke="${READINESS_COLOR.pilot}" stroke-width="1"${dash}/>` +
+          (caption ? `<text class="tl-sub" x="${x1}" y="${y + 38}">${esc(caption)}</text>` : "");
+      }
+      if (!pilots.length) {
+        const ends = [row.thinking_end?.latest, row.mapping?.ends?.latest].filter(Boolean).sort();
+        const from = ends.length ? x(ends[ends.length - 1]) + 8 : labelW + 8;
+        pilotMark = `<text class="tl-sub" x="${from}" y="${y + 22}">Pilot not defined yet</text>`;
+      }
+
+      return `<g>
+          ${band}
+          <line class="tl-row" x1="0" x2="${width}" y1="${y + rowH}" y2="${y + rowH}"/>
+          <text class="tl-name" x="0" y="${y + 22}">${esc(row.name)}</text>
+          ${column === "thinking" && row.thinking_end ? bar(todayIso, row.thinking_end, READINESS_COLOR.thinking, y + 12, 12) : ""}
+          ${column !== "pilot" && row.mapping?.ends ? bar(mappingFrom, row.mapping.ends, READINESS_COLOR.mapping, y + 12, 12) : ""}
+          ${pilotMark}
+        </g>`;
+    })
+    .join("");
+
+  const hatch = (color) =>
+    `<pattern id="hatch-${color.slice(1)}" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="5" stroke="${color}" stroke-width="1.6"/></pattern>`;
+
+  const todayX = x(todayIso);
+  const swatch = (color) => `<svg width="22" height="10" aria-hidden="true"><rect width="22" height="10" fill="${color}"/></svg>`;
+
+  return `
+      <section id="timeline">
+        <h2 class="mono uppercase eyebrow">When each part could move</h2>
+        <p class="lede">Solid is the likely window, hatched is the buffer, dashed means unconfirmed.</p>
+        <div class="tl-legend">
+          <span>${swatch(READINESS_COLOR.thinking)} Thinking Time</span>
+          <span>${swatch(READINESS_COLOR.mapping)} Current engagement mapping</span>
+          <span><svg width="22" height="10" aria-hidden="true"><rect x="0.5" y="0.5" width="21" height="9" fill="${READINESS_COLOR.pilot}" fill-opacity="0.3" stroke="${READINESS_COLOR.pilot}" stroke-dasharray="3 2"/></svg> Pilot</span>
+          <span><svg width="22" height="10" aria-hidden="true"><rect width="22" height="10" fill="${READINESS_COLOR.pilot}" fill-opacity="0.12"/></svg> Pilots together</span>
+        </div>
+        <div class="cm-scroll">
+          <svg class="tl" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Estimate windows for each part, from ${esc(isoOf(start))} to ${esc(isoOf(end - 1))}">
+            <defs>${[READINESS_COLOR.thinking, READINESS_COLOR.mapping].map(hatch).join("")}</defs>
+            ${grid.join("")}
+            ${body}
+            <line class="tl-today" x1="${todayX}" x2="${todayX}" y1="26" y2="${height - 8}"/>
+            <text class="tl-today-label" x="${todayX + 4}" y="37">Today</text>
+          </svg>
+        </div>
+      </section>`;
+}
+
+// The loop is drawn from `depends_on`: an arrow runs from the part that is
+// needed to the part that needs it. Feedback that is not real yet is dashed.
+function readinessLoop(map, nodes) {
+  const ring = map.loop?.ring ?? [];
+  if (!ring.length) return "";
+  const center = map.loop.center ?? [];
+
+  const edges = [];
+  for (const [id, node] of nodes) {
+    for (const edge of node.depends_on ?? []) {
+      edges.push({ from: edge.id, to: id, reason: edge.reason, real: edge.real !== false });
+    }
+  }
+  // Lettered in loop order: clockwise round the ring from the top by the part
+  // that is needed, then edges from the centre, then feedback not yet real.
+  const rank = (edge) => {
+    const ringAt = ring.indexOf(edge.from);
+    return (edge.real ? 0 : 2000) + (ringAt === -1 ? 1000 : ringAt * 10) + Math.max(0, ring.indexOf(edge.to));
+  };
+  edges.sort((a, b) => rank(a) - rank(b));
+  const letter = (i) => String.fromCharCode(65 + i);
+
+  const width = 600;
+  const height = 420;
+  const cx = width / 2;
+  const cy = height / 2;
+  const rx = 225;
+  const ry = 160;
+  const boxH = 32;
+  const boxW = (id) => Math.round((nodes.get(id)?.name ?? id).length * 7 + 36);
+  const place = new Map();
+  ring.forEach((id, i) => {
+    const angle = -Math.PI / 2 + (i * 2 * Math.PI) / ring.length;
+    place.set(id, { x: cx + rx * Math.cos(angle), y: cy + ry * Math.sin(angle) });
+  });
+  center.forEach((id, i) => place.set(id, { x: cx, y: cy + (i - (center.length - 1) / 2) * 48 }));
+
+  // Where the line from a box's centre towards a point leaves the box.
+  const exit = (id, toward, pad = 4) => {
+    const p = place.get(id);
+    const dx = toward.x - p.x;
+    const dy = toward.y - p.y;
+    const hw = boxW(id) / 2 + pad;
+    const hh = boxH / 2 + pad;
+    const t = Math.min(dx ? hw / Math.abs(dx) : Infinity, dy ? hh / Math.abs(dy) : Infinity);
+    return { x: p.x + dx * t, y: p.y + dy * t };
+  };
+
+  const lines = edges
+    .map((edge, i) => {
+      const a = place.get(edge.from);
+      const b = place.get(edge.to);
+      if (!a || !b) return "";
+      const s = exit(edge.from, b);
+      const e = exit(edge.to, a, 8);
+      const mx = (s.x + e.x) / 2;
+      const my = (s.y + e.y) / 2;
+      return `<line x1="${s.x}" y1="${s.y}" x2="${e.x}" y2="${e.y}" stroke="${LOOP_RED}" stroke-width="1.4"${edge.real ? "" : ` stroke-dasharray="5 4"`} marker-end="url(#loop-arrow)"/>` +
+        `<circle cx="${mx}" cy="${my}" r="9" fill="#FFFFFF" stroke="${LOOP_RED}"/>` +
+        `<text class="loop-letter" x="${mx}" y="${my + 4}" text-anchor="middle">${letter(i)}</text>`;
+    })
+    .join("");
+
+  const boxes = [...place.entries()]
+    .map(([id, p]) => {
+      const node = nodes.get(id);
+      const w = boxW(id);
+      const color = node?.column ? READINESS_COLOR[node.column] : null;
+      return `<g>
+          <rect x="${p.x - w / 2}" y="${p.y - boxH / 2}" width="${w}" height="${boxH}" rx="6" fill="#FFFFFF" stroke="#D4D4D4"/>
+          ${color ? `<circle cx="${p.x - w / 2 + 14}" cy="${p.y}" r="4" fill="${color}"/>` : ""}
+          <text class="loop-name" x="${p.x + (color ? 7 : 0)}" y="${p.y + 4}" text-anchor="middle">${esc(node?.name ?? id)}</text>
+        </g>`;
+    })
+    .join("");
+
+  const list = edges
+    .map(
+      (edge, i) => `<li class="loop-edge${edge.real ? "" : " loop-edge-unreal"}">
+          <span class="loop-key">${letter(i)}</span>
+          <span><strong>${esc(nodes.get(edge.from)?.name ?? edge.from)} → ${esc(nodes.get(edge.to)?.name ?? edge.to)}.</strong> ${esc(oneLine(edge.reason))}${edge.real ? "" : " Not real yet."}</span>
+        </li>`,
+    )
+    .join("");
+
+  return `
+      <section id="loop">
+        <h2 class="mono uppercase eyebrow">Why this isn't a sequential roadmap</h2>
+        <p class="lede">The parts depend on each other in a loop, so none of them finishes first. An arrow runs from the part that is needed to the part that needs it, a dot shows the column a part sits in, and a dashed arrow is feedback that does not exist yet.</p>
+        <div class="cm-scroll">
+          <svg class="loop" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Dependency loop between parts of the model">
+            <defs><marker id="loop-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${LOOP_RED}"/></marker></defs>
+            ${lines}
+            ${boxes}
+          </svg>
+        </div>
+        <ul class="loop-edges">${list}</ul>
+        ${map.loop.callout ? `<p class="cm-callout">${esc(oneLine(map.loop.callout))}</p>` : ""}
+      </section>`;
+}
+
+// A group with nothing in it is left out rather than shown empty.
+function readinessDone(map) {
+  const groups = (map.done ?? []).filter((group) => group.items.length);
+  if (!groups.length) return "";
+  return `
+      <section id="done">
+        <h2 class="mono uppercase eyebrow">What's done</h2>
+        <div class="cm-done">
+          ${groups
+            .map(
+              (group) => `<div class="cm-done-group">
+            <h3>${esc(group.group)}</h3>
+            <ul>${group.items.map((item) => `<li>${esc(oneLine(item))}</li>`).join("")}</ul>
+          </div>`,
+            )
+            .join("")}
+        </div>
+      </section>`;
+}
+
+function readinessNext(map) {
+  const next = map.next ?? [];
+  if (!next.length) return "";
+  const span = ({ min, max, unit }) => {
+    const one = unit.replace(/s$/, "");
+    if (min === max) return `${min} ${min === 1 ? one : unit}`;
+    return `${min}–${max} ${unit}`;
+  };
+  return `
+      <section id="next">
+        <h2 class="mono uppercase eyebrow">What matters most next</h2>
+        <div class="cm-scroll">
+          <table class="hairline-table cm-next">
+            <thead><tr><th>What</th><th>Estimate</th><th>Why it comes first</th></tr></thead>
+            <tbody>
+              ${next
+                .map(
+                  (entry) => `<tr>
+                <td>${esc(entry.item)}</td>
+                <td class="cm-next-est">${esc(span(entry.estimate))}${entry.after ? ` after ${esc(entry.after)}` : ""}</td>
+                <td>${entry.note ? esc(oneLine(entry.note)) : ""}</td>
+              </tr>`,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+      </section>`;
+}
+
+function readinessDecisions(map) {
+  const decisions = map.decisions ?? [];
+  const drivers = map.range_drivers ?? {};
+  if (!decisions.length && !drivers.pushes_late && !drivers.pulls_early) return "";
+  const list = (items) => `<ul>${(items ?? []).map((item) => `<li>${esc(oneLine(item))}</li>`).join("")}</ul>`;
+  return `
+      <section id="decisions">
+        <div class="cm-two">
+          <div>
+            <h2 class="mono uppercase eyebrow">Decisions we need</h2>
+            ${list(decisions)}
+          </div>
+          <div>
+            <h2 class="mono uppercase eyebrow">What moves the range</h2>
+            ${drivers.pushes_late?.length ? `<h3>Pushes it later</h3>${list(drivers.pushes_late)}` : ""}
+            ${drivers.pulls_early?.length ? `<h3>Pulls it earlier</h3>${list(drivers.pulls_early)}` : ""}
           </div>
         </div>
       </section>`;
@@ -1889,8 +2318,8 @@ function renderCorePhilosophyMain(model) {
       <section id="confidence">
         <h2 class="mono uppercase eyebrow">How settled this is</h2>
         <p class="lede">The model is drafted, not proven. Every entry is at draft status, the numbers behind seat counts are placeholders no one has checked against real delivery, and the dial settings on the risk shapes are judgment calls rather than observations. The three Commitment States are not recorded per capability yet; today they appear only in how seat counts and levels promote.</p>
-        <p class="lede">The Confidence Map records where each part sits. Parts move right when real work holds them up, and back left when real work breaks them.</p>
-        ${to("confidence-map.html", "Confidence Map")}
+        <p class="lede">Status &amp; Pilot Readiness records where each part sits and when it could be ready for pilot use. Parts move right when real work holds them up, and back left when real work breaks them.</p>
+        ${to("confidence-map.html", "Status & Pilot Readiness")}
       </section>`;
 }
 
@@ -2460,7 +2889,7 @@ function render(model, pageId = "core-philosophy") {
       flex-shrink: 0;
       white-space: nowrap;
     }
-    .cm-back { margin: 0 0 32px; }
+    .cm-back { margin: 0 0 48px; }
     .cm-scroll { overflow-x: auto; margin-top: 32px; }
     /* Each evidence column is as wide as its own header plus the same gap, so
        the white space between "Thinking Time", "Current engagement mapping"
@@ -2477,7 +2906,7 @@ function render(model, pageId = "core-philosophy") {
     }
     .cm-explainer { max-width: 700px; }
     .cm-today {
-      margin: 32px 0 0;
+      margin: 40px 0 0;
       padding: 16px 20px;
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -2543,6 +2972,110 @@ function render(model, pageId = "core-philosophy") {
     }
     .cm-dot-part { background: #f2b88e; }
     .cm-count { font-size: 12.5px; font-weight: 400; }
+    .cm-mode {
+      font-size: 12px;
+      line-height: 1.4;
+      padding: 1px 8px;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+    .cm-hero { margin: 0 0 40px; }
+    .cm-hero-range {
+      margin: 0 0 4px;
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .cm-hero-k { font-weight: 400; }
+    .cm-hero-sub { margin: 8px 0 0; max-width: 700px; }
+    .tl, .loop { display: block; font-family: inherit; }
+    .tl-month { stroke: #DCDCDC; stroke-width: 1; }
+    .tl-week { stroke: var(--line); stroke-width: 1; }
+    .tl-row { stroke: var(--line); stroke-width: 1; }
+    .tl-band { fill: #EC4B24; fill-opacity: 0.06; }
+    .tl-label, .tl-sub, .tl-trails, .tl-today-label { font-size: 12px; fill: var(--ink); }
+    .tl-name { font-size: 13.5px; font-weight: 600; fill: var(--ink); }
+    .tl-today { stroke: #EC4B24; stroke-width: 1.4; }
+    .tl-today-label { fill: #EC4B24; font-weight: 600; }
+    .tl-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+      margin: 16px 0 0;
+      font-size: 12.5px;
+    }
+    .tl-legend span { display: inline-flex; align-items: center; gap: 8px; }
+    .loop-name { font-size: 13px; font-weight: 600; fill: var(--ink); }
+    .loop-letter { font-size: 11px; font-weight: 600; fill: #D63B27; }
+    .loop-edges {
+      list-style: none;
+      margin: 16px 0 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      column-gap: 32px;
+      max-width: 900px;
+    }
+    .loop-edge {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+    }
+    .loop-key {
+      flex: 0 0 20px;
+      height: 20px;
+      border: 1px solid #D63B27;
+      border-radius: 99px;
+      color: #D63B27;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .loop-edge-unreal .loop-key { border-style: dashed; }
+    .cm-callout {
+      margin: 24px 0 0;
+      padding: 4px 0 4px 16px;
+      border-left: 2px solid #D63B27;
+      max-width: 700px;
+    }
+    .cm-done {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0 32px;
+    }
+    .cm-done-group { border-top: 1px solid var(--line); padding-top: 12px; }
+    .cm-done-group h3,
+    .cm-two h3 { margin: 0 0 8px; font-size: 13.5px; font-weight: 600; }
+    .cm-done ul,
+    .cm-two ul { margin: 0; padding-left: 18px; }
+    .cm-done li,
+    .cm-two li { margin: 0 0 6px; }
+    .cm-done p { margin: 0; }
+    .cm-next { min-width: 560px; }
+    .cm-next-est { white-space: nowrap; }
+    .cm-two {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 0 48px;
+    }
+    .cm-two h3 { margin-top: 16px; }
+    .cm-h { margin: 0 0 12px; font-size: 15px; font-weight: 600; line-height: 1.3; }
+    .cm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .cm-today .cm-today-date { font-size: 12.5px; }
+    .cm-changes { list-style: none; margin: 0; padding: 0; }
+    .cm-changes li { margin: 0 0 4px; }
+    .cm-change-date { display: inline-block; min-width: 48px; }
+    .cm-detail { display: flex; flex-direction: column; gap: 2px; padding: 8px 0 0 18px; border-top: 1px solid var(--line); }
+    .cm-detail .cm-note { padding-left: 0; }
+    .cm-tests { padding: 8px 0 8px 18px; border-top: 1px solid var(--line); }
+    .cm-detail + .cm-tests { border-top: 0; padding-top: 4px; }
+    .cm-tests p { margin: 0 0 4px; max-width: 700px; }
+    .cm-tests-meta { font-size: 12.5px; }
     .prose { margin-bottom: 24px; max-width: 700px; }
     .stack .prose { margin-bottom: 8px; }
     .stack .prose:last-child { margin-bottom: 0; }
@@ -2709,7 +3242,7 @@ function render(model, pageId = "core-philosophy") {
     }
     <div class="doc">
       ${main}
-      <footer>Generated <span class="mono">${esc(generated)}</span> from the YAML source of truth. Read-only.</footer>
+      <footer>Generated <span class="mono">${esc(generated)}</span> from the YAML source of truth. Read-only.${page.footerNote?.(model) ? ` ${esc(oneLine(page.footerNote(model)))}` : ""}</footer>
     </div>
   </div>
   <script>
