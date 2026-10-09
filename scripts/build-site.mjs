@@ -1671,17 +1671,20 @@ function readinessGantt(map, nodes, helpers) {
             })
             .join("")
         : items.map(child).join("");
-      const toolList = toolsDetail(items);
+      // The rules stay in the YAML as the source; the chart shows one overview.
+      const SHOW_RULES = false;
+      const hideRules = !SHOW_RULES && items.some((item) => item.kind);
+      const toolList = hideRules ? "" : toolsDetail(items);
 
       return `
         <div class="gt-row gt-group" data-row="${esc(row.id)}">
           <div class="gt-name">
-            <button type="button" class="gt-group-btn" data-toggle aria-expanded="false" aria-controls="gt-${esc(row.id)}">${caret}<span class="gt-title">${esc(row.name)}</span><span class="cm-count">(${items.length})</span></button>
+            <button type="button" class="gt-group-btn" data-toggle aria-expanded="false" aria-controls="gt-${esc(row.id)}">${caret}<span class="gt-title">${esc(row.name)}</span>${hideRules ? "" : `<span class="cm-count">(${items.length})</span>`}</button>
           </div>
           <div class="gt-lane">${lanes(row)}</div>
         </div>
         <div class="gt-panel" id="gt-${esc(row.id)}" hidden>
-          ${inner || toolList ? `<div class="gt-detail">${inner}${toolList}</div>` : ""}${children}
+          ${inner || toolList ? `<div class="gt-detail">${inner}${toolList}</div>` : ""}${hideRules ? "" : children}
         </div>`;
     })
     .join("");
