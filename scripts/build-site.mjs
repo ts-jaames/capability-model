@@ -1605,7 +1605,6 @@ function readinessTimeline(map, nodes) {
       const y = top + i * rowH;
       const column = nodes.get(row.id)?.column;
       const pilots = [row, ...(row.items ?? [])].map((e) => e.pilot).filter((p) => p?.test && p.window);
-      const sub = row.pilot?.test ? (row.pilot.mode === "silo" ? "Silo pilot" : "Joint pilot") : pilots[0] ? "Silo pilot" : "";
       const window = together.get(row.id);
       const band = window
         ? `<rect class="tl-band" x="${x(window.earliest)}" y="${y + 2}" width="${x(window.latest) - x(window.earliest)}" height="${rowH - 4}"/>`
@@ -1635,7 +1634,6 @@ function readinessTimeline(map, nodes) {
           ${band}
           <line class="tl-row" x1="0" x2="${width}" y1="${y + rowH}" y2="${y + rowH}"/>
           <text class="tl-name" x="0" y="${y + 22}">${esc(row.name)}</text>
-          ${sub ? `<text class="tl-sub" x="0" y="${y + 40}">${esc(sub)}</text>` : ""}
           ${column === "thinking" && row.thinking_end ? bar(todayIso, row.thinking_end, READINESS_COLOR.thinking, y + 12, 12) : ""}
           ${column !== "pilot" && row.mapping?.ends ? bar(mappingFrom, row.mapping.ends, READINESS_COLOR.mapping, y + 12, 12) : ""}
           ${pilotMark}
