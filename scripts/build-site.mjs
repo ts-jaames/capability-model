@@ -1564,8 +1564,7 @@ function readinessGantt(map, nodes, helpers) {
         return `
         <div class="gt-row" data-row="${esc(row.id)}">
           <div class="gt-name">
-            <span class="gt-title">${esc(row.name)}</span>
-            <span class="gt-tags">${inner ? `<button type="button" class="gt-more" data-toggle aria-expanded="false" aria-controls="gt-${esc(row.id)}">Details</button>` : ""}</span>
+            ${inner ? `<button type="button" class="gt-group-btn" data-toggle aria-expanded="false" aria-controls="gt-${esc(row.id)}">${caret}<span class="gt-title">${esc(row.name)}</span></button>` : `<span class="gt-title gt-plain">${esc(row.name)}</span>`}
           </div>
           <div class="gt-lane">${lanes(row)}</div>
         </div>
@@ -3001,8 +3000,7 @@ function render(model, pageId = "core-philosophy") {
     .gt-child .gt-name { padding-left: 20px; }
     .gt-title { font-weight: 600; }
     .gt-child .gt-title { font-weight: 400; }
-    .gt-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-    .gt-group-btn, .gt-more {
+    .gt-group-btn {
       font: inherit;
       color: inherit;
       background: none;
@@ -3011,8 +3009,8 @@ function render(model, pageId = "core-philosophy") {
       cursor: pointer;
     }
     .gt-group-btn { display: inline-flex; align-items: center; gap: 8px; text-align: left; }
-    .gt-more { font-size: 12px; text-decoration: underline; text-underline-offset: 2px; }
-    .gt-group-btn:focus-visible, .gt-more:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .gt-plain { padding-left: 18px; }
+    .gt-group-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
     .gt-group-btn[aria-expanded="true"] .cm-caret { transform: rotate(90deg); }
     .gt [hidden] { display: none !important; }
     .gt-lane { position: relative; min-height: 40px; }
