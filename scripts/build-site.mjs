@@ -1430,9 +1430,9 @@ function renderConfidenceMapMain(model) {
       return `
         <details class="cm-group">
           <summary class="cm-row">
-            <div class="cm-name"><span class="cm-name-line">${caret}${esc(row.name)}${count}</span>${notes(row)}</div>
+            <div class="cm-name"><span class="cm-name-line">${caret}${esc(row.name)}${count}</span></div>
             ${cells((column, index) => (index === weakest ? dot(column.id) : ""), row)}
-          </summary>${tests(row)}${children}
+          </summary>${notes(row) ? `<div class="cm-detail">${notes(row)}</div>` : ""}${tests(row)}${children}
         </details>`;
     })
     .join("");
@@ -3065,7 +3065,10 @@ function render(model, pageId = "core-philosophy") {
     .cm-changes { list-style: none; margin: 0; padding: 0; }
     .cm-changes li { margin: 0 0 4px; }
     .cm-change-date { display: inline-block; min-width: 48px; }
+    .cm-detail { display: flex; flex-direction: column; gap: 2px; padding: 8px 0 0 18px; border-top: 1px solid var(--line); }
+    .cm-detail .cm-note { padding-left: 0; }
     .cm-tests { padding: 8px 0 8px 18px; border-top: 1px solid var(--line); }
+    .cm-detail + .cm-tests { border-top: 0; padding-top: 4px; }
     .cm-tests p { margin: 0 0 4px; max-width: 700px; }
     .cm-tests-meta { font-size: 12.5px; }
     .prose { margin-bottom: 24px; max-width: 700px; }
