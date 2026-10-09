@@ -13,7 +13,7 @@ positions_reviewed: false
 # ready, so only a part that needs the others has to wait.
 pilot_principle: >
   Parts pilot as soon as they're ready, manually if needed; only the staffing
-  ledger has to wait for the others.
+  harness has to wait for the others.
 
 # Shown in the tooltip on the "Part of the model" column header.
 reading_rule: >
@@ -114,11 +114,11 @@ rows:
             reason: >
               Risk shapes and dials say how hard a capability runs, which is
               what a level has to be able to describe.
-          - id: staffing-ledger
+          - id: staffing-harness
             real: false
             reason: >
               Staffing runs should show where a level was set wrong. This
-              feedback does not exist until the ledger has run once.
+              feedback does not exist until the harness has run once.
 
   - id: scope-units
     name: Scope Units
@@ -223,12 +223,13 @@ rows:
       - name: Agentic mode, Test (combined threshold)
         position: thinking
 
-  - id: staffing-ledger
-    name: Staffing ledger
+  - id: staffing-harness
+    name: Staffing harness
     position: thinking
+    thinking_end: { earliest: 2026-10-30, latest: 2026-11-20, confirmed: false }
     pilot:
       test: >
-        Run the full ledger with adapted levels, scope units, and the qualified
+        Run the full staffing harness with adapted levels, scope units, and the qualified
         pool together.
       mode: joint
       with:
@@ -237,8 +238,8 @@ rows:
         - roles-titles
       window: { earliest: 2026-12-07, latest: 2027-01-15, confirmed: false }
       note: >
-        A manual run can happen sooner. The agent harness depends on the build,
-        so true automation waits for it.
+        A manual run can happen sooner. True automation depends on the agent
+        harness build, so it waits for it.
     depends_on:
       - id: roles-titles
         reason: >
@@ -246,18 +247,24 @@ rows:
           titles to fill it.
       - id: scope-units
         reason: >
-          The ledger needs to know how many instances of each capability the
+          The harness needs to know how many instances of each capability the
           pilot's work calls for.
       - id: capability-levels
         reason: >
-          The qualified pool the ledger draws on comes from people assessed
+          The qualified pool the harness draws on comes from people assessed
           against the levels.
+
+  - id: esoa-harness
+    name: ESOA harness
+    position: thinking
+    note: Designed; refresh trigger open.
+    thinking_end: { earliest: 2026-10-30, latest: 2026-11-20, confirmed: false }
 
 loop:
   ring:
     - capability-levels
     - roles-titles
-    - staffing-ledger
+    - staffing-harness
     - scope-units
     - ai-native-sdlc
     - operating-view
@@ -341,7 +348,7 @@ range_drivers:
     - A pilot scoped to a few capabilities.
     - The ledger schema landing next week.
     - Letting the Evidence Work harness trail the pilot.
-    - Running the staffing ledger pilot manually, ahead of the agent harness.
+    - Running the staffing harness pilot manually, ahead of the agent harness build.
 
 durations_note: >
   Dates and durations on this page are estimates, not commitments.
