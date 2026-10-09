@@ -1482,6 +1482,10 @@ const LOOP_RED = "#D63B27";
 // the pilot, each a solid bar covering its whole window. Where a pilot overlaps
 // an earlier bar it draws on top. A joint pilot is one orange box across every
 // part it pilots with.
+// The mapping and pilot test descriptions stay in the YAML but are hidden in the
+// chart for now, because reading them part by part is confusing. Flip to show.
+const SHOW_TESTS = false;
+
 function readinessGantt(map, nodes, helpers) {
   const { columns, columnIndex, partName, tests, notes, infoTip } = helpers;
   const rows = map.rows ?? [];
@@ -1562,7 +1566,12 @@ function readinessGantt(map, nodes, helpers) {
 
   const caret = `<svg class="cm-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const detail = (entry) => {
-    const inner = `${notes(entry) ? `<div class="gt-notes">${notes(entry)}</div>` : ""}${tests(entry)}`;
+    // With the test text hidden, a pilot's own caveats still show: what waits
+    // (not_yet) and what could change its timing (note).
+    const caveats = !SHOW_TESTS && entry.pilot?.test
+      ? [entry.pilot.not_yet, entry.pilot.note].filter(Boolean).map((text) => `<span class="cm-note">${esc(oneLine(text))}</span>`).join("")
+      : "";
+    const inner = `${notes(entry) || caveats ? `<div class="gt-notes">${notes(entry)}${caveats}</div>` : ""}${SHOW_TESTS ? tests(entry) : ""}`;
     return inner;
   };
 
