@@ -1415,6 +1415,18 @@ function renderConfidenceMapMain(model) {
         </div>`
     : "";
 
+  // What is being worked on next. A person sets it in the YAML; it is not derived.
+  const tomorrow = (map.tomorrow ?? []).length
+    ? `<div class="cm-today cm-tomorrow">
+          <div class="cm-today-head">
+            <p class="callout-label cm-today-title">What's happening tomorrow</p>
+          </div>
+          <ul class="cm-changes">
+            ${map.tomorrow.map((entry) => `<li>${esc(oneLine(entry.item))}${entry.note ? `. ${esc(oneLine(entry.note))}` : ""}</li>`).join("")}
+          </ul>
+        </div>`
+    : "";
+
   const span = (range) => (range.min === range.max ? `${range.min}` : `${range.min}–${range.max}`);
   const pct = (value) => Math.round(value * 100);
   const target = map.mapping_engagements_target;
@@ -1442,11 +1454,11 @@ function renderConfidenceMapMain(model) {
         <h1 class="cm-sr">${esc(map.name)}</h1>
         ${hero}
         ${today}
+        ${tomorrow}
       </section>
       ${readinessGantt(map, nodes, { columns, columnIndex, partName, tests, notes, infoTip })}
       ${readinessLoop(map, nodes)}
       ${readinessDone(map)}
-      ${readinessNext(map)}
       ${readinessDecisions(map)}`;
 }
 
@@ -1784,36 +1796,6 @@ function readinessDone(map) {
           </div>`,
             )
             .join("")}
-        </div>
-      </section>`;
-}
-
-function readinessNext(map) {
-  const next = map.next ?? [];
-  if (!next.length) return "";
-  const span = ({ min, max, unit }) => {
-    const one = unit.replace(/s$/, "");
-    if (min === max) return `${min} ${min === 1 ? one : unit}`;
-    return `${min}–${max} ${unit}`;
-  };
-  return `
-      <section id="next">
-        <h2 class="mono uppercase eyebrow">What matters most next</h2>
-        <div class="cm-scroll">
-          <table class="hairline-table cm-next">
-            <thead><tr><th>What</th><th>Estimate</th><th>Why it comes first</th></tr></thead>
-            <tbody>
-              ${next
-                .map(
-                  (entry) => `<tr>
-                <td>${esc(entry.item)}</td>
-                <td class="cm-next-est">${esc(span(entry.estimate))}${entry.after ? ` after ${esc(entry.after)}` : ""}</td>
-                <td>${entry.note ? esc(oneLine(entry.note)) : ""}</td>
-              </tr>`,
-                )
-                .join("")}
-            </tbody>
-          </table>
         </div>
       </section>`;
 }
@@ -2911,6 +2893,7 @@ function render(model, pageId = "core-philosophy") {
       background: #FAFAFA;
       max-width: 700px;
     }
+    .cm-tomorrow { margin-top: 16px; }
     .cm-today p { margin: 0; }
     .cm-today p + p { margin-top: 8px; }
     .cm-today-head {
@@ -3145,8 +3128,6 @@ function render(model, pageId = "core-philosophy") {
     .cm-done li,
     .cm-two li { margin: 0 0 6px; }
     .cm-done p { margin: 0; }
-    .cm-next { min-width: 560px; }
-    .cm-next-est { white-space: nowrap; }
     .cm-two {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

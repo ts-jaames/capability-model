@@ -137,46 +137,18 @@
         }
       }
     },
-    "next": {
+    "tomorrow": {
       "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "item",
-          "estimate"
+          "item"
         ],
         "properties": {
           "item": {
-            "$ref": "common.json#/$defs/nonEmptyString"
-          },
-          "estimate": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "min",
-              "max",
-              "unit"
-            ],
-            "properties": {
-              "min": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "max": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "unit": {
-                "type": "string",
-                "enum": [
-                  "days",
-                  "weeks"
-                ]
-              }
-            }
-          },
-          "after": {
             "$ref": "common.json#/$defs/nonEmptyString"
           },
           "note": {

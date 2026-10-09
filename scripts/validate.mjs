@@ -1022,7 +1022,10 @@ function checkReadiness(map, file) {
   minMax("mapping_engagements_target", map.mapping_engagements_target);
   minMax("recent_projects_target", map.recent_projects_target);
   minMax("coverage_to_advance", map.coverage_to_advance);
-  for (const entry of map.next ?? []) minMax(`next "${entry.item}" estimate`, entry.estimate);
+  for (const entry of map.tomorrow ?? []) {
+    oneSentence(`tomorrow "${entry.item}" item`, entry.item);
+    oneSentence(`tomorrow "${entry.item}" note`, entry.note);
+  }
 
   // Every id an edge can point at: rows and parts that carry an id.
   const ids = rows.flatMap((row) => [row.id, ...(row.items ?? []).map((item) => item.id).filter(Boolean)]);

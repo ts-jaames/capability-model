@@ -292,38 +292,14 @@ done:
       - "ESOA: designed; refresh trigger open."
       - "Evidence Work: drafted; may trail the pilot."
 
-next:
-  - item: Ledger schema
-    estimate: { min: 3, max: 5, unit: days }
-    note: Everything else keys off it.
-  - item: Finish adapting levels
-    estimate: { min: 1, max: 2, unit: weeks }
-    note: Titles and the qualified pool inherit them.
-  - item: Define the Operating View test
-    estimate: { min: 3, max: 3, unit: weeks }
-    note: Due by Oct 30; until it exists the part has no pilot.
-  - item: Self-assessment round two
-    estimate: { min: 1, max: 2, unit: weeks }
-    note: Checks the adapted levels against a lead's read.
-  - item: Private layer
-    estimate: { min: 1, max: 1, unit: weeks }
-    note: Memory can't hold real data in a public repo.
-  - item: Scope units for the pilot's capabilities
-    estimate: { min: 2, max: 4, unit: weeks }
-    note: The longest pole.
-  - item: Three read-only tools
-    estimate: { min: 1, max: 2, unit: weeks }
-    after: the ledger schema
-    note: They turn rules into checks.
-  - item: SOW and Staffing Briefing templates
-    estimate: { min: 1, max: 1, unit: weeks }
-    note: The rules exist, the templates don't.
-  - item: Next SOW without titles
-    estimate: { min: 1, max: 1, unit: weeks }
-    note: The pilot for Roles & Titles, tied to the next real SOW.
-  - item: Mapping against 2 to 3 engagements and 3 to 4 recent projects
-    estimate: { min: 3, max: 5, unit: weeks }
-    note: Where parts earn movement. Overlaps the items above.
+# What is being actively worked on next. A human sets this list, two or three
+# items at most; it is not derived and not a plan.
+tomorrow:
+  - item: Self-assessment of people's capability execution levels
+    note: It also checks the capability levels themselves.
+  - item: Settling the terms the model rests on
+    note: Levels, scope units, concurrency and the like.
+  - item: Staffing harness ideation
 
 decisions:
   - Which 2 to 3 running engagements and which 3 to 4 recent projects to map against.
