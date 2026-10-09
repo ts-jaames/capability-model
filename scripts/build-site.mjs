@@ -1409,7 +1409,7 @@ function renderConfidenceMapMain(model) {
           </div>
           <ul class="cm-changes">
             ${changes
-              .map((change) => `<li><span class="cm-change-date">${esc(shortDate(change.when.slice(0, 10)))}</span> ${esc(oneLine(change.subject))}</li>`)
+              .map((change) => `<li>${esc(oneLine(change.subject))}</li>`)
               .join("")}
           </ul>
         </div>`
@@ -2905,7 +2905,7 @@ function render(model, pageId = "core-philosophy") {
       margin-bottom: 8px;
     }
     .cm-today .cm-today-head p { margin: 0; }
-    .cm-today .cm-today-date { font-size: 11px; text-align: right; }
+    .cm-today .cm-today-date { font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace; font-size: 11px; text-align: right; }
     .cm-head {
       padding: 8px 0;
       border-top: 1px solid var(--line);
@@ -3139,7 +3139,6 @@ function render(model, pageId = "core-philosophy") {
     .cm-today .cm-today-date { font-size: 12.5px; }
     .cm-changes { list-style: none; margin: 0; padding: 0; }
     .cm-changes li { margin: 0 0 4px; }
-    .cm-change-date { display: inline-block; min-width: 48px; }
     .cm-detail { display: flex; flex-direction: column; gap: 2px; padding: 8px 0 0 18px; border-top: 1px solid var(--line); }
     .cm-detail .cm-note { padding-left: 0; }
     .cm-tests { padding: 8px 0 8px 18px; border-top: 1px solid var(--line); }
