@@ -81,14 +81,14 @@ export function pilotWindow(map) {
   const live = (map?.rows ?? [])
     .flatMap((row) => [row, ...(row.items ?? [])])
     .filter((entry) => entry.pilot?.test && entry.pilot.window);
-  const silo = live.filter((entry) => entry.pilot.mode === "silo").map((entry) => entry.pilot.window.earliest).sort();
-  const joint = live.filter((entry) => entry.pilot.mode === "joint").map((entry) => entry.pilot.window);
+  const silo = live.filter((entry) => entry.pilot.mode === "silo").map((entry) => entry.pilot.starts).sort();
+  const joint = live.filter((entry) => entry.pilot.mode === "joint").map((entry) => entry.pilot);
   if (!silo.length || !joint.length) return null;
   return {
     first: silo[0],
     joint: {
-      earliest: joint.map((w) => w.earliest).sort()[0],
-      latest: joint.map((w) => w.latest).sort().reverse()[0],
+      earliest: joint.map((p) => p.starts).sort()[0],
+      latest: joint.map((p) => p.window.latest).sort().reverse()[0],
     },
     confirmed: live.every((entry) => entry.pilot.window.confirmed === true),
   };

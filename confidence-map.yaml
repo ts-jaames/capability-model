@@ -61,111 +61,25 @@ coverage_to_advance:
 columns:
   - id: thinking
     name: Thinking Time
+    tag: Thinking time
     meaning: >
       We have written it down and talked it through. We have not tried it on
       real work yet.
   - id: mapping
     name: Current engagement mapping
+    tag: Mapping
     meaning: >
       Looks back. Does this part explain real work we have already done, in
       running engagements and recently finished projects?
   - id: pilot
     name: Pilot use
+    tag: Pilot use
     meaning: >
       Looks forward. We use this part on an upcoming real project and compare
       the result later. A manual or spreadsheet run counts, and a pilot should
       be the smallest chunk that gives real feedback.
 
 rows:
-  - id: capability-model
-    name: Capability Model
-    mapping:
-      test: Do the past 3–4 projects surface capabilities missing from the list?
-      ends: { earliest: 2026-10-30, latest: 2026-11-06, confirmed: false }
-    pilot:
-      test: >
-        Run an upcoming project's qualify and discovery transcripts through the
-        model, and record which capabilities surface at which levels.
-      mode: silo
-      silo_scope: One upcoming project's qualify and discovery transcripts.
-      window: { earliest: 2026-11-09, latest: 2026-11-25, confirmed: false }
-    items:
-      - id: domains
-        name: Domains
-        position: mapping
-      - id: capabilities
-        name: Capabilities
-        position: mapping
-      - id: capability-levels
-        name: Capability Levels
-        position: mapping
-        mapping:
-          test: First self-assessment run done; levels are being adapted from it.
-        pilot:
-          test: >
-            5–8 people self-assess against the adapted levels, and a lead's read
-            is compared against theirs.
-          mode: silo
-          silo_scope: A small group of subject experts levelling themselves.
-          label: Self-assessment
-          window: { earliest: 2026-10-26, latest: 2026-11-13, confirmed: false }
-        depends_on:
-          - id: operating-view
-            reason: >
-              Risk shapes and dials say how hard a capability runs, which is
-              what a level has to be able to describe.
-          - id: staffing-harness
-            real: false
-            reason: >
-              Staffing runs should show where a level was set wrong. This
-              feedback does not exist until the harness has run once.
-
-  - id: scope-units
-    name: Scope Units
-    position: thinking
-    moves_when: >
-      Core Systems Engineering leverage is checked against a real engagement,
-      concurrency is checked against one where it turned out to be wrong, and
-      a second capability has had its own scope pass.
-    thinking_end: { earliest: 2026-10-23, latest: 2026-10-30, confirmed: false }
-    mapping:
-      test: >
-        Size each past project with the rules and compare against what actually
-        happened, one sub-rule at a time.
-      ends: { earliest: 2026-11-02, latest: 2026-11-25, confirmed: false }
-    pilot:
-      test: >
-        Size an upcoming project before it starts, then reconcile once it runs.
-      mode: silo
-      silo_scope: One sub-rule at a time (levels, concurrency, effort per instance).
-      window: { earliest: 2026-11-23, latest: 2026-12-18, confirmed: false }
-    depends_on:
-      - id: ai-native-sdlc
-        reason: >
-          What counts as one unit depends on how the work is cut into stages.
-
-  - id: roles-titles
-    name: Roles & Titles
-    position: mapping
-    last_moved: 2026-10-06
-    mapping:
-      test: >
-        Do the title bundles map cleanly onto the people from the levels self-assessment?
-      ends: { earliest: 2026-11-06, latest: 2026-11-27, confirmed: false }
-    pilot:
-      test: >
-        Draft the next real SOW priced on capabilities at levels with no
-        titles, and record sales and client reaction; this tests the existing
-        rule and does not reopen it.
-      mode: silo
-      silo_scope: Tied to the next real SOW.
-      window: { earliest: 2026-11-09, latest: 2026-11-30, confirmed: false }
-    depends_on:
-      - id: capability-levels
-        reason: >
-          A title is a bundle of capabilities at levels, so it cannot settle
-          before the levels do.
-
   - id: operating-view
     name: Operating View
     status: draft
@@ -199,7 +113,8 @@ rows:
       mode: silo
       silo_scope: One stage range at a time, starting with the next discovery.
       label: Stages 0–1
-      window: { earliest: 2026-11-09, latest: 2026-11-30, confirmed: false }
+      starts: 2026-11-09
+      window: { earliest: 2026-11-25, latest: 2026-11-30, confirmed: false }
       not_yet: Stages 2–6 wait for a build engagement.
     items:
       - stage: 0
@@ -223,6 +138,107 @@ rows:
       - name: Agentic mode, Test (combined threshold)
         position: thinking
 
+  - id: capability-model
+    name: Capability Model
+    mapping:
+      test: Do the past 3–4 projects surface capabilities missing from the list?
+      ends: { earliest: 2026-10-30, latest: 2026-11-06, confirmed: false }
+    pilot:
+      test: >
+        Run an upcoming project's qualify and discovery transcripts through the
+        model, and record which capabilities surface at which levels.
+      mode: silo
+      silo_scope: One upcoming project's qualify and discovery transcripts.
+      starts: 2026-11-09
+      window: { earliest: 2026-11-21, latest: 2026-11-25, confirmed: false }
+    items:
+      - id: domains
+        name: Domains
+        position: mapping
+      - id: capabilities
+        name: Capabilities
+        position: mapping
+      - id: capability-levels
+        name: Capability Levels
+        position: mapping
+        depends_on:
+          - id: operating-view
+            reason: >
+              Risk shapes and dials say how hard a capability runs, which is
+              what a level has to be able to describe.
+          - id: staffing-harness
+            real: false
+            reason: >
+              Staffing runs should show where a level was set wrong. This
+              feedback does not exist until the harness has run once.
+
+  - id: self-assessment
+    name: Self-assessment
+    position: thinking
+    mapping:
+      test: First run done; levels are being adapted from it.
+    pilot:
+      test: >
+        5–8 people self-assess against the adapted levels, and a lead's read is
+        compared against theirs.
+      mode: silo
+      silo_scope: A small group of subject experts levelling themselves.
+      starts: 2026-10-26
+      window: { earliest: 2026-11-09, latest: 2026-11-13, confirmed: false }
+    depends_on:
+      - id: capability-levels
+        reason: >
+          People can only assess themselves against levels that read true, and
+          the first run is what adapts them.
+
+  - id: scope-units
+    name: Scope Units
+    position: thinking
+    moves_when: >
+      Core Systems Engineering leverage is checked against a real engagement,
+      concurrency is checked against one where it turned out to be wrong, and
+      a second capability has had its own scope pass.
+    thinking_end: { earliest: 2026-10-23, latest: 2026-10-30, confirmed: false }
+    mapping:
+      test: >
+        Size each past project with the rules and compare against what actually
+        happened, one sub-rule at a time.
+      ends: { earliest: 2026-11-02, latest: 2026-11-25, confirmed: false }
+    pilot:
+      test: >
+        Size an upcoming project before it starts, then reconcile once it runs.
+      mode: silo
+      silo_scope: One sub-rule at a time (levels, concurrency, effort per instance).
+      starts: 2026-11-23
+      window: { earliest: 2026-12-12, latest: 2026-12-18, confirmed: false }
+    depends_on:
+      - id: ai-native-sdlc
+        reason: >
+          What counts as one unit depends on how the work is cut into stages.
+
+  - id: roles-titles
+    name: Roles & Titles
+    position: mapping
+    last_moved: 2026-10-06
+    mapping:
+      test: >
+        Do the title bundles map cleanly onto the people from self-assessment?
+      ends: { earliest: 2026-11-06, latest: 2026-11-27, confirmed: false }
+    pilot:
+      test: >
+        Draft the next real SOW priced on capabilities at levels with no
+        titles, and record sales and client reaction; this tests the existing
+        rule and does not reopen it.
+      mode: silo
+      silo_scope: Tied to the next real SOW.
+      starts: 2026-11-09
+      window: { earliest: 2026-11-25, latest: 2026-11-30, confirmed: false }
+    depends_on:
+      - id: capability-levels
+        reason: >
+          A title is a bundle of capabilities at levels, so it cannot settle
+          before the levels do.
+
   - id: staffing-harness
     name: Staffing harness
     position: thinking
@@ -234,9 +250,11 @@ rows:
       mode: joint
       with:
         - capability-levels
+        - self-assessment
         - scope-units
         - roles-titles
-      window: { earliest: 2026-12-07, latest: 2027-01-15, confirmed: false }
+      starts: 2026-12-07
+      window: { earliest: 2027-01-05, latest: 2027-01-15, confirmed: false }
       note: >
         A manual run can happen sooner. True automation depends on the agent
         harness build, so it waits for it.
@@ -249,7 +267,7 @@ rows:
         reason: >
           The harness needs to know how many instances of each capability the
           pilot's work calls for.
-      - id: capability-levels
+      - id: self-assessment
         reason: >
           The qualified pool the harness draws on comes from people assessed
           against the levels.
@@ -268,6 +286,8 @@ loop:
     - scope-units
     - ai-native-sdlc
     - operating-view
+  center:
+    - self-assessment
   callout: >
     Asking when roles and titles will be done is really asking when levels
     settle, when sizing exists for the pilot's capabilities, and when staffing
