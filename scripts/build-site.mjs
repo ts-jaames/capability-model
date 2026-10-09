@@ -11,6 +11,7 @@ import {
   modelView,
   oneLine,
   pilotWindow,
+  rulesUsing,
   scopeView,
 } from "./model.mjs";
 
@@ -471,7 +472,7 @@ function renderTitle(title, capsById, domainsById) {
 
 // The Title · Ownership · Seat layers are the definition store rendered, not a
 // second copy of it, so the page cannot drift from `definitions/`.
-function renderLayer(definition) {
+function renderLayer(definition, rules = []) {
   const nots = (definition.not ?? [])
     .map((item) => `<li>${esc(oneLine(item))}</li>`)
     .join("");
@@ -481,7 +482,7 @@ function renderLayer(definition) {
         <h3 class="domain-name">${esc(definition.term)}</h3>
       </header>
       <div class="prose">${paragraphs(definition.definition)}</div>
-      ${nots ? `<div class="kvs">${kv("Not", `<ul class="bullets">${nots}</ul>`)}</div>` : ""}
+      ${nots || rules.length ? `<div class="kvs">${nots ? kv("Not", `<ul class="bullets">${nots}</ul>`) : ""}${rules.length ? kv("Used by rules", `<a href="confidence-map.html#timeline">${esc(rules.map((rule) => rule.name).join(", "))}</a>`) : ""}</div>` : ""}
     </article>`;
 }
 
@@ -701,7 +702,7 @@ function renderRolesMain(model) {
   const layer = (id) => {
     const definition = definitionsById.get(id);
     if (!definition) throw new Error(`Missing definition: ${id}`);
-    return renderLayer(definition);
+    return renderLayer(definition, rulesUsing(model.confidenceMap, id));
   };
 
   const defLayers = [
@@ -1496,8 +1497,8 @@ function readinessGantt(map, nodes, helpers) {
   const todayIso = new Date().toISOString().slice(0, 10);
   const dates = [todayIso];
   for (const row of rows) {
-    for (const range of [row.thinking_end, row.mapping?.ends]) if (range) dates.push(range.earliest, range.latest);
     for (const entry of [row, ...(row.items ?? [])]) {
+      for (const range of [entry.thinking_end, entry.mapping?.ends]) if (range) dates.push(range.earliest, range.latest);
       const pilot = pilotOf(entry);
       if (pilot) dates.push(pilot.starts, pilot.window.earliest, pilot.window.latest);
     }
@@ -1535,11 +1536,36 @@ function readinessGantt(map, nodes, helpers) {
   const endLabel = (text, range) =>
     `<span class="gt-label" style="left:${f(at(range.latest))}%">${esc(text)}</span>`;
 
-  const columnOf = (row) => nodes.get(row.id)?.column;
+  const columnOf = (row) => nodes.get(row.id)?.column ?? row.position;
+
+  // A group with no windows of its own is drawn as the span of its parts, so
+  // the dates are never typed twice.
+  const spanOf = (row) => {
+    if (row.thinking_end || row.mapping || row.pilot || !(row.items ?? []).length) return row;
+    const kids = row.items;
+    const latest = (ranges) => ranges.filter(Boolean).map((r) => r.latest).sort().pop();
+    const earliest = (ranges) => ranges.filter(Boolean).map((r) => r.earliest).sort()[0];
+    const span = { id: row.id, position: columnOf(row) };
+    const thinking = kids.map((k) => k.thinking_end).filter(Boolean);
+    const mapping = kids.map((k) => k.mapping?.ends).filter(Boolean);
+    const pilots = kids.map((k) => pilotOf(k)).filter(Boolean);
+    if (thinking.length) span.thinking_end = { earliest: earliest(thinking), latest: latest(thinking) };
+    if (mapping.length) span.mapping = { ends: { earliest: earliest(mapping), latest: latest(mapping) } };
+    if (pilots.length) {
+      span.pilot = {
+        test: "derived",
+        mode: "derived",
+        starts: pilots.map((p) => p.starts).sort()[0],
+        window: { earliest: earliest(pilots.map((p) => p.window)), latest: latest(pilots.map((p) => p.window)) },
+      };
+    }
+    return span;
+  };
 
   // One line per row: thinking, then mapping, then the pilot, all on the same line.
-  const lanes = (row) => {
-    const column = columnOf(row);
+  const lanes = (source, { idleNote = "Pilot not defined yet" } = {}) => {
+    const row = spanOf(source);
+    const column = nodes.get(source.id)?.column ?? source.position;
     const bars = [];
     let end = null;
     if (column === "thinking" && row.thinking_end) {
@@ -1559,7 +1585,7 @@ function readinessGantt(map, nodes, helpers) {
       if (pilot.mode === "silo") bars.push(endLabel(pilot.label ?? "Pilots on its own", pilot.window));
     } else {
       const after = end ? `left:${f(at(end))}%;` : "left:8px;";
-      bars.push(`<span class="gt-note" style="${after}padding-left:8px">Pilot not defined yet</span>`);
+      bars.push(`<span class="gt-note" style="${after}padding-left:8px">${esc(idleNote)}</span>`);
     }
     return grid + bars.join("");
   };
@@ -1573,6 +1599,31 @@ function readinessGantt(map, nodes, helpers) {
       : "";
     const inner = `${notes(entry) || caveats ? `<div class="gt-notes">${notes(entry)}${caveats}</div>` : ""}${SHOW_TESTS ? tests(entry) : ""}`;
     return inner;
+  };
+
+  // What a rule says, how it is computed or checked, and where it lives.
+  const ruleDetail = (rule) => {
+    const rule_ = rule.kind === "measure" ? ["Formula", rule.formula] : ["Condition", rule.condition];
+    const line = (label, value) => (value ? `<span class="gt-rule-line"><span class="gt-rule-label">${label}</span> ${esc(oneLine(value))}</span>` : "");
+    const undefinedNote = rule_[1] === "not_yet_defined" ? "Not yet defined" : rule_[1];
+    const terms = (rule.glossary_terms ?? []).join(", ");
+    return `<span class="gt-rule">
+      ${line("Rule", rule.statement)}
+      ${line(rule_[0], undefinedNote)}
+      ${line("Inputs", (rule.inputs ?? []).join("; "))}
+      ${line("Tool", rule.tool)}
+      ${line("Terms", terms)}
+      ${line("Lives in", rule.lives_in)}
+    </span>`;
+  };
+  // Each tool and the rules it will run. The tools are planned, not built.
+  const toolsDetail = (items) => {
+    const rules = items.filter((item) => item.kind);
+    if (!rules.length) return "";
+    const tools = [...new Set(rules.map((rule) => rule.tool))];
+    return `<div class="gt-tools"><span class="gt-rule-label">Tools and their rules</span>${tools
+      .map((tool) => `<span class="gt-rule-line"><code>${esc(tool)}</code> ${esc(rules.filter((r) => r.tool === tool).map((r) => r.name).join(", "))}</span>`)
+      .join("")}</div>`;
   };
 
   const body = rows
@@ -1592,22 +1643,35 @@ function readinessGantt(map, nodes, helpers) {
         ${inner ? `<div class="gt-detail" id="gt-${esc(row.id)}" hidden>${inner}</div>` : ""}`;
       }
 
-      const children = items
-        .map((item) => {
-          const own = pilotOf(item);
-          const childLane = own
+      const child = (item) => {
+        const own = pilotOf(item);
+        const childLane = item.kind
+          ? lanes(item, { idleNote: "No window set yet" })
+          : own
             ? grid + bar("pilot", own.starts, own.window) + (own.mode === "silo" ? endLabel(own.label ?? "Pilots on its own", own.window) : "")
             : `${grid}<span class="gt-note">Follows the group</span>`;
-          return `
+        return `
           <div class="gt-row gt-child" data-row="${esc(item.id ?? "")}" data-group="${esc(row.id)}">
             <div class="gt-name">
               <span class="gt-title">${esc(partName(row, item))}</span>
               ${notes(item) ? `<span class="gt-notes">${notes(item)}</span>` : ""}
             </div>
             <div class="gt-lane">${childLane}</div>
-          </div>`;
-        })
-        .join("");
+          </div>${item.kind ? `<div class="gt-rule-full">${ruleDetail(item)}</div>` : ""}`;
+      };
+      // Rules sit under Measures and Checks, taken from each rule's kind.
+      const subgroups = [["measure", "Measures"], ["check", "Checks"]];
+      const children = items.some((item) => item.kind)
+        ? subgroups
+            .map(([kind, label]) => {
+              const members = items.filter((item) => item.kind === kind);
+              return members.length
+                ? `<div class="gt-row gt-sub"><div class="gt-name"><span class="gt-sub-title">${label}</span><span class="cm-count">(${members.length})</span></div><div class="gt-lane"></div></div>${members.map(child).join("")}`
+                : "";
+            })
+            .join("")
+        : items.map(child).join("");
+      const toolList = toolsDetail(items);
 
       return `
         <div class="gt-row gt-group" data-row="${esc(row.id)}">
@@ -1617,7 +1681,7 @@ function readinessGantt(map, nodes, helpers) {
           <div class="gt-lane">${lanes(row)}</div>
         </div>
         <div class="gt-panel" id="gt-${esc(row.id)}" hidden>
-          ${inner ? `<div class="gt-detail">${inner}</div>` : ""}${children}
+          ${inner || toolList ? `<div class="gt-detail">${inner}${toolList}</div>` : ""}${children}
         </div>`;
     })
     .join("");
@@ -3007,6 +3071,14 @@ function render(model, pageId = "core-philosophy") {
     .gt [hidden] { display: none !important; }
     .gt-lane { position: relative; min-height: 40px; }
     .gt-child .gt-lane { min-height: 40px; }
+    .gt-sub .gt-name { flex-direction: row; align-items: baseline; gap: 6px; padding: 10px 12px 2px 20px; }
+    .gt-sub .gt-lane { min-height: 0; }
+    .gt-sub-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    .gt-rule, .gt-tools { display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 1.4; }
+    .gt-tools { margin-top: 10px; }
+    .gt-rule-full { padding: 0 12px 10px 20px; max-width: 760px; }
+    .gt-rule-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; margin-right: 4px; }
+    .gt-rule-line code { font-family: inherit; font-weight: 600; margin-right: 4px; }
     .gt-month, .gt-today { position: absolute; top: 0; bottom: 0; width: 1px; background: #E4E4E4; }
     .gt-today { background: #EC4B24; }
     .gt-today-label { position: absolute; top: 4px; padding-left: 6px; font-size: 12px; color: #EC4B24; font-weight: 600; transform: translateY(14px); }

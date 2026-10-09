@@ -12,6 +12,7 @@ import {
   fileStem,
   loadModel,
   overlayRoots,
+  leastTestedColumn,
 } from "./model.mjs";
 import { parse } from "yaml";
 
@@ -935,7 +936,7 @@ async function main() {
         }
       }
 
-      checkReadiness(map, legend.file);
+      checkReadiness(map, legend.file, definitions);
     },
   );
 
@@ -996,7 +997,7 @@ async function main() {
 
 // Readiness fields on the confidence map. Windows are estimates, so these
 // checks only keep them coherent; they never judge whether a date is right.
-function checkReadiness(map, file) {
+function checkReadiness(map, file, definitions) {
   const COLUMN_IDS = ["thinking", "mapping", "pilot"];
   const rows = map.rows ?? [];
   const today = new Date().toISOString().slice(0, 10);
@@ -1053,6 +1054,36 @@ function checkReadiness(map, file) {
       else checkEdges(item.id, item.depends_on);
     }
 
+    // Sizing and staffing rules: parts with a `kind`. The glossary cited must
+    // exist, a measure has a formula (or says it has none yet), a check has a
+    // condition, and every rule names the tool that will run it.
+    const NOT_YET = "not_yet_defined";
+    for (const item of items) {
+      const label = `${where} part "${item.id ?? item.name}"`;
+      if (!item.kind) {
+        for (const field of ["statement", "formula", "condition", "inputs", "tool", "glossary_terms", "lives_in"]) {
+          if (item[field] !== undefined) add("constraints", file, `${label} has ${field} but no kind; only a rule carries it`);
+        }
+        continue;
+      }
+      if (!item.id) add("constraints", file, `${label} is a rule and needs an id`);
+      if (!item.statement) add("constraints", file, `${label} is a rule with no statement`);
+      if (!item.tool) add("constraints", file, `${label} is a rule that names no tool`);
+      if (item.kind === "measure") {
+        if (!item.formula) add("constraints", file, `${label} is a measure, so it needs a formula or ${NOT_YET}`);
+        if (item.condition) add("constraints", file, `${label} is a measure, so it carries a formula, not a condition`);
+      } else {
+        if (!item.condition) add("constraints", file, `${label} is a check, so it needs a condition or ${NOT_YET}`);
+        if (item.formula) add("constraints", file, `${label} is a check, so it carries a condition, not a formula`);
+      }
+      const seen = new Set();
+      for (const term of item.glossary_terms ?? []) {
+        if (!definitions.has(term)) add("refs", file, `${label} cites glossary term "${term}" which is not a definition`);
+        if (seen.has(term)) add("duplicates", file, `${label} cites glossary term "${term}" twice`);
+        seen.add(term);
+      }
+    }
+
     for (const entry of [row, ...items]) {
       if (entry.last_moved && entry.last_moved > today) {
         add("constraints", file, `${where} last_moved ${entry.last_moved} is in the future; it is history`);
@@ -1060,9 +1091,10 @@ function checkReadiness(map, file) {
     }
 
     // A group's column is its least tested part, never typed.
-    const column = items.length
-      ? COLUMN_IDS[Math.min(...items.map((item) => COLUMN_IDS.indexOf(item.position)))]
-      : row.position;
+    const column = items.length ? leastTestedColumn(items, COLUMN_IDS) : row.position;
+    if (items.length && row.position && row.position !== column) {
+      add("constraints", file, `${where} sits in ${row.position} but its least tested part is in ${column}; a group's column is derived`);
+    }
     const index = COLUMN_IDS.indexOf(column);
 
     if (column === "pilot" && !row.note) {
@@ -1155,7 +1187,7 @@ function checkReadiness(map, file) {
     };
     checkTests(where, row, index, row.id);
     for (const item of items) {
-      if (!item.mapping && !item.pilot) continue;
+      if (!item.mapping && !item.pilot && !item.thinking_end) continue;
       const itemIndex = COLUMN_IDS.indexOf(item.position);
       checkTests(`${where} part "${item.id ?? item.name ?? item.stage}"`, item, itemIndex, item.id ?? row.id);
     }

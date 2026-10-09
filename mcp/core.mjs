@@ -7,6 +7,7 @@
 // server has stopped being a read of the model and the design needs revisiting.
 import {
   PUBLIC_SCOPE,
+  rulesUsing,
   domainRank,
   loadModel,
   modelView,
@@ -364,6 +365,7 @@ export function getDefinition(index, { term } = {}) {
       id,
       term: index.definitionById.get(id)?.term,
     })),
+    used_by_rules: rulesUsing(index.view.confidenceMap, item.id),
   };
 }
 
