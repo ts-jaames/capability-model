@@ -464,7 +464,7 @@ tomorrow:
     note: It also checks the capability levels themselves.
   - item: Settling the terms the model rests on
     note: Levels, scope units, concurrency and the like.
-  - item: Staffing harness ideation
+  - item: Capability mapping against current engagements
 
 decisions:
   - Which 2 to 3 running engagements and which 3 to 4 recent projects to map against.
