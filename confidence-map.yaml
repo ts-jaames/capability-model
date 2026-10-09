@@ -456,11 +456,15 @@ tomorrow:
   - item: Capability mapping against current engagements
 
 decisions:
+  - >-
+    There's a boundary and we're not sure where it lands. The original
+    intention for the entire model is that it isn't scoped just to the
+    consulting group; it includes all ICs who participate in the ADLC,
+    regardless of their services or consultant status. The question is:
+    Should it be?
   - Which 2 to 3 running engagements and which 3 to 4 recent projects to map against.
-  - The summarizer proposes changes through a reviewed PR and never writes directly.
   - How required levels get set for a seat.
   - The Forward Deployed Engineer default breaks the build and QA seat rule.
-  - The ESOA refresh trigger, signal-driven with a time fallback.
 
 range_drivers:
   pushes_late:
