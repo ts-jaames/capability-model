@@ -1560,7 +1560,11 @@ function readinessGantt(map, nodes, helpers) {
   };
 
   // One line per row: thinking, then mapping, then the pilot, all on the same line.
-  const lanes = (source, { idleNote = "Pilot not defined yet" } = {}) => {
+  // Parts that only pilot inside the joint staffing pilot have no pilot of their own.
+  const jointPilot = rows.find((r) => r.pilot?.test && r.pilot.mode === "joint");
+  const pilotsInJoint = new Set((jointPilot?.pilot.with ?? []).map((id) => nodes.get(id)?.row ?? id));
+  const lanes = (source, { idleNote } = {}) => {
+    idleNote ??= pilotsInJoint.has(source.id) ? "Piloted with the staffing harness" : "Pilot not defined yet";
     const row = spanOf(source);
     const column = nodes.get(source.id)?.column ?? source.position;
     const bars = [];
