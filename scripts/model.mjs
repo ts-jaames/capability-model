@@ -72,23 +72,23 @@ export function oneLine(value) {
   return String(value ?? "").trim().replace(/\s+/g, " ");
 }
 
-// The overall pilot window on the confidence map: from the earliest silo pilot
-// to the latest joint pilot, leaving out parts allowed to trail the pilot. It
-// is worked out here and never typed into the YAML, so it cannot drift from the
-// parts. Dates are ISO strings, which sort as dates. Null when either end is
-// missing.
+// The two answers at the top of the readiness page, both worked out from the
+// parts and never typed: when the first pilots can start (the earliest silo
+// pilot), and the window of the joint pilot. A part with no pilot.test has no
+// pilot window and is left out. Dates are ISO strings, which sort as dates.
+// Null when there is no silo pilot or no joint pilot.
 export function pilotWindow(map) {
-  const pilots = (map?.rows ?? [])
-    .filter((row) => !row.trails_pilot && row.windows?.pilot?.window)
-    .map((row) => row.windows.pilot);
-  const silo = pilots.filter((p) => p.mode === "silo").map((p) => p.window.earliest).sort();
-  const joint = pilots.filter((p) => p.mode === "joint").map((p) => p.window.latest).sort();
+  const live = (map?.rows ?? []).filter((row) => row.pilot?.test && row.pilot.window);
+  const silo = live.filter((row) => row.pilot.mode === "silo").map((row) => row.pilot.window.earliest).sort();
+  const joint = live.filter((row) => row.pilot.mode === "joint").map((row) => row.pilot.window);
   if (!silo.length || !joint.length) return null;
-  const all = pilots.map((p) => p.window);
   return {
-    earliest: silo[0],
-    latest: joint[joint.length - 1],
-    confirmed: all.every((w) => w.confirmed === true),
+    first: silo[0],
+    joint: {
+      earliest: joint.map((w) => w.earliest).sort()[0],
+      latest: joint.map((w) => w.latest).sort().reverse()[0],
+    },
+    confirmed: live.every((row) => row.pilot.window.confirmed === true),
   };
 }
 

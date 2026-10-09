@@ -15,7 +15,6 @@
     "dev": "node scripts/build-site.mjs --serve",
     "mcp": "node mcp/stdio.mjs",
     "mcp:smoke": "node mcp/smoke.mjs",
-    "today": "node scripts/today.mjs",
     "test": "node --test"
   },
   "dependencies": {

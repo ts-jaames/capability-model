@@ -890,17 +890,6 @@ async function main() {
         );
       }
 
-      // The note's clock runs from this stamp, so it has to be a real moment
-      // that has already happened. Five minutes of slack covers clock skew.
-      if (map.today) {
-        const stamp = Date.parse(map.today.updated);
-        if (Number.isNaN(stamp)) {
-          add("constraints", legend.file, `today.updated "${map.today.updated}" is not a real date and time`);
-        } else if (stamp > Date.now() + 5 * 60 * 1000) {
-          add("constraints", legend.file, `today.updated "${map.today.updated}" is in the future`);
-        }
-      }
-
       const rows = map.rows ?? [];
       uniqueIds(
         rows.map((row) => row.id),
@@ -1022,18 +1011,22 @@ function checkReadiness(map, file) {
       add("constraints", file, `${label} min ${value.min} is above max ${value.max}`);
     }
   };
+  // A test is one sentence: a full stop, question mark or exclamation mark
+  // followed by another sentence means it has grown into a paragraph.
+  const oneSentence = (label, text) => {
+    if (typeof text === "string" && /[.?!]\s+[A-Z]/.test(text.trim())) {
+      add("constraints", file, `${label} must be a single sentence`);
+    }
+  };
 
   minMax("mapping_engagements_target", map.mapping_engagements_target);
+  minMax("recent_projects_target", map.recent_projects_target);
   minMax("coverage_to_advance", map.coverage_to_advance);
   for (const entry of map.next ?? []) minMax(`next "${entry.item}" estimate`, entry.estimate);
 
-  // Every id an edge can point at: rows, parts that carry an id, loop nodes.
-  const loopNodes = map.loop_nodes ?? [];
-  const ids = [
-    ...rows.flatMap((row) => [row.id, ...(row.items ?? []).map((item) => item.id).filter(Boolean)]),
-    ...loopNodes.map((node) => node.id),
-  ];
-  uniqueIds(ids, file, "part and loop node ids");
+  // Every id an edge can point at: rows and parts that carry an id.
+  const ids = rows.flatMap((row) => [row.id, ...(row.items ?? []).map((item) => item.id).filter(Boolean)]);
+  uniqueIds(ids, file, "part ids");
   const known = new Set(ids);
 
   const edges = [];
@@ -1078,24 +1071,61 @@ function checkReadiness(map, file) {
       }
     }
 
-    const w = row.windows;
-    if (!w) continue;
-    pair(`${where} thinking_end`, w.thinking_end);
-    pair(`${where} mapping_end`, w.mapping_end);
-    pair(`${where} pilot window`, w.pilot?.window);
-    if (w.pilot?.mode === "silo" && !w.pilot.silo_scope) {
-      add("constraints", file, `${where} pilots in silo mode, so it needs silo_scope`);
+    const mapping = row.mapping;
+    const pilot = row.pilot;
+    oneSentence(`${where} mapping.test`, mapping?.test);
+    oneSentence(`${where} pilot.test`, pilot?.test);
+    if (mapping?.skip && mapping.test) {
+      add("constraints", file, `${where} mapping is skipped, so it cannot also have a test`);
     }
-    if (w.thinking_end && index > 0) {
+    if (mapping?.ends && !mapping.test) {
+      add("constraints", file, `${where} has a mapping window but no mapping.test`);
+    }
+
+    pair(`${where} thinking_end`, row.thinking_end);
+    pair(`${where} mapping.ends`, mapping?.ends);
+    pair(`${where} pilot window`, pilot?.window);
+
+    // A pilot with no test is not defined, so it has no window and no mode.
+    if (pilot && !pilot.test) {
+      for (const field of ["window", "mode", "with", "silo_scope", "label"]) {
+        if (pilot[field] !== undefined) {
+          add("constraints", file, `${where} has pilot.${field} but no pilot.test; an empty test gets no pilot window`);
+        }
+      }
+    }
+    if (pilot?.test) {
+      if (!pilot.mode) add("constraints", file, `${where} has a pilot.test but no pilot.mode`);
+      if (pilot.mode === "silo" && !pilot.silo_scope) {
+        add("constraints", file, `${where} pilots in silo mode, so it needs silo_scope`);
+      }
+      if (pilot.mode === "joint") {
+        if (!pilot.with?.length) {
+          add("constraints", file, `${where} pilots jointly, so it must list the parts it pilots with`);
+        }
+        for (const id of pilot.with ?? []) {
+          if (id === row.id) add("constraints", file, `${where} lists itself in pilot.with`);
+          else if (!known.has(id)) add("refs", file, `${where} pilots with "${id}" which does not exist`);
+        }
+      }
+      if (pilot.mode === "silo" && pilot.with) {
+        add("constraints", file, `${where} pilots in silo mode, so it cannot list pilot.with`);
+      }
+    }
+
+    if (row.thinking_end && index > 0) {
       add("constraints", file, `${where} is past thinking, so it cannot carry thinking_end`);
     }
-    if (w.mapping_end && index > 1) {
-      add("constraints", file, `${where} is in pilot, so it cannot carry mapping_end`);
+    if (mapping?.ends && index > 1) {
+      add("constraints", file, `${where} is in pilot, so it cannot carry mapping.ends`);
     }
+
+    // The windows run in order, and a pilot may start as early as the earliest
+    // end of mapping, so a part never sits idle waiting for its window.
     const order = [
-      ["thinking_end", w.thinking_end?.earliest],
-      ["mapping_end", w.mapping_end?.earliest],
-      ["pilot", w.pilot?.window?.earliest],
+      ["thinking_end", row.thinking_end?.earliest],
+      ["mapping.ends", mapping?.ends?.earliest],
+      ["pilot", pilot?.window?.earliest],
     ].filter(([, date]) => date);
     for (let i = 1; i < order.length; i += 1) {
       if (order[i - 1][1] > order[i][1]) {
@@ -1107,8 +1137,6 @@ function checkReadiness(map, file) {
       }
     }
   }
-
-  for (const node of loopNodes) checkEdges(node.id, node.depends_on);
 
   // The loop draws every edge, so both ends of each edge must have a place.
   const ring = map.loop?.ring ?? [];
