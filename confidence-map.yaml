@@ -99,6 +99,16 @@ rows:
       - id: capability-levels
         name: Capability Levels
         position: mapping
+        mapping:
+          test: First self-assessment run done; levels are being adapted from it.
+        pilot:
+          test: >
+            5–8 people self-assess against the adapted levels, and a lead's read
+            is compared against theirs.
+          mode: silo
+          silo_scope: A small group of subject experts levelling themselves.
+          label: Self-assessment
+          window: { earliest: 2026-10-26, latest: 2026-11-13, confirmed: false }
         depends_on:
           - id: operating-view
             reason: >
@@ -109,24 +119,6 @@ rows:
             reason: >
               Staffing runs should show where a level was set wrong. This
               feedback does not exist until the ledger has run once.
-
-  - id: self-assessment
-    name: Self-assessment
-    position: thinking
-    mapping:
-      test: First run done; levels are being adapted from it.
-    pilot:
-      test: >
-        5–8 people self-assess against the adapted levels, and a lead's read is
-        compared against theirs.
-      mode: silo
-      silo_scope: A small group of subject experts levelling themselves.
-      window: { earliest: 2026-10-26, latest: 2026-11-13, confirmed: false }
-    depends_on:
-      - id: capability-levels
-        reason: >
-          People can only assess themselves against levels that read true, and
-          the first run is what adapts them.
 
   - id: scope-units
     name: Scope Units
@@ -158,7 +150,7 @@ rows:
     last_moved: 2026-10-06
     mapping:
       test: >
-        Do the title bundles map cleanly onto the people from self-assessment?
+        Do the title bundles map cleanly onto the people from the levels self-assessment?
       ends: { earliest: 2026-11-06, latest: 2026-11-27, confirmed: false }
     pilot:
       test: >
@@ -243,8 +235,10 @@ rows:
         - capability-levels
         - scope-units
         - roles-titles
-        - self-assessment
       window: { earliest: 2026-12-07, latest: 2027-01-15, confirmed: false }
+      note: >
+        A manual run can happen sooner. The agent harness depends on the build,
+        so true automation waits for it.
     depends_on:
       - id: roles-titles
         reason: >
@@ -254,7 +248,7 @@ rows:
         reason: >
           The ledger needs to know how many instances of each capability the
           pilot's work calls for.
-      - id: self-assessment
+      - id: capability-levels
         reason: >
           The qualified pool the ledger draws on comes from people assessed
           against the levels.
@@ -267,8 +261,6 @@ loop:
     - scope-units
     - ai-native-sdlc
     - operating-view
-  center:
-    - self-assessment
   callout: >
     Asking when roles and titles will be done is really asking when levels
     settle, when sizing exists for the pilot's capabilities, and when staffing
@@ -349,6 +341,7 @@ range_drivers:
     - A pilot scoped to a few capabilities.
     - The ledger schema landing next week.
     - Letting the Evidence Work harness trail the pilot.
+    - Running the staffing ledger pilot manually, ahead of the agent harness.
 
 durations_note: >
   Dates and durations on this page are estimates, not commitments.

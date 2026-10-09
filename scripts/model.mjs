@@ -78,9 +78,11 @@ export function oneLine(value) {
 // pilot window and is left out. Dates are ISO strings, which sort as dates.
 // Null when there is no silo pilot or no joint pilot.
 export function pilotWindow(map) {
-  const live = (map?.rows ?? []).filter((row) => row.pilot?.test && row.pilot.window);
-  const silo = live.filter((row) => row.pilot.mode === "silo").map((row) => row.pilot.window.earliest).sort();
-  const joint = live.filter((row) => row.pilot.mode === "joint").map((row) => row.pilot.window);
+  const live = (map?.rows ?? [])
+    .flatMap((row) => [row, ...(row.items ?? [])])
+    .filter((entry) => entry.pilot?.test && entry.pilot.window);
+  const silo = live.filter((entry) => entry.pilot.mode === "silo").map((entry) => entry.pilot.window.earliest).sort();
+  const joint = live.filter((entry) => entry.pilot.mode === "joint").map((entry) => entry.pilot.window);
   if (!silo.length || !joint.length) return null;
   return {
     first: silo[0],
@@ -88,7 +90,7 @@ export function pilotWindow(map) {
       earliest: joint.map((w) => w.earliest).sort()[0],
       latest: joint.map((w) => w.latest).sort().reverse()[0],
     },
-    confirmed: live.every((row) => row.pilot.window.confirmed === true),
+    confirmed: live.every((entry) => entry.pilot.window.confirmed === true),
   };
 }
 

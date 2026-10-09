@@ -1071,70 +1071,79 @@ function checkReadiness(map, file) {
       }
     }
 
-    const mapping = row.mapping;
-    const pilot = row.pilot;
-    oneSentence(`${where} mapping.test`, mapping?.test);
-    oneSentence(`${where} pilot.test`, pilot?.test);
-    if (mapping?.skip && mapping.test) {
-      add("constraints", file, `${where} mapping is skipped, so it cannot also have a test`);
-    }
-    if (mapping?.ends && !mapping.test) {
-      add("constraints", file, `${where} has a mapping window but no mapping.test`);
-    }
+    // Tests and windows can sit on a row or on one of its parts.
+    const checkTests = (where, entry, index, ownId) => {
+      const mapping = entry.mapping;
+      const pilot = entry.pilot;
+      oneSentence(`${where} mapping.test`, mapping?.test);
+      oneSentence(`${where} pilot.test`, pilot?.test);
+      if (mapping?.skip && mapping.test) {
+        add("constraints", file, `${where} mapping is skipped, so it cannot also have a test`);
+      }
+      if (mapping?.ends && !mapping.test) {
+        add("constraints", file, `${where} has a mapping window but no mapping.test`);
+      }
 
-    pair(`${where} thinking_end`, row.thinking_end);
-    pair(`${where} mapping.ends`, mapping?.ends);
-    pair(`${where} pilot window`, pilot?.window);
+      pair(`${where} thinking_end`, entry.thinking_end);
+      pair(`${where} mapping.ends`, mapping?.ends);
+      pair(`${where} pilot window`, pilot?.window);
 
-    // A pilot with no test is not defined, so it has no window and no mode.
-    if (pilot && !pilot.test) {
-      for (const field of ["window", "mode", "with", "silo_scope", "label"]) {
-        if (pilot[field] !== undefined) {
-          add("constraints", file, `${where} has pilot.${field} but no pilot.test; an empty test gets no pilot window`);
+      // A pilot with no test is not defined, so it has no window and no mode.
+      if (pilot && !pilot.test) {
+        for (const field of ["window", "mode", "with", "silo_scope", "label"]) {
+          if (pilot[field] !== undefined) {
+            add("constraints", file, `${where} has pilot.${field} but no pilot.test; an empty test gets no pilot window`);
+          }
         }
       }
-    }
-    if (pilot?.test) {
-      if (!pilot.mode) add("constraints", file, `${where} has a pilot.test but no pilot.mode`);
-      if (pilot.mode === "silo" && !pilot.silo_scope) {
-        add("constraints", file, `${where} pilots in silo mode, so it needs silo_scope`);
-      }
-      if (pilot.mode === "joint") {
-        if (!pilot.with?.length) {
-          add("constraints", file, `${where} pilots jointly, so it must list the parts it pilots with`);
+      if (pilot?.test) {
+        if (!pilot.mode) add("constraints", file, `${where} has a pilot.test but no pilot.mode`);
+        if (pilot.mode === "silo" && !pilot.silo_scope) {
+          add("constraints", file, `${where} pilots in silo mode, so it needs silo_scope`);
         }
-        for (const id of pilot.with ?? []) {
-          if (id === row.id) add("constraints", file, `${where} lists itself in pilot.with`);
-          else if (!known.has(id)) add("refs", file, `${where} pilots with "${id}" which does not exist`);
+        if (pilot.mode === "joint") {
+          if (!pilot.with?.length) {
+            add("constraints", file, `${where} pilots jointly, so it must list the parts it pilots with`);
+          }
+          for (const id of pilot.with ?? []) {
+            if (id === ownId) add("constraints", file, `${where} lists itself in pilot.with`);
+            else if (!known.has(id)) add("refs", file, `${where} pilots with "${id}" which does not exist`);
+          }
+        }
+        if (pilot.mode === "silo" && pilot.with) {
+          add("constraints", file, `${where} pilots in silo mode, so it cannot list pilot.with`);
         }
       }
-      if (pilot.mode === "silo" && pilot.with) {
-        add("constraints", file, `${where} pilots in silo mode, so it cannot list pilot.with`);
-      }
-    }
 
-    if (row.thinking_end && index > 0) {
-      add("constraints", file, `${where} is past thinking, so it cannot carry thinking_end`);
-    }
-    if (mapping?.ends && index > 1) {
-      add("constraints", file, `${where} is in pilot, so it cannot carry mapping.ends`);
-    }
-
-    // The windows run in order, and a pilot may start as early as the earliest
-    // end of mapping, so a part never sits idle waiting for its window.
-    const order = [
-      ["thinking_end", row.thinking_end?.earliest],
-      ["mapping.ends", mapping?.ends?.earliest],
-      ["pilot", pilot?.window?.earliest],
-    ].filter(([, date]) => date);
-    for (let i = 1; i < order.length; i += 1) {
-      if (order[i - 1][1] > order[i][1]) {
-        add(
-          "constraints",
-          file,
-          `${where} ${order[i - 1][0]} earliest ${order[i - 1][1]} is after ${order[i][0]} earliest ${order[i][1]}`,
-        );
+      if (entry.thinking_end && index > 0) {
+        add("constraints", file, `${where} is past thinking, so it cannot carry thinking_end`);
       }
+      if (mapping?.ends && index > 1) {
+        add("constraints", file, `${where} is in pilot, so it cannot carry mapping.ends`);
+      }
+
+      // The windows run in order, and a pilot may start as early as the earliest
+      // end of mapping, so a part never sits idle waiting for its window.
+      const order = [
+        ["thinking_end", entry.thinking_end?.earliest],
+        ["mapping.ends", mapping?.ends?.earliest],
+        ["pilot", pilot?.window?.earliest],
+      ].filter(([, date]) => date);
+      for (let i = 1; i < order.length; i += 1) {
+        if (order[i - 1][1] > order[i][1]) {
+          add(
+            "constraints",
+            file,
+            `${where} ${order[i - 1][0]} earliest ${order[i - 1][1]} is after ${order[i][0]} earliest ${order[i][1]}`,
+          );
+        }
+      }
+    };
+    checkTests(where, row, index, row.id);
+    for (const item of items) {
+      if (!item.mapping && !item.pilot) continue;
+      const itemIndex = COLUMN_IDS.indexOf(item.position);
+      checkTests(`${where} part "${item.id ?? item.name ?? item.stage}"`, item, itemIndex, item.id ?? row.id);
     }
   }
 

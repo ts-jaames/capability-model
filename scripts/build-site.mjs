@@ -1388,9 +1388,10 @@ function renderConfidenceMapMain(model) {
 
   // Mapping looks back and pilot looks forward. Each part states one test for
   // each, and says so plainly when it has none.
-  const tests = (row) => {
-    const m = row.mapping;
-    const p = row.pilot;
+  const tests = (entry) => {
+    if (!entry.mapping && !entry.pilot) return "";
+    const m = entry.mapping;
+    const p = entry.pilot;
     const looking = m?.skip ? `Skipped. ${m.skip}` : (m?.test ?? "No mapping test yet.");
     const forward = p?.test ?? "Pilot not defined yet.";
     const meta = !p?.test
@@ -1402,7 +1403,7 @@ function renderConfidenceMapMain(model) {
           <div class="cm-tests">
             <p><strong>Mapping looks back.</strong> ${esc(oneLine(looking))}</p>
             <p><strong>Pilot looks forward.</strong> ${esc(oneLine(forward))}</p>
-            ${meta ? `<p class="cm-tests-meta">${esc(oneLine(meta))}${p.not_yet ? ` ${esc(oneLine(p.not_yet))}` : ""}</p>` : ""}
+            ${meta ? `<p class="cm-tests-meta">${esc(oneLine(meta))}${p.not_yet ? ` ${esc(oneLine(p.not_yet))}` : ""}${p.note ? ` ${esc(oneLine(p.note))}` : ""}</p>` : ""}
           </div>`;
   };
 
@@ -1422,7 +1423,7 @@ function renderConfidenceMapMain(model) {
           <div class="cm-row cm-child">
             <div class="cm-name"><span>${esc(partName(row, item))}</span>${notes(item)}</div>
             ${cells((column) => (column.id === item.position ? dot(column.id, true) : ""))}
-          </div>`,
+          </div>${tests(item)}`,
         )
         .join("");
       const count = items.length ? `<span class="cm-count">(${items.length})</span>` : "";
@@ -1456,7 +1457,7 @@ function renderConfidenceMapMain(model) {
   const today = changes.length
     ? `<div class="cm-today">
           <div class="cm-today-head">
-            <p class="cm-today-title">What's happening today</p>
+            <p class="callout-label cm-today-title">What's happening today</p>
             <p class="cm-today-date">Latest model change <time class="cm-ago" datetime="${esc(changes[0].when)}" data-since="${esc(changes[0].when)}">${esc(stamped(changes[0].when))}</time></p>
           </div>
           <ul class="cm-changes">
@@ -1491,12 +1492,12 @@ function renderConfidenceMapMain(model) {
   return `
       <section id="overview">
         <p class="cm-back"><a href="index.html">← Back to the model</a></p>
-        <h1 class="mono uppercase eyebrow">${esc(map.name)}</h1>
+        <h1 class="cm-sr">${esc(map.name)}</h1>
         ${hero}
         ${today}
       </section>
       <section id="map">
-        <h2 class="cm-h">Where each part sits</h2>
+        <h2 class="mono uppercase eyebrow">Where each part sits</h2>
         <div class="cm-scroll">
           <div class="cm">
             <div class="cm-head">
@@ -1546,7 +1547,8 @@ function readinessTimeline(map, nodes) {
   const todayIso = new Date().toISOString().slice(0, 10);
   const dates = [todayIso];
   for (const row of rows) {
-    for (const range of [row.thinking_end, row.mapping?.ends, row.pilot?.test ? row.pilot.window : null]) {
+    const pilots = [row, ...(row.items ?? [])].filter((e) => e.pilot?.test && e.pilot.window).map((e) => e.pilot.window);
+    for (const range of [row.thinking_end, row.mapping?.ends, ...pilots]) {
       if (range) dates.push(range.earliest, range.latest);
     }
   }
@@ -1559,7 +1561,7 @@ function readinessTimeline(map, nodes) {
   const labelW = 230;
   const chartW = 660;
   const top = 40;
-  const rowH = 62;
+  const rowH = 52;
   const width = labelW + chartW + 16;
   const height = top + rows.length * rowH + 8;
   const x = (iso) => labelW + ((dayOf(iso) - start) / (end - start)) * chartW;
@@ -1602,26 +1604,31 @@ function readinessTimeline(map, nodes) {
     .map((row, i) => {
       const y = top + i * rowH;
       const column = nodes.get(row.id)?.column;
-      const pilot = row.pilot;
-      const defined = Boolean(pilot?.test && pilot.window);
-      const sub = pilot?.test ? (pilot.mode === "silo" ? "Silo pilot" : "Joint pilot") : "";
+      const pilots = [row, ...(row.items ?? [])].map((e) => e.pilot).filter((p) => p?.test && p.window);
+      const sub = row.pilot?.test ? (row.pilot.mode === "silo" ? "Silo pilot" : "Joint pilot") : pilots[0] ? "Silo pilot" : "";
       const window = together.get(row.id);
       const band = window
         ? `<rect class="tl-band" x="${x(window.earliest)}" y="${y + 2}" width="${x(window.latest) - x(window.earliest)}" height="${rowH - 4}"/>`
         : "";
       const mappingFrom = column === "thinking" && row.thinking_end ? row.thinking_end.earliest : todayIso;
 
+      // Pilot bars sit on the same line as the thinking and mapping bars. A
+      // label goes underneath, and says what waits when only part of a part is
+      // piloted.
       let pilotMark = "";
-      if (defined) {
+      for (const pilot of pilots) {
         const x1 = x(pilot.window.earliest);
         const x2 = x(pilot.window.latest);
         const dash = pilot.window.confirmed ? "" : ` stroke-dasharray="3 2"`;
-        pilotMark =
-          `<rect x="${x1}" y="${y + 32}" width="${Math.max(0, x2 - x1)}" height="10" fill="${READINESS_COLOR.pilot}" fill-opacity="0.3" stroke="${READINESS_COLOR.pilot}" stroke-width="1"${dash}/>` +
-          (pilot.label ? `<text class="tl-sub" x="${x2 + 6}" y="${y + 41}">${esc(pilot.label)}</text>` : "") +
-          (pilot.not_yet ? `<text class="tl-sub" x="${x1}" y="${y + 56}">${esc(oneLine(pilot.not_yet))}</text>` : "");
-      } else {
-        pilotMark = `<text class="tl-sub" x="${labelW + 8}" y="${y + 41}">Pilot not defined yet</text>`;
+        const caption = [pilot.label, pilot.not_yet].filter(Boolean).map(oneLine).join(". ");
+        pilotMark +=
+          `<rect x="${x1}" y="${y + 12}" width="${Math.max(0, x2 - x1)}" height="12" fill="${READINESS_COLOR.pilot}" fill-opacity="0.3" stroke="${READINESS_COLOR.pilot}" stroke-width="1"${dash}/>` +
+          (caption ? `<text class="tl-sub" x="${x1}" y="${y + 38}">${esc(caption)}</text>` : "");
+      }
+      if (!pilots.length) {
+        const ends = [row.thinking_end?.latest, row.mapping?.ends?.latest].filter(Boolean).sort();
+        const from = ends.length ? x(ends[ends.length - 1]) + 8 : labelW + 8;
+        pilotMark = `<text class="tl-sub" x="${from}" y="${y + 22}">Pilot not defined yet</text>`;
       }
 
       return `<g>
@@ -1644,7 +1651,7 @@ function readinessTimeline(map, nodes) {
 
   return `
       <section id="timeline">
-        <h2 class="cm-h">When each part could move</h2>
+        <h2 class="mono uppercase eyebrow">When each part could move</h2>
         <p class="lede">Solid is the likely window, hatched is the buffer, dashed means unconfirmed.</p>
         <div class="tl-legend">
           <span>${swatch(READINESS_COLOR.thinking)} Thinking Time</span>
@@ -1751,7 +1758,7 @@ function readinessLoop(map, nodes) {
 
   return `
       <section id="loop">
-        <h2 class="cm-h">Why this isn't a sequential roadmap</h2>
+        <h2 class="mono uppercase eyebrow">Why this isn't a sequential roadmap</h2>
         <p class="lede">The parts depend on each other in a loop, so none of them finishes first. An arrow runs from the part that is needed to the part that needs it, a dot shows the column a part sits in, and a dashed arrow is feedback that does not exist yet.</p>
         <div class="cm-scroll">
           <svg class="loop" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Dependency loop between parts of the model">
@@ -1771,7 +1778,7 @@ function readinessDone(map) {
   if (!groups.length) return "";
   return `
       <section id="done">
-        <h2 class="cm-h">What's done</h2>
+        <h2 class="mono uppercase eyebrow">What's done</h2>
         <div class="cm-done">
           ${groups
             .map(
@@ -1795,7 +1802,7 @@ function readinessNext(map) {
   };
   return `
       <section id="next">
-        <h2 class="cm-h">What matters most next</h2>
+        <h2 class="mono uppercase eyebrow">What matters most next</h2>
         <div class="cm-scroll">
           <table class="hairline-table cm-next">
             <thead><tr><th>What</th><th>Estimate</th><th>Why it comes first</th></tr></thead>
@@ -1824,11 +1831,11 @@ function readinessDecisions(map) {
       <section id="decisions">
         <div class="cm-two">
           <div>
-            <h2 class="cm-h">Decisions we need</h2>
+            <h2 class="mono uppercase eyebrow">Decisions we need</h2>
             ${list(decisions)}
           </div>
           <div>
-            <h2 class="cm-h">What moves the range</h2>
+            <h2 class="mono uppercase eyebrow">What moves the range</h2>
             ${drivers.pushes_late?.length ? `<h3>Pushes it later</h3>${list(drivers.pushes_late)}` : ""}
             ${drivers.pulls_early?.length ? `<h3>Pulls it earlier</h3>${list(drivers.pulls_early)}` : ""}
           </div>
@@ -2884,7 +2891,7 @@ function render(model, pageId = "core-philosophy") {
       flex-shrink: 0;
       white-space: nowrap;
     }
-    .cm-back { margin: 0 0 32px; }
+    .cm-back { margin: 0 0 48px; }
     .cm-scroll { overflow-x: auto; margin-top: 32px; }
     /* Each evidence column is as wide as its own header plus the same gap, so
        the white space between "Thinking Time", "Current engagement mapping"
@@ -2901,7 +2908,7 @@ function render(model, pageId = "core-philosophy") {
     }
     .cm-explainer { max-width: 700px; }
     .cm-today {
-      margin: 32px 0 0;
+      margin: 40px 0 0;
       padding: 16px 20px;
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -2975,7 +2982,7 @@ function render(model, pageId = "core-philosophy") {
       border-radius: 99px;
       white-space: nowrap;
     }
-    .cm-hero { margin: 8px 0 24px; }
+    .cm-hero { margin: 0 0 40px; }
     .cm-hero-range {
       margin: 0 0 4px;
       font-size: 24px;
@@ -3060,7 +3067,7 @@ function render(model, pageId = "core-philosophy") {
     }
     .cm-two h3 { margin-top: 16px; }
     .cm-h { margin: 0 0 12px; font-size: 15px; font-weight: 600; line-height: 1.3; }
-    .cm-today-title { font-weight: 600; }
+    .cm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .cm-today .cm-today-date { font-size: 12.5px; }
     .cm-changes { list-style: none; margin: 0; padding: 0; }
     .cm-changes li { margin: 0 0 4px; }

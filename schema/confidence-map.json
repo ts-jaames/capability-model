@@ -428,6 +428,12 @@
         },
         "depends_on": {
           "$ref": "#/$defs/dependsOn"
+        },
+        "mapping": {
+          "$ref": "#/$defs/mapping"
+        },
+        "pilot": {
+          "$ref": "#/$defs/pilot"
         }
       },
       "oneOf": [
@@ -498,6 +504,9 @@
           "$ref": "#/$defs/range"
         },
         "not_yet": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "note": {
           "$ref": "common.json#/$defs/nonEmptyString"
         }
       }
