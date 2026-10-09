@@ -172,25 +172,6 @@ rows:
               Staffing runs should show where a level was set wrong. This
               feedback does not exist until the harness has run once.
 
-  - id: self-assessment
-    name: Self-assessment
-    position: thinking
-    mapping:
-      test: First run done; levels are being adapted from it.
-    pilot:
-      test: >
-        5–8 people self-assess against the adapted levels, and a lead's read is
-        compared against theirs.
-      mode: silo
-      silo_scope: A small group of subject experts levelling themselves.
-      starts: 2026-10-26
-      window: { earliest: 2026-11-09, latest: 2026-11-13, confirmed: false }
-    depends_on:
-      - id: capability-levels
-        reason: >
-          People can only assess themselves against levels that read true, and
-          the first run is what adapts them.
-
   - id: scope-units
     name: Scope Units
     position: thinking
@@ -250,7 +231,6 @@ rows:
       mode: joint
       with:
         - capability-levels
-        - self-assessment
         - scope-units
         - roles-titles
       starts: 2026-12-07
@@ -267,10 +247,6 @@ rows:
         reason: >
           The harness needs to know how many instances of each capability the
           pilot's work calls for.
-      - id: self-assessment
-        reason: >
-          The qualified pool the harness draws on comes from people assessed
-          against the levels.
 
   - id: esoa-harness
     name: ESOA harness
@@ -286,8 +262,6 @@ loop:
     - scope-units
     - ai-native-sdlc
     - operating-view
-  center:
-    - self-assessment
   callout: >
     Asking when roles and titles will be done is really asking when levels
     settle, when sizing exists for the pilot's capabilities, and when staffing
