@@ -1736,6 +1736,9 @@ function readinessLoop(map, nodes) {
     return { x: p.x + dx * t, y: p.y + dy * t };
   };
 
+  // One hover/focus target per lettered circle, laid over the SVG, so the
+  // explanation lives only in the tooltip.
+  const dots = [];
   const lines = edges
     .map((edge, i) => {
       const a = place.get(edge.from);
@@ -1745,6 +1748,10 @@ function readinessLoop(map, nodes) {
       const e = exit(edge.to, a, 8);
       const mx = (s.x + e.x) / 2;
       const my = (s.y + e.y) / 2;
+      const text = `${nodes.get(edge.from)?.name ?? edge.from} → ${nodes.get(edge.to)?.name ?? edge.to}. ${oneLine(edge.reason)}${edge.real ? "" : " Not real yet."}`;
+      const side = mx < 160 ? " loop-tip-start" : mx > width - 160 ? " loop-tip-end" : "";
+      const place2 = my < cy ? " loop-tip-below" : " loop-tip-above";
+      dots.push(`<span class="loop-dot" tabindex="0" role="img" aria-label="${esc(letter(i))}: ${esc(text)}" style="left:${mx}px;top:${my}px"><span class="loop-tip${side}${place2}" role="tooltip">${esc(text)}</span></span>`);
       return `<line x1="${s.x}" y1="${s.y}" x2="${e.x}" y2="${e.y}" stroke="${LOOP_RED}" stroke-width="1.4"${edge.real ? "" : ` stroke-dasharray="5 4"`} marker-end="url(#loop-arrow)"/>` +
         `<circle cx="${mx}" cy="${my}" r="9" fill="#FFFFFF" stroke="${LOOP_RED}"/>` +
         `<text class="loop-letter" x="${mx}" y="${my + 4}" text-anchor="middle">${letter(i)}</text>`;
@@ -1764,27 +1771,20 @@ function readinessLoop(map, nodes) {
     })
     .join("");
 
-  const list = edges
-    .map(
-      (edge, i) => `<li class="loop-edge${edge.real ? "" : " loop-edge-unreal"}">
-          <span class="loop-key">${letter(i)}</span>
-          <span><strong>${esc(nodes.get(edge.from)?.name ?? edge.from)} → ${esc(nodes.get(edge.to)?.name ?? edge.to)}.</strong> ${esc(oneLine(edge.reason))}${edge.real ? "" : " Not real yet."}</span>
-        </li>`,
-    )
-    .join("");
-
   return `
       <section id="loop">
         <h2 class="mono uppercase eyebrow">Why this isn't a sequential roadmap</h2>
-        <p class="lede">The parts depend on each other in a loop, so none of them finishes first. An arrow runs from the part that is needed to the part that needs it, a dot shows the column a part sits in, and a dashed arrow is feedback that does not exist yet.</p>
+        <p class="lede">The parts depend on each other in a loop, so none of them finishes first. An arrow runs from the part that is needed to the part that needs it, a dot shows the column a part sits in, and a dashed arrow is feedback that does not exist yet. Hover a letter to see why.</p>
         <div class="cm-scroll">
+          <div class="loop-wrap" style="width:${width}px;height:${height}px">
           <svg class="loop" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Dependency loop between parts of the model">
             <defs><marker id="loop-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${LOOP_RED}"/></marker></defs>
             ${lines}
             ${boxes}
           </svg>
+          ${dots.join("")}
+          </div>
         </div>
-        <ul class="loop-edges">${list}</ul>
         ${map.loop.callout ? `<p class="cm-callout">${esc(oneLine(map.loop.callout))}</p>` : ""}
       </section>`;
 }
@@ -3090,34 +3090,37 @@ function render(model, pageId = "core-philosophy") {
     .tl-legend span { display: inline-flex; align-items: center; gap: 8px; }
     .loop-name { font-size: 13px; font-weight: 600; fill: var(--ink); }
     .loop-letter { font-size: 11px; font-weight: 600; fill: #D63B27; }
-    .loop-edges {
-      list-style: none;
-      margin: 16px 0 0;
-      padding: 0;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      column-gap: 32px;
-      max-width: 900px;
-    }
-    .loop-edge {
-      display: flex;
-      gap: 12px;
-      padding: 8px 0;
-      border-top: 1px solid var(--line);
-    }
-    .loop-key {
-      flex: 0 0 20px;
-      height: 20px;
-      border: 1px solid #D63B27;
+    .loop-wrap { position: relative; }
+    .loop-dot {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      margin: -12px 0 0 -12px;
       border-radius: 99px;
-      color: #D63B27;
-      font-size: 11px;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      cursor: help;
     }
-    .loop-edge-unreal .loop-key { border-style: dashed; }
+    .loop-dot:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+    .loop-tip {
+      display: none;
+      position: absolute;
+      left: 50%;
+      width: 260px;
+      transform: translateX(-50%);
+      padding: 8px 10px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      font-size: 12.5px;
+      line-height: 1.4;
+      z-index: 5;
+    }
+    .loop-tip-below { top: 30px; }
+    .loop-tip-above { bottom: 30px; }
+    .loop-tip-start { left: 0; transform: none; }
+    .loop-tip-end { left: auto; right: 0; transform: none; }
+    .loop-dot:hover .loop-tip,
+    .loop-dot:focus .loop-tip { display: block; }
     .cm-callout {
       margin: 24px 0 0;
       padding: 4px 0 4px 16px;
