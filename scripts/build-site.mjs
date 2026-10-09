@@ -1477,7 +1477,6 @@ function readinessGantt(map, nodes, helpers) {
   const rows = map.rows ?? [];
   if (!rows.length) return "";
 
-  const tagOf = (id) => columns.find((column) => column.id === id)?.tag ?? columns.find((column) => column.id === id)?.name ?? id;
   const pilotOf = (entry) => (entry.pilot?.test && entry.pilot.window && entry.pilot.starts ? entry.pilot : null);
 
   const todayIso = new Date().toISOString().slice(0, 10);
@@ -1557,7 +1556,6 @@ function readinessGantt(map, nodes, helpers) {
     .map((row) => {
       const items = row.items ?? [];
       const column = columnOf(row);
-      const tag = `<span class="gt-tag">${esc(tagOf(column))}</span>`;
       const inner = detail(row);
 
       if (!items.length) {
@@ -1565,7 +1563,7 @@ function readinessGantt(map, nodes, helpers) {
         <div class="gt-row" data-row="${esc(row.id)}">
           <div class="gt-name">
             <span class="gt-title">${esc(row.name)}</span>
-            <span class="gt-tags">${tag}${inner ? `<button type="button" class="gt-more" data-toggle aria-expanded="false" aria-controls="gt-${esc(row.id)}">Details</button>` : ""}</span>
+            <span class="gt-tags">${inner ? `<button type="button" class="gt-more" data-toggle aria-expanded="false" aria-controls="gt-${esc(row.id)}">Details</button>` : ""}</span>
           </div>
           <div class="gt-lane">${lanes(row)}</div>
         </div>
@@ -1582,7 +1580,6 @@ function readinessGantt(map, nodes, helpers) {
           <div class="gt-row gt-child" data-row="${esc(item.id ?? "")}" data-group="${esc(row.id)}">
             <div class="gt-name">
               <span class="gt-title">${esc(partName(row, item))}</span>
-              <span class="gt-tags"><span class="gt-tag">${esc(tagOf(item.position))}</span></span>
               ${notes(item) ? `<span class="gt-notes">${notes(item)}</span>` : ""}
             </div>
             <div class="gt-lane">${childLane}</div>
@@ -1594,7 +1591,6 @@ function readinessGantt(map, nodes, helpers) {
         <div class="gt-row gt-group" data-row="${esc(row.id)}">
           <div class="gt-name">
             <button type="button" class="gt-group-btn" data-toggle aria-expanded="false" aria-controls="gt-${esc(row.id)}">${caret}<span class="gt-title">${esc(row.name)}</span><span class="cm-count">(${items.length})</span></button>
-            <span class="gt-tags">${tag}</span>
           </div>
           <div class="gt-lane">${lanes(row)}</div>
         </div>
@@ -3006,13 +3002,6 @@ function render(model, pageId = "core-philosophy") {
     .gt-title { font-weight: 600; }
     .gt-child .gt-title { font-weight: 400; }
     .gt-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-    .gt-tag {
-      font-size: 12px;
-      line-height: 1.4;
-      padding: 0 8px;
-      border: 1px solid var(--line);
-      border-radius: 99px;
-    }
     .gt-group-btn, .gt-more {
       font: inherit;
       color: inherit;
