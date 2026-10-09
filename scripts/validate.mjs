@@ -1090,7 +1090,7 @@ function checkReadiness(map, file) {
 
       // A pilot with no test is not defined, so it has no window and no mode.
       if (pilot && !pilot.test) {
-        for (const field of ["window", "mode", "with", "silo_scope", "label"]) {
+        for (const field of ["window", "starts", "mode", "with", "silo_scope", "label"]) {
           if (pilot[field] !== undefined) {
             add("constraints", file, `${where} has pilot.${field} but no pilot.test; an empty test gets no pilot window`);
           }
@@ -1098,6 +1098,12 @@ function checkReadiness(map, file) {
       }
       if (pilot?.test) {
         if (!pilot.mode) add("constraints", file, `${where} has a pilot.test but no pilot.mode`);
+      if (pilot.window && !pilot.starts) {
+        add("constraints", file, `${where} has a pilot window but no pilot.starts`);
+      }
+      if (pilot.starts && pilot.window && pilot.starts > pilot.window.earliest) {
+        add("constraints", file, `${where} pilot.starts ${pilot.starts} is after its earliest end ${pilot.window.earliest}`);
+      }
         if (pilot.mode === "silo" && !pilot.silo_scope) {
           add("constraints", file, `${where} pilots in silo mode, so it needs silo_scope`);
         }
@@ -1124,10 +1130,15 @@ function checkReadiness(map, file) {
 
       // The windows run in order, and a pilot may start as early as the earliest
       // end of mapping, so a part never sits idle waiting for its window.
+      // Thinking and mapping share the upper lane, so mapping starts where the
+      // thinking buffer ends and the two never draw on each other.
+      if (entry.thinking_end && mapping?.ends && entry.thinking_end.latest > mapping.ends.earliest) {
+        add("constraints", file, `${where} mapping ends ${mapping.ends.earliest} before the thinking buffer ends ${entry.thinking_end.latest}; they would overlap`);
+      }
       const order = [
         ["thinking_end", entry.thinking_end?.earliest],
         ["mapping.ends", mapping?.ends?.earliest],
-        ["pilot", pilot?.window?.earliest],
+        ["pilot.starts", pilot?.starts],
       ].filter(([, date]) => date);
       for (let i = 1; i < order.length; i += 1) {
         if (order[i - 1][1] > order[i][1]) {

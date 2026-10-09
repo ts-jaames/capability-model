@@ -1318,12 +1318,6 @@ function renderConfidenceMapMain(model) {
 
   const columns = map.columns ?? [];
   const columnIndex = new Map(columns.map((column, index) => [column.id, index]));
-  const nameOf = (id) => columns[columnIndex.get(id)]?.name ?? id;
-
-  // Parts get a lighter dot than the group or row they belong to, so the eye
-  // reads the group's position first and the parts' positions second.
-  const dot = (id, part = false) =>
-    `<span class="cm-dot${part ? " cm-dot-part" : ""}" role="img" aria-label="Sits in ${esc(nameOf(id))}"></span>`;
 
   // Counted from the capability files, so the figure cannot go stale.
   const caps = model.capabilities ?? [];
@@ -1371,21 +1365,6 @@ function renderConfidenceMapMain(model) {
     }
   }
 
-  // The planned pilot mode shows in the pilot column until the part gets there.
-  // A part with no pilot test has no pilot, so it gets no badge.
-  const modeBadge = (row) =>
-    row.pilot?.test && row.pilot.mode
-      ? `<span class="cm-mode">${row.pilot.mode === "silo" ? "Silo pilot" : "Joint pilot"}</span>`
-      : "";
-  const cells = (renderCell, row) =>
-    columns
-      .map((column, index) => {
-        const inner = renderCell(column, index);
-        const badge = column.id === "pilot" && !inner && row ? modeBadge(row) : "";
-        return `<div class="cm-cell">${inner}${badge}</div>`;
-      })
-      .join("");
-
   // Mapping looks back and pilot looks forward. Each part states one test for
   // each, and says so plainly when it has none.
   const tests = (entry) => {
@@ -1407,41 +1386,9 @@ function renderConfidenceMapMain(model) {
           </div>`;
   };
 
-  const caret = `<svg class="cm-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
-  // Every row opens, so the tests are always one click away. A group sits in
-  // the column of its weakest part, which is the honest reading.
-  const rows = (map.rows ?? [])
-    .map((row) => {
-      const items = row.items ?? [];
-      const weakest = items.length
-        ? Math.min(...items.map((item) => columnIndex.get(item.position) ?? columns.length))
-        : (columnIndex.get(row.position) ?? columns.length);
-      const children = items
-        .map(
-          (item) => `
-          <div class="cm-row cm-child">
-            <div class="cm-name"><span>${esc(partName(row, item))}</span>${notes(item)}</div>
-            ${cells((column) => (column.id === item.position ? dot(column.id, true) : ""))}
-          </div>${tests(item)}`,
-        )
-        .join("");
-      const count = items.length ? `<span class="cm-count">(${items.length})</span>` : "";
-
-      return `
-        <details class="cm-group">
-          <summary class="cm-row">
-            <div class="cm-name"><span class="cm-name-line">${caret}${esc(row.name)}${count}</span></div>
-            ${cells((column, index) => (index === weakest ? dot(column.id) : ""), row)}
-          </summary>${notes(row) ? `<div class="cm-detail">${notes(row)}</div>` : ""}${tests(row)}${children}
-        </details>`;
-    })
-    .join("");
-
-  // A definition on hover or keyboard focus beside a header. Every column but
-  // the first opens its tooltip leftwards so it cannot run off the right edge.
-  const infoTip = (column, index) =>
-    `<span class="skill-tip cm-info" tabindex="0" aria-label="${esc(column.name)}: ${esc(oneLine(column.meaning))}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="4.9" r="0.9" fill="currentColor"/></svg><span class="tip${index > 0 ? " tip-end" : ""}" role="tooltip">${esc(oneLine(column.meaning))}</span></span>`;
+  // A definition on hover or keyboard focus beside a label.
+  const infoTip = (label, meaning, end = false) =>
+    `<span class="skill-tip cm-info" tabindex="0" aria-label="${esc(label)}: ${esc(oneLine(meaning))}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="4.9" r="0.9" fill="currentColor"/></svg><span class="tip${end ? " tip-end" : ""}" role="tooltip">${esc(oneLine(meaning))}</span></span>`;
 
   // The stamp is written with an offset ("2026-10-01T10:25:11-05:00"). Read as
   // written, it gives the same absolute time for every reader and no script.
@@ -1496,24 +1443,7 @@ function renderConfidenceMapMain(model) {
         ${hero}
         ${today}
       </section>
-      <section id="map">
-        <h2 class="mono uppercase eyebrow">Where each part sits</h2>
-        <div class="cm-scroll">
-          <div class="cm">
-            <div class="cm-head">
-              <div class="cm-hcell">Part of the model${map.reading_rule ? infoTip({ name: "Reading the map", meaning: map.reading_rule }, 0) : ""}</div>
-              ${columns
-                .map(
-                  (column, index) =>
-                    `<div class="cm-hcell">${esc(column.name)}${infoTip(column, index + 1)}</div>`,
-                )
-                .join("")}
-            </div>
-            ${rows}
-          </div>
-        </div>
-      </section>
-      ${readinessTimeline(map, nodes)}
+      ${readinessGantt(map, nodes, { columns, columnIndex, partName, tests, notes, infoTip })}
       ${readinessLoop(map, nodes)}
       ${readinessDone(map)}
       ${readinessNext(map)}
@@ -1536,20 +1466,27 @@ const shortDate = (iso) => {
 const READINESS_COLOR = { thinking: "#C9A47A", mapping: "#4E9A6A", pilot: "#EC4B24" };
 const LOOP_RED = "#D63B27";
 
-// One row per part: thinking and mapping bars, then the pilot bar. A thinking
-// or mapping bar is solid up to its earliest end and hatched up to its latest.
-// An unconfirmed window gets a dashed edge, which today is all of them. A part
-// with no pilot test shows that in words where the pilot bar would sit.
-function readinessTimeline(map, nodes) {
+// One chart for every part. Each row has two lanes: readiness on top (thinking,
+// then mapping) and the pilot underneath, so a pilot never draws on mapping.
+// A bar is solid up to its earliest end and hatched up to its latest end, and
+// an unconfirmed window has a dashed edge, which today is all of them. A silo
+// pilot sits alone in its row's lower lane. A joint pilot is one orange box
+// across the lower lanes of every part it pilots with.
+function readinessGantt(map, nodes, helpers) {
+  const { columns, columnIndex, partName, tests, notes, infoTip } = helpers;
   const rows = map.rows ?? [];
   if (!rows.length) return "";
+
+  const tagOf = (id) => columns.find((column) => column.id === id)?.tag ?? columns.find((column) => column.id === id)?.name ?? id;
+  const pilotOf = (entry) => (entry.pilot?.test && entry.pilot.window && entry.pilot.starts ? entry.pilot : null);
 
   const todayIso = new Date().toISOString().slice(0, 10);
   const dates = [todayIso];
   for (const row of rows) {
-    const pilots = [row, ...(row.items ?? [])].filter((e) => e.pilot?.test && e.pilot.window).map((e) => e.pilot.window);
-    for (const range of [row.thinking_end, row.mapping?.ends, ...pilots]) {
-      if (range) dates.push(range.earliest, range.latest);
+    for (const range of [row.thinking_end, row.mapping?.ends]) if (range) dates.push(range.earliest, range.latest);
+    for (const entry of [row, ...(row.items ?? [])]) {
+      const pilot = pilotOf(entry);
+      if (pilot) dates.push(pilot.starts, pilot.window.earliest, pilot.window.latest);
     }
   }
   dates.sort();
@@ -1557,115 +1494,192 @@ function readinessTimeline(map, nodes) {
   const [ly, lm] = dates[dates.length - 1].split("-").map(Number);
   const start = Date.UTC(fy, fm - 1, 1) / 86400000;
   const end = Date.UTC(ly, lm, 1) / 86400000;
+  const at = (iso) => ((dayOf(iso) - start) / (end - start)) * 100;
+  const f = (n) => Number(n.toFixed(3));
 
-  const labelW = 230;
-  const chartW = 660;
-  const top = 40;
-  const rowH = 52;
-  const width = labelW + chartW + 16;
-  const height = top + rows.length * rowH + 8;
-  const x = (iso) => labelW + ((dayOf(iso) - start) / (end - start)) * chartW;
+  // The joint pilot, and everything that takes part in it.
+  const jointRow = rows.find((row) => row.pilot?.test && row.pilot.mode === "joint" && row.pilot.window);
+  const members = jointRow ? [jointRow.id, ...(jointRow.pilot.with ?? [])] : [];
 
-  const grid = [];
-  for (let day = start; day <= end; day += 1) {
-    const date = new Date(day * 86400000);
-    const px = labelW + ((day - start) / (end - start)) * chartW;
-    if (date.getUTCDate() === 1) {
-      grid.push(`<line class="tl-month" x1="${px}" x2="${px}" y1="8" y2="${height - 8}"/>`);
-      if (day < end) {
-        grid.push(`<text class="tl-label" x="${px + 6}" y="16">${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}</text>`);
-      }
-    } else if (date.getUTCDay() === 1) {
-      grid.push(`<line class="tl-week" x1="${px}" x2="${px}" y1="28" y2="${height - 8}"/>`);
-    }
+  const monthDays = [];
+  for (let day = start; day < end; day += 1) {
+    if (new Date(day * 86400000).getUTCDate() === 1) monthDays.push(day);
   }
+  const grid =
+    monthDays.map((day) => `<i class="gt-month" style="left:${f(at(isoOf(day)))}%"></i>`).join("") +
+    `<i class="gt-today" style="left:${f(at(todayIso))}%"></i>`;
+  const monthLabels = monthDays
+    .map((day) => `<span class="gt-month-label" style="left:${f(at(isoOf(day)))}%">${MONTHS[new Date(day * 86400000).getUTCMonth()]} ${new Date(day * 86400000).getUTCFullYear()}</span>`)
+    .join("");
 
-  // The joint band sits only behind the parts a joint pilot lists, and the
-  // part that runs it.
-  const together = new Map();
-  for (const row of rows) {
-    if (row.pilot?.test && row.pilot.mode === "joint" && row.pilot.window) {
-      for (const id of [row.id, ...(row.pilot.with ?? []).map((w) => nodes.get(w)?.row ?? w)]) {
-        together.set(id, row.pilot.window);
-      }
+  const bar = (kind, from, range, lane) => {
+    const x0 = at(from);
+    const x1 = Math.max(x0, at(range.earliest));
+    const x2 = Math.max(x1, at(range.latest));
+    const solid = x2 - x0 ? ((x1 - x0) / (x2 - x0)) * 100 : 100;
+    return `<span class="gt-bar gt-${kind} gt-${lane}${range.confirmed ? "" : " gt-unconfirmed"}" style="left:${f(x0)}%;width:${f(x2 - x0)}%"><span class="gt-solid" style="width:${f(solid)}%"></span></span>`;
+  };
+  // Labels sit to the left of a bar, so they never run into the joint box.
+  const leftLabel = (text, from) =>
+    `<span class="gt-label gt-lower" style="right:${f(100 - at(from))}%">${esc(text)}</span>`;
+
+  const columnOf = (row) => nodes.get(row.id)?.column;
+
+  const tagsFor = (id, entry) => {
+    const tags = [];
+    const joint = members.includes(id);
+    const own = entry.pilot?.test && entry.pilot.mode === "silo";
+    if (joint && own) tags.push("Pilots on its own, then together");
+    else if (joint && id !== jointRow?.id) tags.push("Pilots together");
+    return tags.map((tag) => `<span class="gt-tag gt-tag-pilot">${esc(tag)}</span>`).join("");
+  };
+
+  // The lanes for a row: thinking then mapping on top, the pilot underneath.
+  const lanes = (row) => {
+    const column = columnOf(row);
+    const upper = [];
+    if (column === "thinking" && row.thinking_end) upper.push(bar("thinking", todayIso, row.thinking_end, "upper"));
+    if (column !== "pilot" && row.mapping?.ends) {
+      // Mapping starts where the thinking buffer ends, so the two never overlap.
+      const from = column === "thinking" && row.thinking_end ? row.thinking_end.latest : todayIso;
+      upper.push(bar("mapping", from, row.mapping.ends, "upper"));
     }
-  }
+    const pilot = pilotOf(row);
+    let lower = "";
+    if (pilot) {
+      lower = bar("pilot", pilot.starts, pilot.window, "lower");
+      if (pilot.mode === "silo") lower += leftLabel(pilot.label ?? "Pilots on its own", pilot.starts);
+    } else {
+      lower = `<span class="gt-note gt-lower">Pilot not defined yet</span>`;
+    }
+    return grid + upper.join("") + lower;
+  };
 
-  const bar = (from, range, color, y, h) => {
-    const x0 = x(from);
-    const x1 = Math.max(x0, x(range.earliest));
-    const x2 = Math.max(x1, x(range.latest));
-    const dash = range.confirmed ? "" : ` stroke-dasharray="3 2"`;
-    return `<rect x="${x0}" y="${y}" width="${x1 - x0}" height="${h}" fill="${color}"/>` +
-      `<rect x="${x1}" y="${y}" width="${x2 - x1}" height="${h}" fill="url(#hatch-${color.slice(1)})" stroke="${color}" stroke-width="1"${dash}/>`;
+  const caret = `<svg class="cm-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const detail = (entry) => {
+    const inner = `${notes(entry) ? `<div class="gt-notes">${notes(entry)}</div>` : ""}${tests(entry)}`;
+    return inner;
   };
 
   const body = rows
-    .map((row, i) => {
-      const y = top + i * rowH;
-      const column = nodes.get(row.id)?.column;
-      const pilots = [row, ...(row.items ?? [])].map((e) => e.pilot).filter((p) => p?.test && p.window);
-      const window = together.get(row.id);
-      const band = window
-        ? `<rect class="tl-band" x="${x(window.earliest)}" y="${y + 2}" width="${x(window.latest) - x(window.earliest)}" height="${rowH - 4}"/>`
-        : "";
-      const mappingFrom = column === "thinking" && row.thinking_end ? row.thinking_end.earliest : todayIso;
+    .map((row) => {
+      const items = row.items ?? [];
+      const column = columnOf(row);
+      const tag = `<span class="gt-tag">${esc(tagOf(column))}</span>`;
+      const inner = detail(row);
 
-      // Pilot bars sit on the same line as the thinking and mapping bars. A
-      // label goes underneath, and says what waits when only part of a part is
-      // piloted.
-      let pilotMark = "";
-      for (const pilot of pilots) {
-        const x1 = x(pilot.window.earliest);
-        const x2 = x(pilot.window.latest);
-        const dash = pilot.window.confirmed ? "" : ` stroke-dasharray="3 2"`;
-        const caption = [pilot.label, pilot.not_yet].filter(Boolean).map(oneLine).join(". ");
-        pilotMark +=
-          `<rect x="${x1}" y="${y + 12}" width="${Math.max(0, x2 - x1)}" height="12" fill="${READINESS_COLOR.pilot}" fill-opacity="0.3" stroke="${READINESS_COLOR.pilot}" stroke-width="1"${dash}/>` +
-          (caption ? `<text class="tl-sub" x="${x1}" y="${y + 38}">${esc(caption)}</text>` : "");
-      }
-      if (!pilots.length) {
-        const ends = [row.thinking_end?.latest, row.mapping?.ends?.latest].filter(Boolean).sort();
-        const from = ends.length ? x(ends[ends.length - 1]) + 8 : labelW + 8;
-        pilotMark = `<text class="tl-sub" x="${from}" y="${y + 22}">Pilot not defined yet</text>`;
+      if (!items.length) {
+        return `
+        <div class="gt-row" data-row="${esc(row.id)}">
+          <div class="gt-name">
+            <span class="gt-title">${esc(row.name)}</span>
+            <span class="gt-tags">${tag}${tagsFor(row.id, row)}${inner ? `<button type="button" class="gt-more" data-toggle aria-expanded="false" aria-controls="gt-${esc(row.id)}">Details</button>` : ""}</span>
+          </div>
+          <div class="gt-lane">${lanes(row)}</div>
+        </div>
+        ${inner ? `<div class="gt-detail" id="gt-${esc(row.id)}" hidden>${inner}</div>` : ""}`;
       }
 
-      return `<g>
-          ${band}
-          <line class="tl-row" x1="0" x2="${width}" y1="${y + rowH}" y2="${y + rowH}"/>
-          <text class="tl-name" x="0" y="${y + 22}">${esc(row.name)}</text>
-          ${column === "thinking" && row.thinking_end ? bar(todayIso, row.thinking_end, READINESS_COLOR.thinking, y + 12, 12) : ""}
-          ${column !== "pilot" && row.mapping?.ends ? bar(mappingFrom, row.mapping.ends, READINESS_COLOR.mapping, y + 12, 12) : ""}
-          ${pilotMark}
-        </g>`;
+      const children = items
+        .map((item) => {
+          const own = pilotOf(item);
+          const childLane = own
+            ? grid + bar("pilot", own.starts, own.window, "lower") + (own.mode === "silo" ? leftLabel(own.label ?? "Pilots on its own", own.starts) : "")
+            : `${grid}<span class="gt-note gt-upper">Follows the group</span>`;
+          return `
+          <div class="gt-row gt-child" data-row="${esc(item.id ?? "")}" data-group="${esc(row.id)}">
+            <div class="gt-name">
+              <span class="gt-title">${esc(partName(row, item))}</span>
+              <span class="gt-tags"><span class="gt-tag">${esc(tagOf(item.position))}</span>${item.id ? tagsFor(item.id, item) : ""}</span>
+              ${notes(item) ? `<span class="gt-notes">${notes(item)}</span>` : ""}
+            </div>
+            <div class="gt-lane">${childLane}</div>
+          </div>`;
+        })
+        .join("");
+
+      return `
+        <div class="gt-row gt-group" data-row="${esc(row.id)}">
+          <div class="gt-name">
+            <button type="button" class="gt-group-btn" data-toggle aria-expanded="false" aria-controls="gt-${esc(row.id)}">${caret}<span class="gt-title">${esc(row.name)}</span><span class="cm-count">(${items.length})</span></button>
+            <span class="gt-tags">${tag}</span>
+          </div>
+          <div class="gt-lane">${lanes(row)}</div>
+        </div>
+        <div class="gt-panel" id="gt-${esc(row.id)}" hidden>
+          ${inner ? `<div class="gt-detail">${inner}</div>` : ""}${children}
+        </div>`;
     })
     .join("");
 
-  const hatch = (color) =>
-    `<pattern id="hatch-${color.slice(1)}" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="5" stroke="${color}" stroke-width="1.6"/></pattern>`;
+  const key = (swatch, label, tip, end = false) =>
+    `<span class="gt-key">${swatch}${esc(label)}${tip ? infoTip(label, tip, end) : ""}</span>`;
+  const sw = (kind, cls = "") => `<span class="gt-swatch gt-bar gt-${kind} ${cls}"><span class="gt-solid"></span></span>`;
+  const hatched = (kind) => `<span class="gt-swatch gt-bar gt-${kind}"></span>`;
+  const meaning = (id) => columns.find((column) => column.id === id)?.meaning;
 
-  const todayX = x(todayIso);
-  const swatch = (color) => `<svg width="22" height="10" aria-hidden="true"><rect width="22" height="10" fill="${color}"/></svg>`;
+  const joint = jointRow
+    ? (() => {
+        const l = at(jointRow.pilot.starts);
+        const w = at(jointRow.pilot.window.latest) - l;
+        return `<div class="gt-joint" data-members="${esc(members.join(" "))}" style="--l:${f(l / 100)};--w:${f(w / 100)}"><span class="gt-joint-label">Piloted together: ${esc(jointRow.name.toLowerCase())}</span></div>`;
+      })()
+    : "";
 
   return `
       <section id="timeline">
-        <h2 class="mono uppercase eyebrow">When each part could move</h2>
+        <h2 class="mono uppercase eyebrow">Where each part is, and when it could move${map.reading_rule ? infoTip("Reading the chart", map.reading_rule) : ""}</h2>
         <p class="lede">Solid is the likely window, hatched is the buffer, dashed means unconfirmed.</p>
-        <div class="tl-legend">
-          <span>${swatch(READINESS_COLOR.thinking)} Thinking Time</span>
-          <span>${swatch(READINESS_COLOR.mapping)} Current engagement mapping</span>
-          <span><svg width="22" height="10" aria-hidden="true"><rect x="0.5" y="0.5" width="21" height="9" fill="${READINESS_COLOR.pilot}" fill-opacity="0.3" stroke="${READINESS_COLOR.pilot}" stroke-dasharray="3 2"/></svg> Pilot</span>
-          <span><svg width="22" height="10" aria-hidden="true"><rect width="22" height="10" fill="${READINESS_COLOR.pilot}" fill-opacity="0.12"/></svg> Pilots together</span>
+        <div class="gt-legend">
+          ${key(sw("thinking"), "Thinking time", meaning("thinking"))}
+          ${key(hatched("thinking"), "Thinking buffer")}
+          ${key(sw("mapping"), "Mapping", meaning("mapping"))}
+          ${key(hatched("mapping"), "Mapping buffer")}
+          ${key(sw("pilot"), "Pilot", meaning("pilot"), true)}
+          ${key(hatched("pilot"), "Pilot buffer")}
+          ${key(`<span class="gt-swatch gt-bar gt-thinking gt-unconfirmed gt-dash"></span>`, "Dashed edge: unconfirmed")}
+          ${jointRow ? key(`<span class="gt-swatch gt-joint-swatch"></span>`, "Pilots together, one box") : ""}
         </div>
         <div class="cm-scroll">
-          <svg class="tl" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Estimate windows for each part, from ${esc(isoOf(start))} to ${esc(isoOf(end - 1))}">
-            <defs>${[READINESS_COLOR.thinking, READINESS_COLOR.mapping].map(hatch).join("")}</defs>
-            ${grid.join("")}
+          <div class="gt">
+            <div class="gt-row gt-head">
+              <div class="gt-name"><span class="gt-title">Part of the model</span></div>
+              <div class="gt-lane">${monthLabels}${grid}<span class="gt-today-label" style="left:${f(at(todayIso))}%">Today</span></div>
+            </div>
             ${body}
-            <line class="tl-today" x1="${todayX}" x2="${todayX}" y1="26" y2="${height - 8}"/>
-            <text class="tl-today-label" x="${todayX + 4}" y="37">Today</text>
-          </svg>
+            ${joint}
+          </div>
         </div>
+        <script>
+          (function () {
+            var chart = document.querySelector('.gt');
+            if (!chart) return;
+            function layout() {
+              var box = chart.querySelector('.gt-joint');
+              if (!box) return;
+              var rows = box.getAttribute('data-members').split(' ').map(function (id) {
+                var row = chart.querySelector('[data-row="' + id + '"]');
+                if (row && row.offsetParent === null) row = chart.querySelector('[data-row="' + row.getAttribute('data-group') + '"]');
+                return row;
+              }).filter(Boolean);
+              if (!rows.length) return;
+              var top = Math.min.apply(null, rows.map(function (r) { return r.offsetTop; })) + 26;
+              var last = rows.reduce(function (a, r) { return r.offsetTop > a.offsetTop ? r : a; });
+              box.style.top = top + 'px';
+              box.style.height = (last.offsetTop + last.offsetHeight - 4 - top) + 'px';
+            }
+            chart.querySelectorAll('[data-toggle]').forEach(function (button) {
+              button.addEventListener('click', function () {
+                var open = button.getAttribute('aria-expanded') === 'true';
+                button.setAttribute('aria-expanded', String(!open));
+                document.getElementById(button.getAttribute('aria-controls')).hidden = open;
+                layout();
+              });
+            });
+            window.addEventListener('resize', layout);
+            layout();
+          })();
+        </script>
       </section>`;
 }
 
@@ -2980,6 +2994,111 @@ function render(model, pageId = "core-philosophy") {
       border-radius: 99px;
       white-space: nowrap;
     }
+    .gt { position: relative; min-width: 1100px; }
+    .gt-row {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      border-top: 1px solid var(--line);
+    }
+    .gt-head { border-top: 0; }
+    .gt-head .gt-lane { min-height: 28px; }
+    .gt-name {
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      padding: 8px 12px 8px 0;
+      background: var(--bg);
+    }
+    .gt-child .gt-name { padding-left: 20px; }
+    .gt-title { font-weight: 600; }
+    .gt-child .gt-title { font-weight: 400; }
+    .gt-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+    .gt-tag {
+      font-size: 12px;
+      line-height: 1.4;
+      padding: 0 8px;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+    }
+    .gt-tag-pilot { border-color: #EC4B24; }
+    .gt-group-btn, .gt-more {
+      font: inherit;
+      color: inherit;
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+    }
+    .gt-group-btn { display: inline-flex; align-items: center; gap: 8px; text-align: left; }
+    .gt-more { font-size: 12px; text-decoration: underline; text-underline-offset: 2px; }
+    .gt-group-btn:focus-visible, .gt-more:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .gt-group-btn[aria-expanded="true"] .cm-caret { transform: rotate(90deg); }
+    .gt [hidden] { display: none !important; }
+    .gt-lane { position: relative; min-height: 52px; }
+    .gt-child .gt-lane { min-height: 40px; }
+    .gt-month, .gt-today { position: absolute; top: 0; bottom: 0; width: 1px; background: #E4E4E4; }
+    .gt-today { background: #EC4B24; }
+    .gt-today-label { position: absolute; top: 4px; padding-left: 6px; font-size: 12px; color: #EC4B24; font-weight: 600; transform: translateY(14px); }
+    .gt-month-label { position: absolute; top: 4px; padding-left: 6px; font-size: 12px; }
+    .gt-bar {
+      --c: #C9A47A;
+      position: absolute;
+      height: 12px;
+      border: 1px solid var(--c);
+      background: repeating-linear-gradient(135deg, var(--c) 0 1.6px, #FFFFFF 1.6px 5px);
+    }
+    .gt-thinking { --c: #C9A47A; }
+    .gt-mapping { --c: #4E9A6A; }
+    .gt-pilot { --c: #EC4B24; }
+    .gt-unconfirmed { outline: 1px dashed var(--c); outline-offset: 2px; }
+    .gt-solid { position: absolute; left: 0; top: 0; bottom: 0; background: var(--c); }
+    .gt-upper { top: 10px; }
+    .gt-lower { top: 30px; }
+    .gt-label, .gt-note { position: absolute; font-size: 12px; line-height: 12px; white-space: nowrap; }
+    .gt-label { padding-right: 6px; }
+    .gt-note { left: 8px; }
+    .gt-note.gt-upper { top: 10px; font-style: normal; opacity: 0.7; }
+    .gt-lane > .gt-note.gt-lower { top: 30px; }
+    .gt-joint {
+      position: absolute;
+      left: calc(240px + (100% - 240px) * var(--l));
+      width: calc((100% - 240px) * var(--w));
+      border: 1.5px solid #EC4B24;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .gt-joint-label {
+      position: absolute;
+      left: 8px;
+      top: -9px;
+      padding: 0 6px;
+      font-size: 12px;
+      line-height: 16px;
+      background: var(--bg);
+      white-space: nowrap;
+    }
+    .gt-panel { display: block; }
+    .gt-detail { padding: 8px 0 12px 20px; max-width: 760px; position: sticky; left: 0; }
+    .gt-notes { display: flex; flex-direction: column; gap: 2px; }
+    .gt-notes .cm-note, .gt-name .cm-note { padding-left: 0; }
+    .gt-detail .cm-tests { border-top: 0; padding-left: 0; }
+    .gt-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+      margin: 16px 0 0;
+      font-size: 12.5px;
+    }
+    .gt-key { display: inline-flex; align-items: center; gap: 8px; }
+    .gt-swatch { position: relative; display: inline-block; width: 22px; height: 10px; }
+    .gt-joint-swatch { border: 1.5px solid #EC4B24; border-radius: 3px; background: none; }
+    .gt-dash { background: #FFFFFF; }
+    .gt-swatch .gt-solid { width: 100%; }
     .cm-hero { margin: 0 0 40px; }
     .cm-hero-range {
       margin: 0 0 4px;

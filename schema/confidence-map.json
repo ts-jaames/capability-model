@@ -233,6 +233,9 @@
           },
           "meaning": {
             "$ref": "common.json#/$defs/nonEmptyString"
+          },
+          "tag": {
+            "$ref": "common.json#/$defs/nonEmptyString"
           }
         }
       }
@@ -508,6 +511,9 @@
         },
         "note": {
           "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "starts": {
+          "$ref": "common.json#/$defs/isoDate"
         }
       }
     }
