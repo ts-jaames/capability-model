@@ -143,14 +143,6 @@ rows:
     mapping:
       test: Do the past 3–4 projects surface capabilities missing from the list?
       ends: { earliest: 2026-10-30, latest: 2026-11-06, confirmed: false }
-    pilot:
-      test: >
-        Run an upcoming project's qualify and discovery transcripts through the
-        model, and record which capabilities surface at which levels.
-      mode: silo
-      silo_scope: One upcoming project's qualify and discovery transcripts.
-      starts: 2026-11-09
-      window: { earliest: 2026-11-21, latest: 2026-11-25, confirmed: false }
     items:
       - id: domains
         name: Domains
@@ -211,13 +203,6 @@ rows:
             Size each past project with the rules and compare against what actually
             happened, one sub-rule at a time.
           ends: { earliest: 2026-11-02, latest: 2026-11-25, confirmed: false }
-        pilot:
-          test: >
-            Size an upcoming project before it starts, then reconcile once it runs.
-          mode: silo
-          silo_scope: One sub-rule at a time (levels, concurrency, effort per instance).
-          starts: 2026-11-23
-          window: { earliest: 2026-12-12, latest: 2026-12-18, confirmed: false }
       - id: surface-area
         name: Surface area
         kind: measure
@@ -357,15 +342,6 @@ rows:
       test: >
         Do the title bundles map cleanly onto the people from self-assessment?
       ends: { earliest: 2026-11-06, latest: 2026-11-27, confirmed: false }
-    pilot:
-      test: >
-        Draft the next real SOW priced on capabilities at levels with no
-        titles, and record sales and client reaction; this tests the existing
-        rule and does not reopen it.
-      mode: silo
-      silo_scope: Tied to the next real SOW.
-      starts: 2026-11-09
-      window: { earliest: 2026-11-25, latest: 2026-11-30, confirmed: false }
     depends_on:
       - id: capability-levels
         reason: >
@@ -418,6 +394,19 @@ rows:
     position: thinking
     note: Designed; refresh trigger open.
     thinking_end: { earliest: 2026-10-30, latest: 2026-11-20, confirmed: false }
+    mapping:
+      test: >
+        Do past engagements' refresh triggers match what the harness would
+        have flagged?
+      ends: { earliest: 2026-12-01, latest: 2026-12-15, confirmed: false }
+    pilot:
+      test: >
+        Run the harness on one live engagement and compare its refresh calls
+        with what the team would have made.
+      mode: silo
+      silo_scope: One live engagement.
+      starts: 2026-12-01
+      window: { earliest: 2026-12-18, latest: 2027-01-08, confirmed: false }
 
 loop:
   ring:
