@@ -94,6 +94,28 @@ export function pilotWindow(map) {
   };
 }
 
+// A group's column is its least tested part. It is derived, never typed.
+export function leastTestedColumn(items, columnIds = ["thinking", "mapping", "pilot"]) {
+  const indexes = (items ?? []).map((item) => columnIds.indexOf(item.position)).filter((i) => i >= 0);
+  return indexes.length ? columnIds[Math.min(...indexes)] : undefined;
+}
+
+// The parts of the model that are rules (sizing measures and staffing checks),
+// each with the tool that will run it. Rules live on the confidence map, so
+// this reads them from there and never from a second file.
+export function rulesOf(map) {
+  return (map?.rows ?? []).flatMap((row) =>
+    (row.items ?? []).filter((item) => item.kind).map((item) => ({ ...item, group: row.id, group_name: row.name })),
+  );
+}
+
+// The rules that cite a definition. Derived; the glossary never stores it.
+export function rulesUsing(map, definitionId) {
+  return rulesOf(map)
+    .filter((rule) => (rule.glossary_terms ?? []).includes(definitionId))
+    .map((rule) => ({ id: rule.id, name: rule.name, kind: rule.kind, tool: rule.tool }));
+}
+
 export function fileStem(file) {
   return basename(file).replace(/\.(yaml|yml)$/, "");
 }

@@ -172,30 +172,178 @@ rows:
               Staffing runs should show where a level was set wrong. This
               feedback does not exist until the harness has run once.
 
-  - id: scope-units
-    name: Scope Units
-    position: thinking
-    moves_when: >
-      Core Systems Engineering leverage is checked against a real engagement,
-      concurrency is checked against one where it turned out to be wrong, and
-      a second capability has had its own scope pass.
-    thinking_end: { earliest: 2026-10-23, latest: 2026-10-30, confirmed: false }
-    mapping:
-      test: >
-        Size each past project with the rules and compare against what actually
-        happened, one sub-rule at a time.
-      ends: { earliest: 2026-11-02, latest: 2026-11-25, confirmed: false }
-    pilot:
-      test: >
-        Size an upcoming project before it starts, then reconcile once it runs.
-      mode: silo
-      silo_scope: One sub-rule at a time (levels, concurrency, effort per instance).
-      starts: 2026-11-23
-      window: { earliest: 2026-12-12, latest: 2026-12-18, confirmed: false }
+  - id: sizing-staffing-rules
+    name: Sizing & Staffing Rules
+    note: How many seats the work needs, and whether a staffing is allowed.
     depends_on:
       - id: ai-native-sdlc
         reason: >
           What counts as one unit depends on how the work is cut into stages.
+    items:
+      - id: scope-units
+        name: Scope Units
+        kind: measure
+        statement: >
+          How many independent instances of a capability an engagement needs,
+          as opposed to how senior the work is.
+        formula: instances = ceil(scope_units / leverage_by_level[level])
+        inputs:
+          - scope units (per engagement, never stored)
+          - leverage by level
+          - level
+        tool: size
+        glossary_terms: [scope-unit, level]
+        lives_in: >
+          capabilities/building/core-systems-engineering.yaml
+          (scope_decomposition); the only capability with one so far.
+        position: thinking
+        moves_when: >
+          Core Systems Engineering leverage is checked against a real engagement,
+          concurrency is checked against one where it turned out to be wrong, and
+          a second capability has had its own scope pass.
+        thinking_end: { earliest: 2026-10-23, latest: 2026-10-30, confirmed: false }
+        mapping:
+          test: >
+            Size each past project with the rules and compare against what actually
+            happened, one sub-rule at a time.
+          ends: { earliest: 2026-11-02, latest: 2026-11-25, confirmed: false }
+        pilot:
+          test: >
+            Size an upcoming project before it starts, then reconcile once it runs.
+          mode: silo
+          silo_scope: One sub-rule at a time (levels, concurrency, effort per instance).
+          starts: 2026-11-23
+          window: { earliest: 2026-12-12, latest: 2026-12-18, confirmed: false }
+      - id: surface-area
+        name: Surface area
+        kind: measure
+        statement: >
+          How many units of work run at once, so need attention at the same
+          time; sequenceable units take turns and do not add to it.
+        formula: not_yet_defined
+        inputs:
+          - scope units
+          - concurrency
+        tool: size
+        glossary_terms: [scope-unit]
+        lives_in: capacity-model.yaml (surface area, concurrency)
+        position: thinking
+        moves_when: >
+          A real engagement shows how concurrency and the calendar trade off.
+      - id: required-level
+        name: Required level
+        kind: measure
+        statement: >
+          The level the work demands, set by collapse risk, not by who is
+          available.
+        formula: not_yet_defined
+        inputs:
+          - collapse risk
+        tool: size
+        glossary_terms: [level]
+        lives_in: capacity-model.yaml (demanded_level)
+        position: thinking
+        moves_when: >
+          Collapse risk has a definition a second person would score the same way.
+      - id: effective-capacity
+        name: Effective capacity
+        kind: measure
+        statement: >
+          How much surface area one operator holds at the demanded level, given
+          how far their caliber sits above it.
+        formula: >
+          effective_capacity = min(nominal_capacity[demanded_level] *
+          multiplier_by_gap[gap], hard_ceiling)
+        inputs:
+          - demanded level
+          - operator caliber
+          - nominal capacity by level
+          - multiplier by gap
+          - hard ceiling
+        tool: size
+        glossary_terms: [level]
+        lives_in: capacity-model.yaml (nominal_capacity, multiplier_by_gap, hard_ceiling)
+        position: thinking
+        moves_when: >
+          The figures in capacity-model.yaml are recovered from real delivery
+          and a human reviews them.
+      - id: seat-count
+        name: Seat count
+        kind: measure
+        statement: >
+          How many seats the work needs: a ceiling from demand, and a floor from
+          validated surface area only.
+        formula: count = surface_area / effective_capacity
+        inputs:
+          - surface area
+          - effective capacity
+        tool: size
+        glossary_terms: [seat]
+        lives_in: capacity-model.yaml (count derivation, demanded_count, committed_count)
+        position: thinking
+        moves_when: >
+          Surface area and required level have formulas, so the count is no
+          longer built on gaps.
+      - id: build-qa-segregation
+        name: Build and QA segregation
+        kind: check
+        statement: >
+          One person may not hold both Product & interface building and
+          Validation & testing on the same engagement, whatever the scheduling
+          says.
+        condition: >
+          Fails when one seat, or one title's default_executes, covers both
+          capabilities of a segregated pair.
+        inputs:
+          - segregated_from pairs
+          - seat assignments
+          - title default_executes
+        tool: segregation_check
+        glossary_terms: [seat, title]
+        lives_in: >
+          capabilities/building/product-interface-building.yaml and
+          capabilities/proof/validation-testing.yaml (segregated_from)
+        position: thinking
+        note: >
+          The Forward Deployed Engineer default fails this check today, and
+          that is an open decision for a human.
+        moves_when: >
+          A real staffing is run through the check and it flags what a person
+          would also flag.
+      - id: scope-gaps
+        name: Undefined scope
+        kind: check
+        statement: >
+          A capability with no scope block, or a missing field, is undefined
+          and is never read as one.
+        condition: >
+          Fails for each capability with no scope_decomposition, a status of
+          not_yet_defined, or a field left out.
+        inputs:
+          - scope_decomposition on each capability
+        tool: gap_list
+        glossary_terms: [scope-unit]
+        lives_in: capabilities/*/*.yaml (scope_decomposition)
+        position: thinking
+        moves_when: >
+          The gap list is read on a real engagement and nothing it reports is
+          a surprise.
+      - id: caliber-eligibility
+        name: Caliber eligibility
+        kind: check
+        statement: >
+          An operator below the demanded level is ineligible for the seat, not
+          a smaller share of it.
+        condition: Fails when operator_caliber minus demanded_level is below zero.
+        inputs:
+          - operator caliber
+          - demanded level
+        tool: gap_list
+        glossary_terms: [level, seat]
+        lives_in: capacity-model.yaml (caliber gap rule)
+        position: thinking
+        moves_when: >
+          A real seat is checked and the ineligible calls match a human's.
 
   - id: roles-titles
     name: Roles & Titles
@@ -231,7 +379,7 @@ rows:
       mode: joint
       with:
         - capability-levels
-        - scope-units
+        - sizing-staffing-rules
         - roles-titles
       starts: 2026-12-07
       window: { earliest: 2027-01-05, latest: 2027-01-15, confirmed: false }
@@ -243,7 +391,7 @@ rows:
         reason: >
           The briefing stops at the qualified pool, and resourcing reads
           titles to fill it.
-      - id: scope-units
+      - id: sizing-staffing-rules
         reason: >
           The harness needs to know how many instances of each capability the
           pilot's work calls for.
@@ -259,7 +407,7 @@ loop:
     - capability-levels
     - roles-titles
     - staffing-harness
-    - scope-units
+    - sizing-staffing-rules
     - ai-native-sdlc
     - operating-view
   callout: >
