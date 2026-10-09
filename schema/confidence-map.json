@@ -137,46 +137,18 @@
         }
       }
     },
-    "next": {
+    "tomorrow": {
       "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "item",
-          "estimate"
+          "item"
         ],
         "properties": {
           "item": {
-            "$ref": "common.json#/$defs/nonEmptyString"
-          },
-          "estimate": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "min",
-              "max",
-              "unit"
-            ],
-            "properties": {
-              "min": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "max": {
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "unit": {
-                "type": "string",
-                "enum": [
-                  "days",
-                  "weeks"
-                ]
-              }
-            }
-          },
-          "after": {
             "$ref": "common.json#/$defs/nonEmptyString"
           },
           "note": {
@@ -232,6 +204,9 @@
             "$ref": "common.json#/$defs/nonEmptyString"
           },
           "meaning": {
+            "$ref": "common.json#/$defs/nonEmptyString"
+          },
+          "tag": {
             "$ref": "common.json#/$defs/nonEmptyString"
           }
         }
@@ -374,6 +349,9 @@
         },
         "pilot": {
           "$ref": "#/$defs/pilot"
+        },
+        "early_pilot": {
+          "$ref": "#/$defs/pilot"
         }
       },
       "oneOf": [
@@ -433,6 +411,52 @@
           "$ref": "#/$defs/mapping"
         },
         "pilot": {
+          "$ref": "#/$defs/pilot"
+        },
+        "thinking_end": {
+          "$ref": "#/$defs/range"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "measure",
+            "check"
+          ]
+        },
+        "statement": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "formula": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "condition": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.json#/$defs/nonEmptyString"
+          }
+        },
+        "tool": {
+          "type": "string",
+          "enum": [
+            "size",
+            "segregation_check",
+            "gap_list"
+          ]
+        },
+        "glossary_terms": {
+          "type": "array",
+          "items": {
+            "$ref": "common.json#/$defs/kebabId"
+          }
+        },
+        "lives_in": {
+          "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "early_pilot": {
           "$ref": "#/$defs/pilot"
         }
       },
@@ -508,6 +532,9 @@
         },
         "note": {
           "$ref": "common.json#/$defs/nonEmptyString"
+        },
+        "starts": {
+          "$ref": "common.json#/$defs/isoDate"
         }
       }
     }

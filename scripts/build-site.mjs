@@ -11,6 +11,7 @@ import {
   modelView,
   oneLine,
   pilotWindow,
+  rulesUsing,
   scopeView,
 } from "./model.mjs";
 
@@ -471,7 +472,7 @@ function renderTitle(title, capsById, domainsById) {
 
 // The Title · Ownership · Seat layers are the definition store rendered, not a
 // second copy of it, so the page cannot drift from `definitions/`.
-function renderLayer(definition) {
+function renderLayer(definition, rules = []) {
   const nots = (definition.not ?? [])
     .map((item) => `<li>${esc(oneLine(item))}</li>`)
     .join("");
@@ -481,7 +482,7 @@ function renderLayer(definition) {
         <h3 class="domain-name">${esc(definition.term)}</h3>
       </header>
       <div class="prose">${paragraphs(definition.definition)}</div>
-      ${nots ? `<div class="kvs">${kv("Not", `<ul class="bullets">${nots}</ul>`)}</div>` : ""}
+      ${nots || rules.length ? `<div class="kvs">${nots ? kv("Not", `<ul class="bullets">${nots}</ul>`) : ""}${rules.length ? kv("Used by rules", `<a href="confidence-map.html#timeline">${esc(rules.map((rule) => rule.name).join(", "))}</a>`) : ""}</div>` : ""}
     </article>`;
 }
 
@@ -701,7 +702,7 @@ function renderRolesMain(model) {
   const layer = (id) => {
     const definition = definitionsById.get(id);
     if (!definition) throw new Error(`Missing definition: ${id}`);
-    return renderLayer(definition);
+    return renderLayer(definition, rulesUsing(model.confidenceMap, id));
   };
 
   const defLayers = [
@@ -1318,12 +1319,6 @@ function renderConfidenceMapMain(model) {
 
   const columns = map.columns ?? [];
   const columnIndex = new Map(columns.map((column, index) => [column.id, index]));
-  const nameOf = (id) => columns[columnIndex.get(id)]?.name ?? id;
-
-  // Parts get a lighter dot than the group or row they belong to, so the eye
-  // reads the group's position first and the parts' positions second.
-  const dot = (id, part = false) =>
-    `<span class="cm-dot${part ? " cm-dot-part" : ""}" role="img" aria-label="Sits in ${esc(nameOf(id))}"></span>`;
 
   // Counted from the capability files, so the figure cannot go stale.
   const caps = model.capabilities ?? [];
@@ -1371,21 +1366,6 @@ function renderConfidenceMapMain(model) {
     }
   }
 
-  // The planned pilot mode shows in the pilot column until the part gets there.
-  // A part with no pilot test has no pilot, so it gets no badge.
-  const modeBadge = (row) =>
-    row.pilot?.test && row.pilot.mode
-      ? `<span class="cm-mode">${row.pilot.mode === "silo" ? "Silo pilot" : "Joint pilot"}</span>`
-      : "";
-  const cells = (renderCell, row) =>
-    columns
-      .map((column, index) => {
-        const inner = renderCell(column, index);
-        const badge = column.id === "pilot" && !inner && row ? modeBadge(row) : "";
-        return `<div class="cm-cell">${inner}${badge}</div>`;
-      })
-      .join("");
-
   // Mapping looks back and pilot looks forward. Each part states one test for
   // each, and says so plainly when it has none.
   const tests = (entry) => {
@@ -1407,41 +1387,9 @@ function renderConfidenceMapMain(model) {
           </div>`;
   };
 
-  const caret = `<svg class="cm-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
-  // Every row opens, so the tests are always one click away. A group sits in
-  // the column of its weakest part, which is the honest reading.
-  const rows = (map.rows ?? [])
-    .map((row) => {
-      const items = row.items ?? [];
-      const weakest = items.length
-        ? Math.min(...items.map((item) => columnIndex.get(item.position) ?? columns.length))
-        : (columnIndex.get(row.position) ?? columns.length);
-      const children = items
-        .map(
-          (item) => `
-          <div class="cm-row cm-child">
-            <div class="cm-name"><span>${esc(partName(row, item))}</span>${notes(item)}</div>
-            ${cells((column) => (column.id === item.position ? dot(column.id, true) : ""))}
-          </div>${tests(item)}`,
-        )
-        .join("");
-      const count = items.length ? `<span class="cm-count">(${items.length})</span>` : "";
-
-      return `
-        <details class="cm-group">
-          <summary class="cm-row">
-            <div class="cm-name"><span class="cm-name-line">${caret}${esc(row.name)}${count}</span></div>
-            ${cells((column, index) => (index === weakest ? dot(column.id) : ""), row)}
-          </summary>${notes(row) ? `<div class="cm-detail">${notes(row)}</div>` : ""}${tests(row)}${children}
-        </details>`;
-    })
-    .join("");
-
-  // A definition on hover or keyboard focus beside a header. Every column but
-  // the first opens its tooltip leftwards so it cannot run off the right edge.
-  const infoTip = (column, index) =>
-    `<span class="skill-tip cm-info" tabindex="0" aria-label="${esc(column.name)}: ${esc(oneLine(column.meaning))}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="4.9" r="0.9" fill="currentColor"/></svg><span class="tip${index > 0 ? " tip-end" : ""}" role="tooltip">${esc(oneLine(column.meaning))}</span></span>`;
+  // A definition on hover or keyboard focus beside a label.
+  const infoTip = (label, meaning, end = false) =>
+    `<span class="skill-tip cm-info" tabindex="0" aria-label="${esc(label)}: ${esc(oneLine(meaning))}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="4.9" r="0.9" fill="currentColor"/></svg><span class="tip${end ? " tip-end" : ""}" role="tooltip">${esc(oneLine(meaning))}</span></span>`;
 
   // The stamp is written with an offset ("2026-10-01T10:25:11-05:00"). Read as
   // written, it gives the same absolute time for every reader and no script.
@@ -1458,12 +1406,24 @@ function renderConfidenceMapMain(model) {
     ? `<div class="cm-today">
           <div class="cm-today-head">
             <p class="callout-label cm-today-title">What's happening today</p>
-            <p class="cm-today-date">Latest model change <time class="cm-ago" datetime="${esc(changes[0].when)}" data-since="${esc(changes[0].when)}">${esc(stamped(changes[0].when))}</time></p>
+            <p class="callout-label cm-today-date">Latest model change <time class="cm-ago" datetime="${esc(changes[0].when)}" data-since="${esc(changes[0].when)}">${esc(stamped(changes[0].when))}</time></p>
           </div>
           <ul class="cm-changes">
             ${changes
-              .map((change) => `<li><span class="cm-change-date">${esc(shortDate(change.when.slice(0, 10)))}</span> ${esc(oneLine(change.subject))}</li>`)
+              .map((change) => `<li>${esc(oneLine(change.subject))}</li>`)
               .join("")}
+          </ul>
+        </div>`
+    : "";
+
+  // What is being worked on next. A person sets it in the YAML; it is not derived.
+  const tomorrow = (map.tomorrow ?? []).length
+    ? `<div class="cm-today cm-tomorrow">
+          <div class="cm-today-head">
+            <p class="callout-label cm-today-title">What's happening tomorrow</p>
+          </div>
+          <ul class="cm-changes">
+            ${map.tomorrow.map((entry) => `<li>${esc(oneLine(entry.item))}${entry.note ? `. ${esc(oneLine(entry.note))}` : ""}</li>`).join("")}
           </ul>
         </div>`
     : "";
@@ -1495,28 +1455,11 @@ function renderConfidenceMapMain(model) {
         <h1 class="cm-sr">${esc(map.name)}</h1>
         ${hero}
         ${today}
+        ${tomorrow}
       </section>
-      <section id="map">
-        <h2 class="mono uppercase eyebrow">Where each part sits</h2>
-        <div class="cm-scroll">
-          <div class="cm">
-            <div class="cm-head">
-              <div class="cm-hcell">Part of the model${map.reading_rule ? infoTip({ name: "Reading the map", meaning: map.reading_rule }, 0) : ""}</div>
-              ${columns
-                .map(
-                  (column, index) =>
-                    `<div class="cm-hcell">${esc(column.name)}${infoTip(column, index + 1)}</div>`,
-                )
-                .join("")}
-            </div>
-            ${rows}
-          </div>
-        </div>
-      </section>
-      ${readinessTimeline(map, nodes)}
+      ${readinessGantt(map, nodes, { columns, columnIndex, partName, tests, notes, infoTip })}
       ${readinessLoop(map, nodes)}
       ${readinessDone(map)}
-      ${readinessNext(map)}
       ${readinessDecisions(map)}`;
 }
 
@@ -1536,20 +1479,29 @@ const shortDate = (iso) => {
 const READINESS_COLOR = { thinking: "#C9A47A", mapping: "#4E9A6A", pilot: "#EC4B24" };
 const LOOP_RED = "#D63B27";
 
-// One row per part: thinking and mapping bars, then the pilot bar. A thinking
-// or mapping bar is solid up to its earliest end and hatched up to its latest.
-// An unconfirmed window gets a dashed edge, which today is all of them. A part
-// with no pilot test shows that in words where the pilot bar would sit.
-function readinessTimeline(map, nodes) {
+// One chart for every part. Each row is one line: thinking, then mapping, then
+// the pilot, each a solid bar covering its whole window. Where a pilot overlaps
+// an earlier bar it draws on top. A joint pilot is one orange box across every
+// part it pilots with.
+// The mapping and pilot test descriptions stay in the YAML but are hidden in the
+// chart for now, because reading them part by part is confusing. Flip to show.
+const SHOW_TESTS = false;
+
+function readinessGantt(map, nodes, helpers) {
+  const { columns, columnIndex, partName, tests, notes, infoTip } = helpers;
   const rows = map.rows ?? [];
   if (!rows.length) return "";
+
+  const pilotOf = (entry) => (entry.pilot?.test && entry.pilot.window && entry.pilot.starts ? entry.pilot : null);
 
   const todayIso = new Date().toISOString().slice(0, 10);
   const dates = [todayIso];
   for (const row of rows) {
-    const pilots = [row, ...(row.items ?? [])].filter((e) => e.pilot?.test && e.pilot.window).map((e) => e.pilot.window);
-    for (const range of [row.thinking_end, row.mapping?.ends, ...pilots]) {
-      if (range) dates.push(range.earliest, range.latest);
+    for (const entry of [row, ...(row.items ?? [])]) {
+      for (const range of [entry.thinking_end, entry.mapping?.ends]) if (range) dates.push(range.earliest, range.latest);
+      for (const pilot of [pilotOf(entry), pilotOf({ pilot: entry.early_pilot })]) {
+        if (pilot) dates.push(pilot.starts, pilot.window.earliest, pilot.window.latest);
+      }
     }
   }
   dates.sort();
@@ -1557,115 +1509,225 @@ function readinessTimeline(map, nodes) {
   const [ly, lm] = dates[dates.length - 1].split("-").map(Number);
   const start = Date.UTC(fy, fm - 1, 1) / 86400000;
   const end = Date.UTC(ly, lm, 1) / 86400000;
+  const at = (iso) => ((dayOf(iso) - start) / (end - start)) * 100;
+  const f = (n) => Number(n.toFixed(3));
 
-  const labelW = 230;
-  const chartW = 660;
-  const top = 40;
-  const rowH = 52;
-  const width = labelW + chartW + 16;
-  const height = top + rows.length * rowH + 8;
-  const x = (iso) => labelW + ((dayOf(iso) - start) / (end - start)) * chartW;
-
-  const grid = [];
-  for (let day = start; day <= end; day += 1) {
-    const date = new Date(day * 86400000);
-    const px = labelW + ((day - start) / (end - start)) * chartW;
-    if (date.getUTCDate() === 1) {
-      grid.push(`<line class="tl-month" x1="${px}" x2="${px}" y1="8" y2="${height - 8}"/>`);
-      if (day < end) {
-        grid.push(`<text class="tl-label" x="${px + 6}" y="16">${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}</text>`);
-      }
-    } else if (date.getUTCDay() === 1) {
-      grid.push(`<line class="tl-week" x1="${px}" x2="${px}" y1="28" y2="${height - 8}"/>`);
-    }
+  const monthDays = [];
+  for (let day = start; day < end; day += 1) {
+    if (new Date(day * 86400000).getUTCDate() === 1) monthDays.push(day);
   }
+  const grid =
+    monthDays.map((day) => `<i class="gt-month" style="left:${f(at(isoOf(day)))}%"></i>`).join("") +
+    `<i class="gt-today" style="left:${f(at(todayIso))}%"></i>`;
+  const monthLabels = monthDays
+    .map((day) => `<span class="gt-month-label" style="left:${f(at(isoOf(day)))}%">${MONTHS[new Date(day * 86400000).getUTCMonth()]} ${new Date(day * 86400000).getUTCFullYear()}</span>`)
+    .join("");
 
-  // The joint band sits only behind the parts a joint pilot lists, and the
-  // part that runs it.
-  const together = new Map();
-  for (const row of rows) {
-    if (row.pilot?.test && row.pilot.mode === "joint" && row.pilot.window) {
-      for (const id of [row.id, ...(row.pilot.with ?? []).map((w) => nodes.get(w)?.row ?? w)]) {
-        together.set(id, row.pilot.window);
-      }
+  const bar = (kind, from, range, lane) => {
+    const x0 = at(from);
+    const x2 = Math.max(x0, at(range.latest));
+    // Every bar fills its whole window, from its start to its latest end.
+    return `<span class="gt-bar gt-${kind}" style="left:${f(x0)}%;width:${f(x2 - x0)}%"><span class="gt-solid"></span></span>`;
+  };
+  // Labels sit just after the end of a bar.
+  const endLabel = (text, range) =>
+    `<span class="gt-label" style="left:${f(at(range.latest))}%">${esc(text)}</span>`;
+
+  const columnOf = (row) => nodes.get(row.id)?.column ?? row.position;
+
+  // A group with no windows of its own is drawn as the span of its parts, so
+  // the dates are never typed twice.
+  const spanOf = (row) => {
+    if (row.thinking_end || row.mapping || row.pilot || !(row.items ?? []).length) return row;
+    const kids = row.items;
+    const latest = (ranges) => ranges.filter(Boolean).map((r) => r.latest).sort().pop();
+    const earliest = (ranges) => ranges.filter(Boolean).map((r) => r.earliest).sort()[0];
+    const span = { id: row.id, position: columnOf(row) };
+    const thinking = kids.map((k) => k.thinking_end).filter(Boolean);
+    const mapping = kids.map((k) => k.mapping?.ends).filter(Boolean);
+    const pilots = kids.map((k) => pilotOf(k)).filter(Boolean);
+    if (thinking.length) span.thinking_end = { earliest: earliest(thinking), latest: latest(thinking) };
+    if (mapping.length) span.mapping = { ends: { earliest: earliest(mapping), latest: latest(mapping) } };
+    if (pilots.length) {
+      span.pilot = {
+        test: "derived",
+        mode: "derived",
+        starts: pilots.map((p) => p.starts).sort()[0],
+        window: { earliest: earliest(pilots.map((p) => p.window)), latest: latest(pilots.map((p) => p.window)) },
+      };
     }
-  }
+    return span;
+  };
 
-  const bar = (from, range, color, y, h) => {
-    const x0 = x(from);
-    const x1 = Math.max(x0, x(range.earliest));
-    const x2 = Math.max(x1, x(range.latest));
-    const dash = range.confirmed ? "" : ` stroke-dasharray="3 2"`;
-    return `<rect x="${x0}" y="${y}" width="${x1 - x0}" height="${h}" fill="${color}"/>` +
-      `<rect x="${x1}" y="${y}" width="${x2 - x1}" height="${h}" fill="url(#hatch-${color.slice(1)})" stroke="${color}" stroke-width="1"${dash}/>`;
+  // One line per row: thinking, then mapping, then the pilot, all on the same line.
+  // Parts that only pilot inside the joint staffing pilot have no pilot of their own.
+  const jointPilot = rows.find((r) => r.pilot?.test && r.pilot.mode === "joint");
+  const pilotsInJoint = new Set((jointPilot?.pilot.with ?? []).map((id) => nodes.get(id)?.row ?? id));
+  const lanes = (source, { idleNote } = {}) => {
+    idleNote ??= pilotsInJoint.has(source.id) ? "Piloted with the staffing harness" : "Pilot not defined yet";
+    const row = spanOf(source);
+    const column = nodes.get(source.id)?.column ?? source.position;
+    const bars = [];
+    let end = null;
+    if (column === "thinking" && row.thinking_end) {
+      bars.push(bar("thinking", todayIso, row.thinking_end));
+      end = row.thinking_end.latest;
+    }
+    if (column !== "pilot" && row.mapping?.ends) {
+      // Mapping starts where thinking ends, so the two never overlap.
+      const from = column === "thinking" && row.thinking_end ? row.thinking_end.latest : todayIso;
+      bars.push(bar("mapping", from, row.mapping.ends));
+      end = row.mapping.ends.latest;
+    }
+    const early = pilotOf({ pilot: row.early_pilot });
+    if (early) bars.push(bar("pilot", early.starts, early.window));
+    const pilot = pilotOf(row);
+    if (pilot) {
+      // Drawn last, so where it overlaps an earlier bar the pilot is on top.
+      bars.push(bar("pilot", pilot.starts, pilot.window));
+      if (pilot.mode === "silo") bars.push(endLabel(pilot.label ?? "Pilots on its own", pilot.window));
+    } else {
+      const after = end ? `left:${f(at(end))}%;` : "left:8px;";
+      bars.push(`<span class="gt-note" style="${after}padding-left:8px">${esc(idleNote)}</span>`);
+    }
+    return grid + bars.join("");
+  };
+
+  const caret = `<svg class="cm-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const detail = (entry) => {
+    // With the test text hidden, a pilot's own caveats still show: what waits
+    // (not_yet) and what could change its timing (note).
+    const caveats = !SHOW_TESTS && entry.pilot?.test
+      ? [entry.pilot.not_yet, entry.pilot.note].filter(Boolean).map((text) => `<span class="cm-note">${esc(oneLine(text))}</span>`).join("")
+      : "";
+    const inner = `${notes(entry) || caveats ? `<div class="gt-notes">${notes(entry)}${caveats}</div>` : ""}${SHOW_TESTS ? tests(entry) : ""}`;
+    return inner;
+  };
+
+  // What a rule says, how it is computed or checked, and where it lives.
+  const ruleDetail = (rule) => {
+    const rule_ = rule.kind === "measure" ? ["Formula", rule.formula] : ["Condition", rule.condition];
+    const line = (label, value) => (value ? `<span class="gt-rule-line"><span class="gt-rule-label">${label}</span> ${esc(oneLine(value))}</span>` : "");
+    const undefinedNote = rule_[1] === "not_yet_defined" ? "Not yet defined" : rule_[1];
+    const terms = (rule.glossary_terms ?? []).join(", ");
+    return `<span class="gt-rule">
+      ${line("Rule", rule.statement)}
+      ${line(rule_[0], undefinedNote)}
+      ${line("Inputs", (rule.inputs ?? []).join("; "))}
+      ${line("Tool", rule.tool)}
+      ${line("Terms", terms)}
+      ${line("Lives in", rule.lives_in)}
+    </span>`;
+  };
+  // Each tool and the rules it will run. The tools are planned, not built.
+  const toolsDetail = (items) => {
+    const rules = items.filter((item) => item.kind);
+    if (!rules.length) return "";
+    const tools = [...new Set(rules.map((rule) => rule.tool))];
+    return `<div class="gt-tools"><span class="gt-rule-label">Tools and their rules</span>${tools
+      .map((tool) => `<span class="gt-rule-line"><code>${esc(tool)}</code> ${esc(rules.filter((r) => r.tool === tool).map((r) => r.name).join(", "))}</span>`)
+      .join("")}</div>`;
   };
 
   const body = rows
-    .map((row, i) => {
-      const y = top + i * rowH;
-      const column = nodes.get(row.id)?.column;
-      const pilots = [row, ...(row.items ?? [])].map((e) => e.pilot).filter((p) => p?.test && p.window);
-      const window = together.get(row.id);
-      const band = window
-        ? `<rect class="tl-band" x="${x(window.earliest)}" y="${y + 2}" width="${x(window.latest) - x(window.earliest)}" height="${rowH - 4}"/>`
-        : "";
-      const mappingFrom = column === "thinking" && row.thinking_end ? row.thinking_end.earliest : todayIso;
+    .map((row) => {
+      const items = row.items ?? [];
+      const column = columnOf(row);
+      const inner = detail(row);
 
-      // Pilot bars sit on the same line as the thinking and mapping bars. A
-      // label goes underneath, and says what waits when only part of a part is
-      // piloted.
-      let pilotMark = "";
-      for (const pilot of pilots) {
-        const x1 = x(pilot.window.earliest);
-        const x2 = x(pilot.window.latest);
-        const dash = pilot.window.confirmed ? "" : ` stroke-dasharray="3 2"`;
-        const caption = [pilot.label, pilot.not_yet].filter(Boolean).map(oneLine).join(". ");
-        pilotMark +=
-          `<rect x="${x1}" y="${y + 12}" width="${Math.max(0, x2 - x1)}" height="12" fill="${READINESS_COLOR.pilot}" fill-opacity="0.3" stroke="${READINESS_COLOR.pilot}" stroke-width="1"${dash}/>` +
-          (caption ? `<text class="tl-sub" x="${x1}" y="${y + 38}">${esc(caption)}</text>` : "");
-      }
-      if (!pilots.length) {
-        const ends = [row.thinking_end?.latest, row.mapping?.ends?.latest].filter(Boolean).sort();
-        const from = ends.length ? x(ends[ends.length - 1]) + 8 : labelW + 8;
-        pilotMark = `<text class="tl-sub" x="${from}" y="${y + 22}">Pilot not defined yet</text>`;
+      if (!items.length) {
+        return `
+        <div class="gt-row" data-row="${esc(row.id)}">
+          <div class="gt-name">
+            ${inner ? `<button type="button" class="gt-group-btn" data-toggle aria-expanded="false" aria-controls="gt-${esc(row.id)}">${caret}<span class="gt-title">${esc(row.name)}</span></button>` : `<span class="gt-title gt-plain">${esc(row.name)}</span>`}
+          </div>
+          <div class="gt-lane">${lanes(row)}</div>
+        </div>
+        ${inner ? `<div class="gt-detail" id="gt-${esc(row.id)}" hidden>${inner}</div>` : ""}`;
       }
 
-      return `<g>
-          ${band}
-          <line class="tl-row" x1="0" x2="${width}" y1="${y + rowH}" y2="${y + rowH}"/>
-          <text class="tl-name" x="0" y="${y + 22}">${esc(row.name)}</text>
-          ${column === "thinking" && row.thinking_end ? bar(todayIso, row.thinking_end, READINESS_COLOR.thinking, y + 12, 12) : ""}
-          ${column !== "pilot" && row.mapping?.ends ? bar(mappingFrom, row.mapping.ends, READINESS_COLOR.mapping, y + 12, 12) : ""}
-          ${pilotMark}
-        </g>`;
+      const child = (item) => {
+        const own = pilotOf(item);
+        const childLane = item.kind
+          ? lanes(item, { idleNote: "No window set yet" })
+          : own
+            ? grid + bar("pilot", own.starts, own.window) + (own.mode === "silo" ? endLabel(own.label ?? "Pilots on its own", own.window) : "")
+            : `${grid}<span class="gt-note">Follows the group</span>`;
+        return `
+          <div class="gt-row gt-child" data-row="${esc(item.id ?? "")}" data-group="${esc(row.id)}">
+            <div class="gt-name">
+              <span class="gt-title">${esc(partName(row, item))}</span>
+              ${notes(item) ? `<span class="gt-notes">${notes(item)}</span>` : ""}
+            </div>
+            <div class="gt-lane">${childLane}</div>
+          </div>${item.kind ? `<div class="gt-rule-full">${ruleDetail(item)}</div>` : ""}`;
+      };
+      // Rules sit under Measures and Checks, taken from each rule's kind.
+      const subgroups = [["measure", "Measures"], ["check", "Checks"]];
+      const children = items.some((item) => item.kind)
+        ? subgroups
+            .map(([kind, label]) => {
+              const members = items.filter((item) => item.kind === kind);
+              return members.length
+                ? `<div class="gt-row gt-sub"><div class="gt-name"><span class="gt-sub-title">${label}</span><span class="cm-count">(${members.length})</span></div><div class="gt-lane"></div></div>${members.map(child).join("")}`
+                : "";
+            })
+            .join("")
+        : items.map(child).join("");
+      // The rules stay in the YAML as the source; the chart shows one overview.
+      const SHOW_RULES = false;
+      const hideRules = !SHOW_RULES && items.some((item) => item.kind);
+      const toolList = hideRules ? "" : toolsDetail(items);
+
+      return `
+        <div class="gt-row gt-group" data-row="${esc(row.id)}">
+          <div class="gt-name">
+            <button type="button" class="gt-group-btn" data-toggle aria-expanded="false" aria-controls="gt-${esc(row.id)}">${caret}<span class="gt-title">${esc(row.name)}</span>${hideRules ? "" : `<span class="cm-count">(${items.length})</span>`}</button>
+          </div>
+          <div class="gt-lane">${lanes(row)}</div>
+        </div>
+        <div class="gt-panel" id="gt-${esc(row.id)}" hidden>
+          ${inner || toolList ? `<div class="gt-detail">${inner}${toolList}</div>` : ""}${hideRules ? "" : children}
+        </div>`;
     })
     .join("");
 
-  const hatch = (color) =>
-    `<pattern id="hatch-${color.slice(1)}" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#FFFFFF"/><line x1="0" y1="0" x2="0" y2="5" stroke="${color}" stroke-width="1.6"/></pattern>`;
-
-  const todayX = x(todayIso);
-  const swatch = (color) => `<svg width="22" height="10" aria-hidden="true"><rect width="22" height="10" fill="${color}"/></svg>`;
+  const key = (swatch, label, tip, end = false) =>
+    `<span class="gt-key">${swatch}${esc(label)}${tip ? infoTip(label, tip, end) : ""}</span>`;
+  const sw = (kind, cls = "") => `<span class="gt-swatch gt-bar gt-${kind} ${cls}"><span class="gt-solid"></span></span>`;
+  const meaning = (id) => columns.find((column) => column.id === id)?.meaning;
 
   return `
       <section id="timeline">
-        <h2 class="mono uppercase eyebrow">When each part could move</h2>
-        <p class="lede">Solid is the likely window, hatched is the buffer, dashed means unconfirmed.</p>
-        <div class="tl-legend">
-          <span>${swatch(READINESS_COLOR.thinking)} Thinking Time</span>
-          <span>${swatch(READINESS_COLOR.mapping)} Current engagement mapping</span>
-          <span><svg width="22" height="10" aria-hidden="true"><rect x="0.5" y="0.5" width="21" height="9" fill="${READINESS_COLOR.pilot}" fill-opacity="0.3" stroke="${READINESS_COLOR.pilot}" stroke-dasharray="3 2"/></svg> Pilot</span>
-          <span><svg width="22" height="10" aria-hidden="true"><rect width="22" height="10" fill="${READINESS_COLOR.pilot}" fill-opacity="0.12"/></svg> Pilots together</span>
+        <h2 class="mono uppercase eyebrow">Where each part is, and when it could move${map.reading_rule ? infoTip("Reading the chart", map.reading_rule) : ""}</h2>
+        <p class="lede">Each bar covers its likely window.</p>
+        <div class="gt-legend">
+          ${key(sw("thinking"), "Thinking time", meaning("thinking"))}
+          ${key(sw("mapping"), "Mapping", meaning("mapping"))}
+          ${key(sw("pilot"), "Pilot", meaning("pilot"), true)}
         </div>
-        <div class="cm-scroll">
-          <svg class="tl" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Estimate windows for each part, from ${esc(isoOf(start))} to ${esc(isoOf(end - 1))}">
-            <defs>${[READINESS_COLOR.thinking, READINESS_COLOR.mapping].map(hatch).join("")}</defs>
-            ${grid.join("")}
+        <div class="gt-wrap">
+          <div class="gt">
+            <div class="gt-row gt-head">
+              <div class="gt-name"><span class="gt-title">Part of the model</span></div>
+              <div class="gt-lane">${monthLabels}${grid}<span class="gt-today-label" style="left:${f(at(todayIso))}%">Today</span></div>
+            </div>
             ${body}
-            <line class="tl-today" x1="${todayX}" x2="${todayX}" y1="26" y2="${height - 8}"/>
-            <text class="tl-today-label" x="${todayX + 4}" y="37">Today</text>
-          </svg>
+          </div>
         </div>
+        <script>
+          (function () {
+            var chart = document.querySelector('.gt');
+            if (!chart) return;
+            chart.querySelectorAll('[data-toggle]').forEach(function (button) {
+              button.addEventListener('click', function () {
+                var open = button.getAttribute('aria-expanded') === 'true';
+                button.setAttribute('aria-expanded', String(!open));
+                document.getElementById(button.getAttribute('aria-controls')).hidden = open;
+              });
+            });
+          })();
+        </script>
       </section>`;
 }
 
@@ -1717,6 +1779,9 @@ function readinessLoop(map, nodes) {
     return { x: p.x + dx * t, y: p.y + dy * t };
   };
 
+  // One hover/focus target per lettered circle, laid over the SVG, so the
+  // explanation lives only in the tooltip.
+  const dots = [];
   const lines = edges
     .map((edge, i) => {
       const a = place.get(edge.from);
@@ -1726,6 +1791,10 @@ function readinessLoop(map, nodes) {
       const e = exit(edge.to, a, 8);
       const mx = (s.x + e.x) / 2;
       const my = (s.y + e.y) / 2;
+      const text = `${nodes.get(edge.from)?.name ?? edge.from} → ${nodes.get(edge.to)?.name ?? edge.to}. ${oneLine(edge.reason)}${edge.real ? "" : " Not real yet."}`;
+      const side = mx < 160 ? " loop-tip-start" : mx > width - 160 ? " loop-tip-end" : "";
+      const place2 = my < cy ? " loop-tip-below" : " loop-tip-above";
+      dots.push(`<span class="loop-dot" tabindex="0" role="img" aria-label="${esc(letter(i))}: ${esc(text)}" style="left:${mx}px;top:${my}px"><span class="loop-tip${side}${place2}" role="tooltip">${esc(text)}</span></span>`);
       return `<line x1="${s.x}" y1="${s.y}" x2="${e.x}" y2="${e.y}" stroke="${LOOP_RED}" stroke-width="1.4"${edge.real ? "" : ` stroke-dasharray="5 4"`} marker-end="url(#loop-arrow)"/>` +
         `<circle cx="${mx}" cy="${my}" r="9" fill="#FFFFFF" stroke="${LOOP_RED}"/>` +
         `<text class="loop-letter" x="${mx}" y="${my + 4}" text-anchor="middle">${letter(i)}</text>`;
@@ -1745,27 +1814,20 @@ function readinessLoop(map, nodes) {
     })
     .join("");
 
-  const list = edges
-    .map(
-      (edge, i) => `<li class="loop-edge${edge.real ? "" : " loop-edge-unreal"}">
-          <span class="loop-key">${letter(i)}</span>
-          <span><strong>${esc(nodes.get(edge.from)?.name ?? edge.from)} → ${esc(nodes.get(edge.to)?.name ?? edge.to)}.</strong> ${esc(oneLine(edge.reason))}${edge.real ? "" : " Not real yet."}</span>
-        </li>`,
-    )
-    .join("");
-
   return `
       <section id="loop">
         <h2 class="mono uppercase eyebrow">Why this isn't a sequential roadmap</h2>
-        <p class="lede">The parts depend on each other in a loop, so none of them finishes first. An arrow runs from the part that is needed to the part that needs it, a dot shows the column a part sits in, and a dashed arrow is feedback that does not exist yet.</p>
+        <p class="lede">The parts depend on each other in a loop, so none of them finishes first. An arrow runs from the part that is needed to the part that needs it, a dot shows the column a part sits in, and a dashed arrow is feedback that does not exist yet. Hover a letter to see why.</p>
         <div class="cm-scroll">
+          <div class="loop-wrap" style="width:${width}px;height:${height}px">
           <svg class="loop" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Dependency loop between parts of the model">
             <defs><marker id="loop-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${LOOP_RED}"/></marker></defs>
             ${lines}
             ${boxes}
           </svg>
+          ${dots.join("")}
+          </div>
         </div>
-        <ul class="loop-edges">${list}</ul>
         ${map.loop.callout ? `<p class="cm-callout">${esc(oneLine(map.loop.callout))}</p>` : ""}
       </section>`;
 }
@@ -1786,36 +1848,6 @@ function readinessDone(map) {
           </div>`,
             )
             .join("")}
-        </div>
-      </section>`;
-}
-
-function readinessNext(map) {
-  const next = map.next ?? [];
-  if (!next.length) return "";
-  const span = ({ min, max, unit }) => {
-    const one = unit.replace(/s$/, "");
-    if (min === max) return `${min} ${min === 1 ? one : unit}`;
-    return `${min}–${max} ${unit}`;
-  };
-  return `
-      <section id="next">
-        <h2 class="mono uppercase eyebrow">What matters most next</h2>
-        <div class="cm-scroll">
-          <table class="hairline-table cm-next">
-            <thead><tr><th>What</th><th>Estimate</th><th>Why it comes first</th></tr></thead>
-            <tbody>
-              ${next
-                .map(
-                  (entry) => `<tr>
-                <td>${esc(entry.item)}</td>
-                <td class="cm-next-est">${esc(span(entry.estimate))}${entry.after ? ` after ${esc(entry.after)}` : ""}</td>
-                <td>${entry.note ? esc(oneLine(entry.note)) : ""}</td>
-              </tr>`,
-                )
-                .join("")}
-            </tbody>
-          </table>
         </div>
       </section>`;
 }
@@ -2913,6 +2945,7 @@ function render(model, pageId = "core-philosophy") {
       background: #FAFAFA;
       max-width: 700px;
     }
+    .cm-tomorrow { margin-top: 16px; }
     .cm-today p { margin: 0; }
     .cm-today p + p { margin-top: 8px; }
     .cm-today-head {
@@ -2924,7 +2957,7 @@ function render(model, pageId = "core-philosophy") {
       margin-bottom: 8px;
     }
     .cm-today .cm-today-head p { margin: 0; }
-    .cm-today .cm-today-date { font-size: 11px; text-align: right; }
+    .cm-today .cm-today-date { text-align: right; }
     .cm-head {
       padding: 8px 0;
       border-top: 1px solid var(--line);
@@ -2980,6 +3013,106 @@ function render(model, pageId = "core-philosophy") {
       border-radius: 99px;
       white-space: nowrap;
     }
+    .gt { position: relative; }
+    .gt-wrap { margin-top: 32px; }
+    .gt-row {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      border-top: 1px solid var(--line);
+    }
+    .gt-head { border-top: 0; }
+    .gt-head .gt-lane { min-height: 28px; }
+    .gt-name {
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      padding: 8px 12px 8px 0;
+      background: var(--bg);
+    }
+    .gt-child .gt-name { padding-left: 20px; }
+    .gt-title { font-weight: 600; }
+    .gt-child .gt-title { font-weight: 400; }
+    .gt-group-btn {
+      font: inherit;
+      color: inherit;
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+    }
+    .gt-group-btn { display: inline-flex; align-items: center; gap: 8px; text-align: left; }
+    .gt-plain { padding-left: 18px; }
+    .gt-group-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .gt-group-btn[aria-expanded="true"] .cm-caret { transform: rotate(90deg); }
+    .gt [hidden] { display: none !important; }
+    .gt-lane { position: relative; min-height: 40px; }
+    .gt-child .gt-lane { min-height: 40px; }
+    .gt-sub .gt-name { flex-direction: row; align-items: baseline; gap: 6px; padding: 10px 12px 2px 20px; }
+    .gt-sub .gt-lane { min-height: 0; }
+    .gt-sub-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    .gt-rule, .gt-tools { display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 1.4; }
+    .gt-tools { margin-top: 10px; }
+    .gt-rule-full { padding: 0 12px 10px 20px; max-width: 760px; }
+    .gt-rule-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; margin-right: 4px; }
+    .gt-rule-line code { font-family: inherit; font-weight: 600; margin-right: 4px; }
+    .gt-month, .gt-today { position: absolute; top: 0; bottom: 0; width: 1px; background: #E4E4E4; }
+    .gt-today { background: #EC4B24; }
+    .gt-today-label { position: absolute; top: 4px; padding-left: 6px; font-size: 12px; color: #EC4B24; font-weight: 600; transform: translateY(14px); }
+    .gt-month-label { position: absolute; top: 4px; padding-left: 6px; font-size: 12px; }
+    .gt-bar {
+      --c: #C9A47A;
+      position: absolute;
+      top: 14px;
+      height: 12px;
+      border: 1px solid var(--c);
+      background: var(--c);
+    }
+    .gt-thinking { --c: #C9A47A; }
+    .gt-mapping { --c: #4E9A6A; }
+    .gt-pilot { --c: #EC4B24; box-shadow: 0 0 0 1.5px var(--bg); }
+    .gt-solid { position: absolute; left: 0; top: 0; bottom: 0; background: var(--c); }
+    .gt-label, .gt-note { position: absolute; top: 14px; font-size: 12px; line-height: 14px; white-space: nowrap; }
+    .gt-label { margin-left: 4px; padding: 0 3px; background: var(--bg); z-index: 3; }
+    .gt-note { left: 8px; opacity: 0.7; }
+    .gt-joint {
+      position: absolute;
+      left: calc(240px + (100% - 240px) * var(--l));
+      width: calc((100% - 240px) * var(--w));
+      border: 1.5px solid #EC4B24;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .gt-joint-label {
+      position: absolute;
+      left: 8px;
+      top: -9px;
+      padding: 0 6px;
+      font-size: 12px;
+      line-height: 16px;
+      background: var(--bg);
+      white-space: nowrap;
+    }
+    .gt-panel { display: block; }
+    .gt-detail { padding: 8px 0 12px 20px; max-width: 760px; position: sticky; left: 0; }
+    .gt-notes { display: flex; flex-direction: column; gap: 2px; }
+    .gt-notes .cm-note, .gt-name .cm-note { padding-left: 0; }
+    .gt-detail .cm-tests { border-top: 0; padding-left: 0; }
+    .gt-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+      margin: 16px 0 0;
+      font-size: 12.5px;
+    }
+    .gt-key { display: inline-flex; align-items: center; gap: 8px; }
+    .gt-swatch { position: relative; top: 0; display: inline-block; width: 22px; height: 10px; }
+    .gt-joint-swatch { border: 1.5px solid #EC4B24; border-radius: 3px; background: none; }
+    .gt-swatch .gt-solid { width: 100%; }
     .cm-hero { margin: 0 0 40px; }
     .cm-hero-range {
       margin: 0 0 4px;
@@ -3009,34 +3142,37 @@ function render(model, pageId = "core-philosophy") {
     .tl-legend span { display: inline-flex; align-items: center; gap: 8px; }
     .loop-name { font-size: 13px; font-weight: 600; fill: var(--ink); }
     .loop-letter { font-size: 11px; font-weight: 600; fill: #D63B27; }
-    .loop-edges {
-      list-style: none;
-      margin: 16px 0 0;
-      padding: 0;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      column-gap: 32px;
-      max-width: 900px;
-    }
-    .loop-edge {
-      display: flex;
-      gap: 12px;
-      padding: 8px 0;
-      border-top: 1px solid var(--line);
-    }
-    .loop-key {
-      flex: 0 0 20px;
-      height: 20px;
-      border: 1px solid #D63B27;
+    .loop-wrap { position: relative; }
+    .loop-dot {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      margin: -12px 0 0 -12px;
       border-radius: 99px;
-      color: #D63B27;
-      font-size: 11px;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      cursor: help;
     }
-    .loop-edge-unreal .loop-key { border-style: dashed; }
+    .loop-dot:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+    .loop-tip {
+      display: none;
+      position: absolute;
+      left: 50%;
+      width: 260px;
+      transform: translateX(-50%);
+      padding: 8px 10px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      font-size: 12.5px;
+      line-height: 1.4;
+      z-index: 5;
+    }
+    .loop-tip-below { top: 30px; }
+    .loop-tip-above { bottom: 30px; }
+    .loop-tip-start { left: 0; transform: none; }
+    .loop-tip-end { left: auto; right: 0; transform: none; }
+    .loop-dot:hover .loop-tip,
+    .loop-dot:focus .loop-tip { display: block; }
     .cm-callout {
       margin: 24px 0 0;
       padding: 4px 0 4px 16px;
@@ -3056,8 +3192,6 @@ function render(model, pageId = "core-philosophy") {
     .cm-done li,
     .cm-two li { margin: 0 0 6px; }
     .cm-done p { margin: 0; }
-    .cm-next { min-width: 560px; }
-    .cm-next-est { white-space: nowrap; }
     .cm-two {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -3066,10 +3200,9 @@ function render(model, pageId = "core-philosophy") {
     .cm-two h3 { margin-top: 16px; }
     .cm-h { margin: 0 0 12px; font-size: 15px; font-weight: 600; line-height: 1.3; }
     .cm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-    .cm-today .cm-today-date { font-size: 12.5px; }
-    .cm-changes { list-style: none; margin: 0; padding: 0; }
-    .cm-changes li { margin: 0 0 4px; }
-    .cm-change-date { display: inline-block; min-width: 48px; }
+    .cm-changes { list-style: disc; margin: 0; padding: 0 0 0 18px; }
+    .cm-changes li { margin: 0 0 4px; padding-left: 2px; }
+    .cm-changes li::marker { color: color-mix(in srgb, var(--ink) 40%, transparent); }
     .cm-detail { display: flex; flex-direction: column; gap: 2px; padding: 8px 0 0 18px; border-top: 1px solid var(--line); }
     .cm-detail .cm-note { padding-left: 0; }
     .cm-tests { padding: 8px 0 8px 18px; border-top: 1px solid var(--line); }

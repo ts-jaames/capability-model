@@ -12,6 +12,7 @@ import {
   fileStem,
   loadModel,
   overlayRoots,
+  leastTestedColumn,
 } from "./model.mjs";
 import { parse } from "yaml";
 
@@ -935,7 +936,7 @@ async function main() {
         }
       }
 
-      checkReadiness(map, legend.file);
+      checkReadiness(map, legend.file, definitions);
     },
   );
 
@@ -996,7 +997,7 @@ async function main() {
 
 // Readiness fields on the confidence map. Windows are estimates, so these
 // checks only keep them coherent; they never judge whether a date is right.
-function checkReadiness(map, file) {
+function checkReadiness(map, file, definitions) {
   const COLUMN_IDS = ["thinking", "mapping", "pilot"];
   const rows = map.rows ?? [];
   const today = new Date().toISOString().slice(0, 10);
@@ -1022,7 +1023,10 @@ function checkReadiness(map, file) {
   minMax("mapping_engagements_target", map.mapping_engagements_target);
   minMax("recent_projects_target", map.recent_projects_target);
   minMax("coverage_to_advance", map.coverage_to_advance);
-  for (const entry of map.next ?? []) minMax(`next "${entry.item}" estimate`, entry.estimate);
+  for (const entry of map.tomorrow ?? []) {
+    oneSentence(`tomorrow "${entry.item}" item`, entry.item);
+    oneSentence(`tomorrow "${entry.item}" note`, entry.note);
+  }
 
   // Every id an edge can point at: rows and parts that carry an id.
   const ids = rows.flatMap((row) => [row.id, ...(row.items ?? []).map((item) => item.id).filter(Boolean)]);
@@ -1050,6 +1054,36 @@ function checkReadiness(map, file) {
       else checkEdges(item.id, item.depends_on);
     }
 
+    // Sizing and staffing rules: parts with a `kind`. The glossary cited must
+    // exist, a measure has a formula (or says it has none yet), a check has a
+    // condition, and every rule names the tool that will run it.
+    const NOT_YET = "not_yet_defined";
+    for (const item of items) {
+      const label = `${where} part "${item.id ?? item.name}"`;
+      if (!item.kind) {
+        for (const field of ["statement", "formula", "condition", "inputs", "tool", "glossary_terms", "lives_in"]) {
+          if (item[field] !== undefined) add("constraints", file, `${label} has ${field} but no kind; only a rule carries it`);
+        }
+        continue;
+      }
+      if (!item.id) add("constraints", file, `${label} is a rule and needs an id`);
+      if (!item.statement) add("constraints", file, `${label} is a rule with no statement`);
+      if (!item.tool) add("constraints", file, `${label} is a rule that names no tool`);
+      if (item.kind === "measure") {
+        if (!item.formula) add("constraints", file, `${label} is a measure, so it needs a formula or ${NOT_YET}`);
+        if (item.condition) add("constraints", file, `${label} is a measure, so it carries a formula, not a condition`);
+      } else {
+        if (!item.condition) add("constraints", file, `${label} is a check, so it needs a condition or ${NOT_YET}`);
+        if (item.formula) add("constraints", file, `${label} is a check, so it carries a condition, not a formula`);
+      }
+      const seen = new Set();
+      for (const term of item.glossary_terms ?? []) {
+        if (!definitions.has(term)) add("refs", file, `${label} cites glossary term "${term}" which is not a definition`);
+        if (seen.has(term)) add("duplicates", file, `${label} cites glossary term "${term}" twice`);
+        seen.add(term);
+      }
+    }
+
     for (const entry of [row, ...items]) {
       if (entry.last_moved && entry.last_moved > today) {
         add("constraints", file, `${where} last_moved ${entry.last_moved} is in the future; it is history`);
@@ -1057,9 +1091,10 @@ function checkReadiness(map, file) {
     }
 
     // A group's column is its least tested part, never typed.
-    const column = items.length
-      ? COLUMN_IDS[Math.min(...items.map((item) => COLUMN_IDS.indexOf(item.position)))]
-      : row.position;
+    const column = items.length ? leastTestedColumn(items, COLUMN_IDS) : row.position;
+    if (items.length && row.position && row.position !== column) {
+      add("constraints", file, `${where} sits in ${row.position} but its least tested part is in ${column}; a group's column is derived`);
+    }
     const index = COLUMN_IDS.indexOf(column);
 
     if (column === "pilot" && !row.note) {
@@ -1090,7 +1125,7 @@ function checkReadiness(map, file) {
 
       // A pilot with no test is not defined, so it has no window and no mode.
       if (pilot && !pilot.test) {
-        for (const field of ["window", "mode", "with", "silo_scope", "label"]) {
+        for (const field of ["window", "starts", "mode", "with", "silo_scope", "label"]) {
           if (pilot[field] !== undefined) {
             add("constraints", file, `${where} has pilot.${field} but no pilot.test; an empty test gets no pilot window`);
           }
@@ -1098,6 +1133,12 @@ function checkReadiness(map, file) {
       }
       if (pilot?.test) {
         if (!pilot.mode) add("constraints", file, `${where} has a pilot.test but no pilot.mode`);
+      if (pilot.window && !pilot.starts) {
+        add("constraints", file, `${where} has a pilot window but no pilot.starts`);
+      }
+      if (pilot.starts && pilot.window && pilot.starts > pilot.window.earliest) {
+        add("constraints", file, `${where} pilot.starts ${pilot.starts} is after its earliest end ${pilot.window.earliest}`);
+      }
         if (pilot.mode === "silo" && !pilot.silo_scope) {
           add("constraints", file, `${where} pilots in silo mode, so it needs silo_scope`);
         }
@@ -1124,10 +1165,15 @@ function checkReadiness(map, file) {
 
       // The windows run in order, and a pilot may start as early as the earliest
       // end of mapping, so a part never sits idle waiting for its window.
+      // Thinking and mapping share the upper lane, so mapping starts where the
+      // thinking buffer ends and the two never draw on each other.
+      if (entry.thinking_end && mapping?.ends && entry.thinking_end.latest > mapping.ends.earliest) {
+        add("constraints", file, `${where} mapping ends ${mapping.ends.earliest} before the thinking buffer ends ${entry.thinking_end.latest}; they would overlap`);
+      }
       const order = [
         ["thinking_end", entry.thinking_end?.earliest],
         ["mapping.ends", mapping?.ends?.earliest],
-        ["pilot", pilot?.window?.earliest],
+        ["pilot.starts", pilot?.starts],
       ].filter(([, date]) => date);
       for (let i = 1; i < order.length; i += 1) {
         if (order[i - 1][1] > order[i][1]) {
@@ -1140,8 +1186,14 @@ function checkReadiness(map, file) {
       }
     };
     checkTests(where, row, index, row.id);
+    if (row.early_pilot) {
+      checkTests(`${where} early_pilot`, { pilot: row.early_pilot, mapping: row.mapping, thinking_end: row.thinking_end }, index, row.id);
+      if (row.pilot?.starts && row.early_pilot.window && row.early_pilot.window.latest > row.pilot.starts) {
+        add("constraints", file, `${where} early pilot ends ${row.early_pilot.window.latest} after the full pilot starts ${row.pilot.starts}`);
+      }
+    }
     for (const item of items) {
-      if (!item.mapping && !item.pilot) continue;
+      if (!item.mapping && !item.pilot && !item.thinking_end) continue;
       const itemIndex = COLUMN_IDS.indexOf(item.position);
       checkTests(`${where} part "${item.id ?? item.name ?? item.stage}"`, item, itemIndex, item.id ?? row.id);
     }
