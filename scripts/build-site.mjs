@@ -1405,7 +1405,7 @@ function renderConfidenceMapMain(model) {
     ? `<div class="cm-today">
           <div class="cm-today-head">
             <p class="callout-label cm-today-title">What's happening today</p>
-            <p class="cm-today-date">Latest model change <time class="cm-ago" datetime="${esc(changes[0].when)}" data-since="${esc(changes[0].when)}">${esc(stamped(changes[0].when))}</time></p>
+            <p class="callout-label cm-today-date">Latest model change <time class="cm-ago" datetime="${esc(changes[0].when)}" data-since="${esc(changes[0].when)}">${esc(stamped(changes[0].when))}</time></p>
           </div>
           <ul class="cm-changes">
             ${changes
@@ -2905,7 +2905,7 @@ function render(model, pageId = "core-philosophy") {
       margin-bottom: 8px;
     }
     .cm-today .cm-today-head p { margin: 0; }
-    .cm-today .cm-today-date { font-family: "Berkeley Mono", "SF Mono", ui-monospace, monospace; font-size: 11px; text-align: right; }
+    .cm-today .cm-today-date { text-align: right; }
     .cm-head {
       padding: 8px 0;
       border-top: 1px solid var(--line);
@@ -3136,7 +3136,6 @@ function render(model, pageId = "core-philosophy") {
     .cm-two h3 { margin-top: 16px; }
     .cm-h { margin: 0 0 12px; font-size: 15px; font-weight: 600; line-height: 1.3; }
     .cm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-    .cm-today .cm-today-date { font-size: 12.5px; }
     .cm-changes { list-style: none; margin: 0; padding: 0; }
     .cm-changes li { margin: 0 0 4px; }
     .cm-detail { display: flex; flex-direction: column; gap: 2px; padding: 8px 0 0 18px; border-top: 1px solid var(--line); }
