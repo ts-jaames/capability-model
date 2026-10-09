@@ -1516,7 +1516,8 @@ function readinessGantt(map, nodes, helpers) {
     const x0 = at(from);
     const x1 = Math.max(x0, at(range.earliest));
     const x2 = Math.max(x1, at(range.latest));
-    const solid = x2 - x0 ? ((x1 - x0) / (x2 - x0)) * 100 : 100;
+    // Thinking and mapping fill their whole window; only a pilot has a hatched buffer.
+    const solid = kind !== "pilot" ? 100 : x2 - x0 ? ((x1 - x0) / (x2 - x0)) * 100 : 100;
     return `<span class="gt-bar gt-${kind} gt-${lane}${range.confirmed ? "" : " gt-unconfirmed"}" style="left:${f(x0)}%;width:${f(x2 - x0)}%"><span class="gt-solid" style="width:${f(solid)}%"></span></span>`;
   };
   // Labels sit to the left of a bar, so they never run into the joint box.
@@ -1525,22 +1526,13 @@ function readinessGantt(map, nodes, helpers) {
 
   const columnOf = (row) => nodes.get(row.id)?.column;
 
-  const tagsFor = (id, entry) => {
-    const tags = [];
-    const joint = members.includes(id);
-    const own = entry.pilot?.test && entry.pilot.mode === "silo";
-    if (joint && own) tags.push("Pilots on its own, then together");
-    else if (joint && id !== jointRow?.id) tags.push("Pilots together");
-    return tags.map((tag) => `<span class="gt-tag gt-tag-pilot">${esc(tag)}</span>`).join("");
-  };
-
   // The lanes for a row: thinking then mapping on top, the pilot underneath.
   const lanes = (row) => {
     const column = columnOf(row);
     const upper = [];
     if (column === "thinking" && row.thinking_end) upper.push(bar("thinking", todayIso, row.thinking_end, "upper"));
     if (column !== "pilot" && row.mapping?.ends) {
-      // Mapping starts where the thinking buffer ends, so the two never overlap.
+      // Mapping starts where thinking ends, so the two never overlap.
       const from = column === "thinking" && row.thinking_end ? row.thinking_end.latest : todayIso;
       upper.push(bar("mapping", from, row.mapping.ends, "upper"));
     }
@@ -1573,7 +1565,7 @@ function readinessGantt(map, nodes, helpers) {
         <div class="gt-row" data-row="${esc(row.id)}">
           <div class="gt-name">
             <span class="gt-title">${esc(row.name)}</span>
-            <span class="gt-tags">${tag}${tagsFor(row.id, row)}${inner ? `<button type="button" class="gt-more" data-toggle aria-expanded="false" aria-controls="gt-${esc(row.id)}">Details</button>` : ""}</span>
+            <span class="gt-tags">${tag}${inner ? `<button type="button" class="gt-more" data-toggle aria-expanded="false" aria-controls="gt-${esc(row.id)}">Details</button>` : ""}</span>
           </div>
           <div class="gt-lane">${lanes(row)}</div>
         </div>
@@ -1590,7 +1582,7 @@ function readinessGantt(map, nodes, helpers) {
           <div class="gt-row gt-child" data-row="${esc(item.id ?? "")}" data-group="${esc(row.id)}">
             <div class="gt-name">
               <span class="gt-title">${esc(partName(row, item))}</span>
-              <span class="gt-tags"><span class="gt-tag">${esc(tagOf(item.position))}</span>${item.id ? tagsFor(item.id, item) : ""}</span>
+              <span class="gt-tags"><span class="gt-tag">${esc(tagOf(item.position))}</span></span>
               ${notes(item) ? `<span class="gt-notes">${notes(item)}</span>` : ""}
             </div>
             <div class="gt-lane">${childLane}</div>
@@ -1629,12 +1621,10 @@ function readinessGantt(map, nodes, helpers) {
   return `
       <section id="timeline">
         <h2 class="mono uppercase eyebrow">Where each part is, and when it could move${map.reading_rule ? infoTip("Reading the chart", map.reading_rule) : ""}</h2>
-        <p class="lede">Solid is the likely window, hatched is the buffer, dashed means unconfirmed.</p>
+        <p class="lede">Each bar covers its likely window. Hatched is the pilot buffer, dashed means unconfirmed.</p>
         <div class="gt-legend">
           ${key(sw("thinking"), "Thinking time", meaning("thinking"))}
-          ${key(hatched("thinking"), "Thinking buffer")}
           ${key(sw("mapping"), "Mapping", meaning("mapping"))}
-          ${key(hatched("mapping"), "Mapping buffer")}
           ${key(sw("pilot"), "Pilot", meaning("pilot"), true)}
           ${key(hatched("pilot"), "Pilot buffer")}
           ${key(`<span class="gt-swatch gt-bar gt-thinking gt-unconfirmed gt-dash"></span>`, "Dashed edge: unconfirmed")}
@@ -3024,7 +3014,6 @@ function render(model, pageId = "core-philosophy") {
       border: 1px solid var(--line);
       border-radius: 99px;
     }
-    .gt-tag-pilot { border-color: #EC4B24; }
     .gt-group-btn, .gt-more {
       font: inherit;
       color: inherit;
