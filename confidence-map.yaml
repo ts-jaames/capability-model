@@ -374,7 +374,7 @@ rows:
         - capability-levels
         - sizing-staffing-rules
         - roles-titles
-      starts: 2026-12-07
+      starts: 2026-11-25
       window: { earliest: 2027-01-05, latest: 2027-01-15, confirmed: false }
       note: >
         A manual run can happen sooner. True automation depends on the agent
