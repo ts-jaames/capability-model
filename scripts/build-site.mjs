@@ -135,8 +135,7 @@ function tocLink(href, label) {
 
 const PAGE_TOC = {
   "core-philosophy": [
-    ["#overview", "What this is"],
-    ["#principles", "Four principles"],
+    ["#overview", "Core philosophy"],
     ["#where-it-lives", "Where it lives"],
     ["#confidence", "How settled this is"],
   ],
@@ -2275,68 +2274,20 @@ function renderNewDiscoveryMain(model) {
 
 // Core Philosophy is the argument, kept short enough to read in a minute. The
 // detail it points at lives on the other pages, so nothing here restates the
-// model: counts, domain names, dial names and stage names are read from it, and
-// only the four claims are authored.
+// model: counts are read from it, and only the two paragraphs are authored.
 function renderCorePhilosophyMain(model) {
   const lifecycle = requireLifecycle(model, "ai-native-sdlc");
-  const stageLink = (n) => {
-    const st = (lifecycle.stages ?? []).find((x) => x.number === n);
-    return to(`ai-sdlc.html#stage-${n}`, `${lifecycle.name}, Stage ${n}${st ? ` · ${st.name}` : ""}`);
-  };
-
-  const domainNames = [...model.domains]
-    .sort((a, b) => domainRank(a.id) - domainRank(b.id))
-    .map((domain) => domain.name)
-    .join(", ");
   const domainCount = model.domains.length;
   const capabilityCount = model.capabilities.length;
   const shapeCount = model.riskShapes.length;
   const seamCount = model.seams.length;
   const titleCount = model.titles.length;
-  const idle = model.intensity?.dials?.[0]?.name ?? "Dormant";
-
-  const principle = (n, title, body, links) => `
-        <article class="principle" id="principle-${n}">
-          <h3>${n}. ${esc(title)}</h3>
-          <p class="lede">${body}</p>
-          ${links}
-        </article>`;
-
-  const principles = [
-    principle(
-      1,
-      "Confidence governs what gets committed, not the calendar",
-      "The timebox stays, but a date can require a decision; it cannot manufacture the evidence behind it. Each checkpoint says what the evidence supports as of that date. It closes on Promote, Iterate, Pivot, or Stop, never on a default Promote because time ran out.",
-      stageLink(1),
-    ),
-    principle(
-      2,
-      "Evidence is the artifact, documents are a view of it",
-      `Roadmaps and decks are generated from what has been validated, and they say so where something has not been. Every assumption is tagged in ${fileRefs("intent.md")} as a claim, not a fact, and reviewed before it can become a spec.`,
-      stageLink(0),
-    ),
-    principle(
-      3,
-      "Capabilities are promoted as they earn it",
-      "The system is not defined all at once. Each capability moves from Concept to Validation to Commitment on its own, with a recorded decision at each step. The MVP emerges from which capabilities earn commitment, and in what order.",
-      to("capability-model.html", "Capability Model"),
-    ),
-    principle(
-      4,
-      "Every domain contributes throughout, no phase owns the work",
-      `All ${domainCount} domains (${esc(domainNames)}) run across the whole lifecycle from the first conversation. A domain not needed yet sits at ${esc(idle)}: idle, not absent. As commitment deepens, intensity changes, not who gets to speak.`,
-      to("operating-view.html", "Operating View"),
-    ),
-  ].join("");
 
   return `
       <section id="overview">
-        <h1 class="mono uppercase eyebrow">Core Philosophy</h1>
-        <p class="lede">We commit to what the evidence supports, not to what the calendar demands. A client buys a named outcome, not a job title, and each outcome moves forward only as fast as the proof behind it.</p>
-      </section>
-      <section id="principles">
-        <h2 class="mono uppercase eyebrow">Four principles</h2>
-        ${principles}
+        <h1 class="mono uppercase eyebrow">Core philosophy</h1>
+        <p class="lede">AI has made it cheap to produce what consulting used to sell: plans, decks, specs, even working software. It hasn’t made it cheap to know which of those are right. So we organize delivery around that. We commit to work only as far as the evidence supports. A date can force a decision, but it can’t stand in for proof. A client buys an outcome, delivered by the capabilities the work needs at the level it needs them. They don’t buy job titles or a stack of documents.</p>
+        <p class="lede">We hold this model to the same standard. Every part of it is a claim until real work tests it, and it changes when real work shows it’s wrong: the capabilities, the levels, the roles, the rules, the lifecycle. Parts are tested and put to use one at a time as they’re ready, without waiting for the whole to be finished. Anything not yet tested says so. When we change something, we ask the same question we’d ask on a project: does this help us commit on what we actually know?</p>
       </section>
       <section id="where-it-lives">
         <h2 class="mono uppercase eyebrow">Where it lives</h2>
@@ -2349,9 +2300,7 @@ function renderCorePhilosophyMain(model) {
       </section>
       <section id="confidence">
         <h2 class="mono uppercase eyebrow">How settled this is</h2>
-        <p class="lede">The model is drafted, not proven. Every entry is at draft status, the numbers behind seat counts are placeholders no one has checked against real delivery, and the dial settings on the risk shapes are judgment calls rather than observations. The three Commitment States are not recorded per capability yet; today they appear only in how seat counts and levels promote.</p>
-        <p class="lede">Status &amp; Pilot Readiness records where each part sits and when it could be ready for pilot use. Parts move right when real work holds them up, and back left when real work breaks them.</p>
-        ${to("confidence-map.html", "Status & Pilot Readiness")}
+        <p class="lede">The model is drafted, not proven; <a href="confidence-map.html">Status &amp; Pilot Readiness</a> shows where each part stands.</p>
       </section>`;
 }
 
@@ -2861,11 +2810,6 @@ function render(model, pageId = "core-philosophy") {
       border-radius: 4px;
       padding: 1px 6px;
     }
-    /* The four principles on Core Philosophy: a title, one paragraph, one link. */
-    .principle + .principle { margin-top: 40px; }
-    .principle h3 { margin: 0 0 8px; }
-    .principle .lede { margin-bottom: 8px; }
-    .principle .to { margin-bottom: 0; }
     /* A stage heading that follows a group of steps needs room above it, or it
        reads as the end of the group before it instead of the start of its own. */
     .kvs + .process-stage { margin-top: 56px; }
