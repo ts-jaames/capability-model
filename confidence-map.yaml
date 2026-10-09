@@ -374,7 +374,7 @@ rows:
         - capability-levels
         - sizing-staffing-rules
         - roles-titles
-      starts: 2026-12-07
+      starts: 2026-11-25
       window: { earliest: 2027-01-05, latest: 2027-01-15, confirmed: false }
       note: >
         A manual run can happen sooner. True automation depends on the agent
@@ -416,10 +416,6 @@ loop:
     - sizing-staffing-rules
     - ai-native-sdlc
     - operating-view
-  callout: >
-    Asking when roles and titles will be done is really asking when levels
-    settle, when sizing exists for the pilot's capabilities, and when staffing
-    has run once to check them.
 
 done:
   - group: The model
@@ -440,7 +436,7 @@ done:
       - A generated site, rebuilt from the YAML.
       - A read-only MCP server that agents use to read the model.
       - Visibility tiers and a private overlay path for internal data.
-  - group: Harnesses (work in progress)
+  - group: Harness ideation
     items:
       - "Staffing and capability mapping: designed; ledger schema undefined."
       - "ESOA: designed; refresh trigger open."
@@ -456,11 +452,13 @@ tomorrow:
   - item: Capability mapping against current engagements
 
 decisions:
-  - Which 2 to 3 running engagements and which 3 to 4 recent projects to map against.
-  - The summarizer proposes changes through a reviewed PR and never writes directly.
-  - How required levels get set for a seat.
-  - The Forward Deployed Engineer default breaks the build and QA seat rule.
-  - The ESOA refresh trigger, signal-driven with a time fallback.
+  - Define what Responsible means for Brian on items within the ADLC.
+  - >-
+    There's a boundary and we're not sure where it lands. The original
+    intention for the entire model is that it isn't scoped just to the
+    consulting group; it includes all ICs who participate in the ADLC,
+    regardless of their services or consultant status. The question is:
+    Should it be?
 
 range_drivers:
   pushes_late:
