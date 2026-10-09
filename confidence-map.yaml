@@ -416,10 +416,6 @@ loop:
     - sizing-staffing-rules
     - ai-native-sdlc
     - operating-view
-  callout: >
-    Asking when roles and titles will be done is really asking when levels
-    settle, when sizing exists for the pilot's capabilities, and when staffing
-    has run once to check them.
 
 done:
   - group: The model
